@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IDEF5 Ontology Modeler</title>
+  <title>Quiddity - Ontology Diagramming</title>
   <style>
     /* ===== RESET & BASE ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -61,30 +61,21 @@
     /* ===== CANVAS SVG ===== */
     .node-shape { cursor: move; }
     .node-shape.selected .shape-outline { stroke: #4a90e2 !important; stroke-width: 2.5px !important; }
-    .port-dot { fill: #4a90e2; cursor: crosshair; opacity: 0; transition: opacity 0.1s; }
-    .node-group:hover .port-dot { opacity: 1; }
-    .port-dot:hover { fill: #2060c0; r: 6; }
     .edge-line { cursor: pointer; }
     .edge-line.selected { stroke: #4a90e2 !important; }
     .edge-line.selected path, .edge-line.selected line { stroke: #4a90e2 !important; }
     .rubberband { fill: rgba(74,144,226,0.1); stroke: #4a90e2; stroke-width: 1; stroke-dasharray: 4,2; pointer-events: none; }
-    .connection-preview { pointer-events: none; }
     .selection-handle { fill: #4a90e2; cursor: pointer; }
     .inline-edit-fo { pointer-events: all; }
 
     /* ===== OVERLAY DROPDOWN ===== */
-    #conn-type-popup { position: fixed; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 999; padding: 8px; display: none; }
-    #conn-type-popup h4 { font-size: 11px; color: #888; margin-bottom: 6px; }
-    #conn-type-popup select { width: 160px; padding: 4px 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; }
-    #conn-type-popup button { display: block; width: 100%; margin-top: 6px; padding: 5px; background: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
-    #conn-type-popup button:hover { background: #3070c0; }
   </style>
 </head>
 <body>
 <div id="app">
   <!-- TOOLBAR -->
   <div id="toolbar">
-    <span class="tb-label">IDEF5</span>
+    <span class="tb-label">Quiddity</span>
     <div class="tb-sep"></div>
     <button class="tb-btn" id="btn-new" title="New diagram">&#128196; New</button>
     <button class="tb-btn" id="btn-save" title="Save JSON">&#128190; Save</button>
@@ -316,25 +307,6 @@
   <div class="ctx-item" id="ctx-back" data-action="back">Send to Back</div>
 </div>
 
-<!-- Connection Type Popup -->
-<div id="conn-type-popup">
-  <h4>Connection Type</h4>
-  <select id="conn-type-select">
-    <option value="first-order">First-Order Relation</option>
-    <option value="second-order">Second-Order Relation</option>
-    <option value="subkind-of">Subkind-of</option>
-    <option value="instance-of">Instance-of</option>
-    <option value="part-of">Part-of</option>
-    <option value="state-weak">State Transition (Weak)</option>
-    <option value="state-strong">State Transition (Strong)</option>
-    <option value="process-connect">Process Connection</option>
-    <option value="relation-alt">Alt. 2-Place First-Order</option>
-    <option value="connect-fwd">Connecting Symbol (Forward)</option>
-    <option value="connect-bwd">Connecting Symbol (Backward)</option>
-    <option value="connect-plain">Connecting Symbol (Plain)</option>
-  </select>
-  <button id="conn-type-confirm">Create Connection</button>
-</div>
 
 <script>
 'use strict';
@@ -424,8 +396,6 @@ let viewport = { x: 0, y: 0, scale: 1 };
 
 // Interaction state
 let dragState = null;           // { type: 'node'|'canvas'|'rubberband', ... }
-let connectState = null;        // { fromId, fromPort, x1, y1, tempLine }
-let pendingConnection = null;   // { fromId, toId }
 let editingNodeId = null;
 let toolboxConnectStart = null; // { edgeType, fromId } — fromId null = still picking source
 
@@ -788,13 +758,6 @@ function createNodeSVG(node) {
     }
   }
 
-  // Ports (always rendered, shown on hover via CSS)
-  const ports = getPortPositions(node);
-  for (const [dir, pos] of Object.entries(ports)) {
-    const dot = svgEl('circle', { cx: pos.x, cy: pos.y, r: DEFAULTS.portRadius, class: 'port-dot', 'data-node-id': node.id, 'data-port': dir });
-    g.appendChild(dot);
-  }
-
   return g;
 }
 
@@ -971,6 +934,7 @@ function svgWrappedText(cx, cy, text, maxWidth, fontSize, fill) {
     const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
     tspan.setAttribute('x', cx);
     tspan.setAttribute('y', startY + i * lineH);
+    tspan.setAttribute('text-anchor', 'middle');
     tspan.textContent = line;
     el.appendChild(tspan);
   });
@@ -1372,14 +1336,6 @@ function pointToSegmentDist(px, py, ax, ay, bx, by) {
   return Math.hypot(px - (ax + t*dx), py - (ay + t*dy));
 }
 
-function getPortFromEvent(e) {
-  const el = e.target;
-  if (el.classList.contains('port-dot')) {
-    return { nodeId: el.getAttribute('data-node-id'), port: el.getAttribute('data-port') };
-  }
-  return null;
-}
-
 let pointerDownPos = null;
 let rubberBandRect = null;
 
@@ -1425,18 +1381,6 @@ function onCanvasPointerDown(e) {
       }
     }
     e.preventDefault();
-    return;
-  }
-
-  const portInfo = getPortFromEvent(e);
-  if (portInfo) {
-    // Start connection
-    const wp = clientToWorld(e.clientX, e.clientY);
-    const tempLine = svgEl('line', { x1: wp.x, y1: wp.y, x2: wp.x, y2: wp.y, stroke: '#4a90e2', 'stroke-width': 1.5, 'stroke-dasharray': '5,3', 'marker-end': 'url(#arrowhead-blue)', class: 'connection-preview', id: 'connection-preview' });
-    document.getElementById('ui-layer').appendChild(tempLine);
-    connectState = { fromId: portInfo.nodeId, fromPort: portInfo.port, wx: wp.x, wy: wp.y };
-    canvas.setPointerCapture(e.pointerId);
-    e.stopPropagation();
     return;
   }
 
@@ -1493,19 +1437,7 @@ function onCanvasPointerDown(e) {
 }
 
 function onCanvasPointerMove(e) {
-  if (!dragState && !connectState) return;
-
-  if (connectState) {
-    const wp = clientToWorld(e.clientX, e.clientY);
-    const line = document.getElementById('connection-preview');
-    if (line) {
-      const fromNode = state.nodes.find(n => n.id === connectState.fromId);
-      const p1 = fromNode ? getBoundaryPoint(fromNode, wp.x, wp.y) : { x: connectState.wx, y: connectState.wy };
-      line.setAttribute('x1', p1.x); line.setAttribute('y1', p1.y);
-      line.setAttribute('x2', wp.x); line.setAttribute('y2', wp.y);
-    }
-    return;
-  }
+  if (!dragState) return;
 
   if (dragState.type === 'pan') {
     viewport.x = dragState.vpStart.x + (e.clientX - dragState.startX);
@@ -1550,22 +1482,6 @@ function renderRubberBand() {
 }
 
 function onCanvasPointerUp(e) {
-  if (connectState) {
-    const line = document.getElementById('connection-preview');
-    if (line) line.remove();
-
-    const wp = clientToWorld(e.clientX, e.clientY);
-    const targetNode = hitTestNode(wp.x, wp.y);
-
-    if (targetNode && targetNode.id !== connectState.fromId) {
-      pendingConnection = { fromId: connectState.fromId, toId: targetNode.id };
-      showConnTypePopup(e.clientX, e.clientY);
-    }
-    connectState = null;
-    canvas.releasePointerCapture(e.pointerId);
-    return;
-  }
-
   if (dragState) {
     if (dragState.type === 'node' && dragState.moved) {
       saveUndo();
@@ -1594,30 +1510,7 @@ function onCanvasPointerUp(e) {
   }
 }
 
-function showConnTypePopup(cx, cy) {
-  const popup = document.getElementById('conn-type-popup');
-  popup.style.left = cx + 'px';
-  popup.style.top = cy + 'px';
-  popup.style.display = 'block';
-}
-
-document.getElementById('conn-type-confirm').addEventListener('click', () => {
-  if (!pendingConnection) return;
-  const type = document.getElementById('conn-type-select').value;
-  saveUndo();
-  const edge = createEdge(pendingConnection.fromId, pendingConnection.toId, type);
-  state.edges.push(edge);
-  pendingConnection = null;
-  document.getElementById('conn-type-popup').style.display = 'none';
-  renderAll();
-});
-
 document.addEventListener('click', e => {
-  const popup = document.getElementById('conn-type-popup');
-  if (popup.style.display === 'block' && !popup.contains(e.target)) {
-    popup.style.display = 'none';
-    pendingConnection = null;
-  }
   hideContextMenu();
 });
 

@@ -7,3 +7,5 @@ Learn more about [IDEF5](https://www.idef.com/idef5-ontology-description-capture
 ## How to use Quiddity
 
 Quiddity is a SPA. Clone the repo and load up quiddity.html in your browser. I've included some example ontologies from the IDEF5 spec in the Examples menu.
+
+![Quiddity screenshot](screenshot.png)
