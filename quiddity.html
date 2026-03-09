@@ -50,6 +50,9 @@
     .prop-checkbox-row { display: flex; align-items: center; gap: 6px; }
     .prop-empty { color: #999; font-size: 12px; text-align: center; padding: 20px 0; }
     select.prop-input { cursor: pointer; }
+    .prop-info { margin-top: 14px; padding-top: 10px; border-top: 1px solid #e0e0e0; }
+    .prop-info-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .prop-info-text { font-size: 11px; color: #555; line-height: 1.5; }
 
     /* ===== CONTEXT MENU ===== */
     #context-menu { position: fixed; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 1000; min-width: 160px; padding: 4px 0; display: none; }
@@ -153,6 +156,7 @@
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <rect x="3" y="7" width="30" height="22" fill="white" stroke="#333" stroke-width="1.5"/>
           <line x1="3" y1="22" x2="33" y2="22" stroke="#333" stroke-width="1.5"/>
+          <line x1="18" y1="22" x2="18" y2="29" stroke="#333" stroke-width="1.5"/>
           <text x="18" y="17" text-anchor="middle" font-size="7" fill="#333">Proc</text>
         </svg>
         <span class="toolbox-item-label">Process</span>
@@ -162,11 +166,12 @@
       <div class="toolbox-item" draggable="true" data-type="referent">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <rect x="2" y="5" width="32" height="26" fill="white" stroke="#333" stroke-width="1.5"/>
-          <line x1="2" y1="18" x2="34" y2="18" stroke="#333" stroke-width="1"/>
-          <line x1="18" y1="5" x2="18" y2="18" stroke="#333" stroke-width="1"/>
-          <text x="10" y="14" text-anchor="middle" font-size="5.5" fill="#555">ID</text>
-          <text x="26" y="14" text-anchor="middle" font-size="5" fill="#555">Method</text>
-          <text x="18" y="27" text-anchor="middle" font-size="5" fill="#555">Concept</text>
+          <rect x="2" y="5" width="4" height="26" fill="#333"/>
+          <line x1="6" y1="18" x2="34" y2="18" stroke="#333" stroke-width="1"/>
+          <line x1="14" y1="5" x2="14" y2="18" stroke="#333" stroke-width="1"/>
+          <text x="10" y="14" text-anchor="middle" font-size="5.5" fill="#222">ID</text>
+          <text x="24" y="14" text-anchor="middle" font-size="5" fill="#555">Method</text>
+          <text x="20" y="27" text-anchor="middle" font-size="5" fill="#555">Concept</text>
         </svg>
         <span class="toolbox-item-label">Referent</span>
       </div>
@@ -175,7 +180,7 @@
       <div class="toolbox-item" draggable="true" data-type="junction-xor">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
-          <text x="18" y="22" text-anchor="middle" font-size="12" fill="#333">&#10005;</text>
+          <text x="18" y="22" text-anchor="middle" font-size="12" fill="#333" font-family="Times New Roman, Times, serif" font-weight="bold">X</text>
         </svg>
         <span class="toolbox-item-label">Junction (XOR)</span>
       </div>
@@ -376,6 +381,40 @@ const TOOLBOX_EDGE_TYPES = {
   'connect-fwd':        'connect-fwd',
   'connect-bwd':        'connect-bwd',
   'connect-plain':      'connect-plain',
+};
+
+// Descriptions drawn from the IDEF5 Schematic Language basic lexicon
+const SYMBOL_INFO = {
+  // Node types
+  'kind': 'A natural kind — a category of things that share essential, defining properties. Kinds are depicted as circles. They represent the ontological backbone of an IDEF5 model: the classes or types whose nature the modeler is capturing.',
+  'individual': 'A specific, named instance of a kind. Depicted as a circle with a filled dot at the bottom. Individuals are particular things (not categories), and the dot distinguishes them from their parent kind.',
+  'relation-first': 'A first-order relation — a relationship whose arguments are kinds or individuals. Depicted as a rectangle. Relations capture how kinds and individuals are associated, such as "contains", "precedes", or "is made of".',
+  'relation-second': 'A second-order (2-place) relation — a relationship that takes another relation as one of its arguments. Depicted as a rectangle with a right-pointing filled triangle on the left. The triangle\'s tip connects to the relation line, indicating that this relation is "about" another relation.',
+  'relation-alt': 'An alternative depiction of a 2-place first-order relation, used when the relation connects exactly two kinds or individuals. Rather than a separate relation box, the relation name is placed directly on the connecting line.',
+  'process': 'A process or activity that takes kinds or individuals as inputs and produces transformed outputs. Depicted as a rounded rectangle. Processes represent dynamic aspects of the ontology — how things change, are created, or are destroyed.',
+  'referent': 'A classification schema node, used to identify and reference kinds using a structured labeling scheme. Consists of three fields: a Reference ID (top-left), a Method Name (top-right), and a Concept Label (bottom). Used when a formal naming convention governs kind identification.',
+  'state-weak': 'A weak state transition node. Represents a state change that is possible but not guaranteed — the transition may or may not occur. The small open circle at the midpoint of the arrow is the transition marker. Connect incoming and outgoing arcs to the circle.',
+  'state-strong': 'A strong state transition node. Represents a state change that is necessary and irreversible under the specified conditions. The double arrowhead and midpoint circle distinguish it from a weak transition. Connect incoming and outgoing arcs to the circle.',
+  'junction-and': 'A logical AND junction. All incoming flows must be satisfied for the outgoing flow to proceed. Used in process connection diagrams to represent concurrent or joint conditions.',
+  'junction-or': 'A logical OR junction. At least one incoming flow must be satisfied for the outgoing flow to proceed. Used in process connection diagrams to represent alternative or disjunctive conditions.',
+  'junction-xor': 'A logical XOR (exclusive-or) junction. Exactly one incoming flow must be satisfied. Used in process connection diagrams to represent mutually exclusive alternatives.',
+  'connect-fwd': 'A forward connecting symbol. A solid line with a forward-pointing chevron (▶) at the midpoint. Used to show directed flow or association between elements in a process or state diagram.',
+  'connect-bwd': 'A backward connecting symbol. A solid line with a backward-pointing chevron (◀) at the midpoint. Used to show reverse directed flow or association between elements.',
+  'connect-plain': 'A plain connecting symbol. A solid line with no directional indicator. Used to associate elements without implying a direction — for example, connecting a process to a state transition circle.',
+
+  // Edge types
+  'first-order': 'A first-order relation edge. Connects a relation node to the kinds or individuals it relates. The arrowhead points toward the node that plays the "range" role in the relation.',
+  'second-order': 'A second-order relation edge. A solid line with a filled triangle at the source end, connecting a second-order relation node to the first-order relation it is "about". The triangle tip points into the line.',
+  'subkind-of': 'A subkind-of relation. Asserts that the source kind is a specialization of the target kind — every instance of the subkind is necessarily an instance of the superkind. Depicted as a dashed line with an open triangular arrowhead pointing to the parent kind.',
+  'instance-of': 'An instance-of relation. Asserts that the source individual is a member of the target kind. Depicted as a dashed line with a filled arrowhead pointing to the kind.',
+  'part-of': 'A part-of relation. Asserts a mereological (compositional) relationship: the source is a part, component, or constituent of the target. Depicted as a solid line with an arrowhead pointing to the whole.',
+  'state-weak': 'A weak state transition edge. Connects a source state (kind or individual) through a midpoint circle to a target state, representing a possible but non-mandatory state change.',
+  'state-strong': 'A strong state transition edge. Connects a source state through a midpoint circle to a target state with a double arrowhead, representing a necessary and irreversible state change.',
+  'process-connect': 'A process connection edge. Links processes, junctions, and state nodes in a process flow diagram, showing the sequence or dependency between process steps.',
+  'relation-alt': 'An alternative first-order relation edge. Renders the relation name directly on the line rather than in a separate rectangle, used for concise 2-place relation depictions.',
+  'connect-fwd': 'A forward connecting symbol edge. A solid line with a forward chevron at the midpoint, indicating directed association or flow from source to target.',
+  'connect-bwd': 'A backward connecting symbol edge. A solid line with a backward chevron at the midpoint, indicating reverse directed association or flow.',
+  'connect-plain': 'A plain connecting symbol edge. A solid undirected line, used to associate elements (such as a process node and a state transition circle) without implying direction.',
 };
 
 // ============================================================
@@ -675,6 +714,7 @@ function createNodeSVG(node) {
       const shelfY = node.y + h/2 - 14;
       g.appendChild(svgEl('rect', { x: node.x - w/2, y: node.y - h/2, width: w, height: h, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
       g.appendChild(svgEl('line', { x1: node.x - w/2, y1: shelfY, x2: node.x + w/2, y2: shelfY, stroke: strokeColor, 'stroke-width': 1.5 }));
+      g.appendChild(svgEl('line', { x1: node.x, y1: shelfY, x2: node.x, y2: node.y + h/2, stroke: strokeColor, 'stroke-width': 1.5 }));
       // Label centered in upper area above shelf line
       g.appendChild(svgWrappedText(node.x, node.y - 7, node.label || 'Process', w * 0.85, 11, '#222'));
       break;
@@ -682,20 +722,25 @@ function createNodeSVG(node) {
     case 'referent': {
       const w = node.w || DEFAULTS.referentW, h = node.h || DEFAULTS.referentH;
       const bx = node.x - w/2, by = node.y - h/2;
-      const midH = h / 2;   // horizontal divider at vertical midpoint
-      const midX = node.x;  // vertical divider at horizontal center (top half only)
+      const barW = w * 0.12;       // narrow decorative black bar on far left
+      const idW = w * 0.22;        // ID cell width (to the right of bar)
+      const midH = h / 2;          // horizontal divider
+      const contentX = bx + barW;  // x where content area starts
+      const contentW = w - barW;   // width of content area
       // Outer rectangle
       g.appendChild(svgEl('rect', { x: bx, y: by, width: w, height: h, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
-      // Horizontal divider (splits top/bottom halves)
-      g.appendChild(svgEl('line', { x1: bx, y1: by + midH, x2: bx + w, y2: by + midH, stroke: strokeColor, 'stroke-width': 1 }));
-      // Vertical divider (in top half only, splits ID | Method Name)
-      g.appendChild(svgEl('line', { x1: midX, y1: by, x2: midX, y2: by + midH, stroke: strokeColor, 'stroke-width': 1 }));
-      // ID (top-left cell)
-      g.appendChild(svgText(bx + w * 0.25, by + midH * 0.5 + 4, node.refId || 'ID', { 'text-anchor': 'middle', 'font-size': 10, fill: '#444' }));
-      // Method Name (top-right cell)
-      g.appendChild(svgWrappedText(midX + w * 0.25, by + midH * 0.5, node.methodName || 'Method Name', w * 0.42, 9, '#555'));
-      // Referenced Concept Label (bottom half)
-      g.appendChild(svgWrappedText(node.x, by + midH + midH * 0.5, node.label || 'Concept Label', w * 0.85, 10, '#444'));
+      // Solid black decorative bar on far left (full height)
+      g.appendChild(svgEl('rect', { x: bx, y: by, width: barW, height: h, fill: strokeColor }));
+      // Horizontal divider (full width of content area)
+      g.appendChild(svgEl('line', { x1: contentX, y1: by + midH, x2: bx + w, y2: by + midH, stroke: strokeColor, 'stroke-width': 1 }));
+      // Vertical divider in top half: separates ID cell from Method Name cell
+      g.appendChild(svgEl('line', { x1: contentX + idW, y1: by, x2: contentX + idW, y2: by + midH, stroke: strokeColor, 'stroke-width': 1 }));
+      // ID text (top-left content cell)
+      g.appendChild(svgText(contentX + idW / 2, by + midH * 0.5 + 4, node.refId || 'ID', { 'text-anchor': 'middle', 'font-size': 10, fill: '#222' }));
+      // Method Name (top-right content cell)
+      g.appendChild(svgWrappedText(contentX + idW + (contentW - idW) / 2, by + midH * 0.5, node.methodName || 'Method Name', (contentW - idW) * 0.85, 9, '#555'));
+      // Referenced Concept Label (bottom content area)
+      g.appendChild(svgWrappedText(contentX + contentW / 2, by + midH + midH * 0.5, node.label || 'Concept Label', contentW * 0.85, 10, '#444'));
       break;
     }
     case 'junction-xor':
@@ -703,8 +748,8 @@ function createNodeSVG(node) {
     case 'junction-and': {
       const r = DEFAULTS.junctionR;
       g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
-      const sym = node.type === 'junction-xor' ? '×' : node.type === 'junction-or' ? 'O' : '&';
-      g.appendChild(svgText(node.x, node.y + 5, sym, { 'text-anchor': 'middle', 'font-size': 14, fill: '#333', 'font-weight': 'bold' }));
+      const sym = node.type === 'junction-xor' ? 'X' : node.type === 'junction-or' ? 'O' : '&';
+      g.appendChild(svgText(node.x, node.y + 5, sym, { 'text-anchor': 'middle', 'font-size': 14, fill: '#333', 'font-weight': 'bold', 'font-family': 'Times New Roman, Times, serif' }));
       break;
     }
     case 'state-weak':
@@ -1087,6 +1132,8 @@ function renderNodeProps(panel, node) {
   // Position
   addProp('Position', `<span style="font-size:11px;color:#888">x: ${Math.round(node.x)}, y: ${Math.round(node.y)}</span>`);
   addProp('ID', `<span style="font-size:11px;color:#aaa">${node.id}</span>`);
+
+  addInfoSection(panel, node.type);
 }
 
 function renderEdgeProps(panel, edge) {
@@ -1110,6 +1157,17 @@ function renderEdgeProps(panel, edge) {
 
   addProp('From → To', `<span style="font-size:11px;color:#888">${edge.fromId} → ${edge.toId}</span>`);
   addProp('ID', `<span style="font-size:11px;color:#aaa">${edge.id}</span>`);
+
+  addInfoSection(panel, edge.type);
+}
+
+function addInfoSection(panel, type) {
+  const text = SYMBOL_INFO[type];
+  if (!text) return;
+  const d = document.createElement('div');
+  d.className = 'prop-info';
+  d.innerHTML = `<div class="prop-info-title">Symbol Definition</div><p class="prop-info-text">${escHtml(text)}</p>`;
+  panel.appendChild(d);
 }
 
 function escHtml(s) {
