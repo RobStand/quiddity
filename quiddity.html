@@ -25,6 +25,11 @@
     .tb-sep { width: 1px; background: #555; height: 24px; margin: 0 2px; }
     .tb-label { color: #aaa; font-size: 11px; }
     .zoom-display { color: #ccc; font-size: 12px; min-width: 40px; text-align: center; }
+    .tb-dropdown { position: relative; }
+    .tb-dropdown-menu { display: none; position: absolute; top: calc(100% + 4px); left: 0; background: #2c2c2c; border: 1px solid #555; border-radius: 4px; min-width: 220px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+    .tb-dropdown-menu.open { display: block; }
+    .tb-dropdown-item { display: block; width: 100%; padding: 8px 14px; background: none; border: none; color: #eee; font-size: 12px; text-align: left; cursor: pointer; white-space: nowrap; }
+    .tb-dropdown-item:hover { background: #444; }
 
     /* ===== TOOLBOX ===== */
     .toolbox-section { padding: 8px 8px 4px; font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #e0e0e0; }
@@ -93,6 +98,16 @@
     <span class="zoom-display" id="zoom-display">100%</span>
     <button class="tb-btn" id="btn-zoom-out" title="Zoom Out">&#8722;</button>
     <button class="tb-btn" id="btn-zoom-fit" title="Fit to window">Fit</button>
+    <div class="tb-sep"></div>
+    <div class="tb-dropdown" id="examples-dropdown">
+      <button class="tb-btn" id="btn-examples">Examples &#9660;</button>
+      <div class="tb-dropdown-menu" id="examples-menu">
+        <button class="tb-dropdown-item" data-example="ballpoint-pen">Ballpoint Pen Components</button>
+        <button class="tb-dropdown-item" data-example="water-transitions">Water Phase Transitions</button>
+        <button class="tb-dropdown-item" data-example="vehicle-classification">Vehicle Classification</button>
+        <button class="tb-dropdown-item" data-example="fastener-classification">Fastener Classification</button>
+      </div>
+    </div>
     <input type="file" id="file-input" accept=".json" style="display:none">
   </div>
 
@@ -1780,6 +1795,134 @@ document.getElementById('file-input').addEventListener('change', e => {
 });
 
 document.getElementById('btn-export-svg').addEventListener('click', exportSVG);
+
+// ===== EXAMPLES =====
+const EXAMPLES = {
+  'ballpoint-pen': {
+    label: 'Ballpoint Pen Components',
+    nodes: [
+      { id: 1, type: 'kind', x: 300, y: 80,  label: 'Ballpoint Pen' },
+      { id: 2, type: 'kind', x: 120, y: 220, label: 'Lower Body' },
+      { id: 3, type: 'kind', x: 300, y: 220, label: 'Cartridge' },
+      { id: 4, type: 'kind', x: 480, y: 220, label: 'Upper Body' },
+      { id: 5, type: 'kind', x: 180, y: 360, label: 'Spring' },
+      { id: 6, type: 'kind', x: 360, y: 360, label: 'Ink Supply' },
+      { id: 7, type: 'kind', x: 540, y: 360, label: 'Ball Tip' },
+    ],
+    edges: [
+      { id: 101, type: 'part-of', fromId: 2, toId: 1, label: '' },
+      { id: 102, type: 'part-of', fromId: 3, toId: 1, label: '' },
+      { id: 103, type: 'part-of', fromId: 4, toId: 1, label: '' },
+      { id: 104, type: 'part-of', fromId: 5, toId: 3, label: '' },
+      { id: 105, type: 'part-of', fromId: 6, toId: 3, label: '' },
+      { id: 106, type: 'part-of', fromId: 7, toId: 3, label: '' },
+    ],
+    nextId: 200,
+  },
+  'water-transitions': {
+    label: 'Water Phase Transitions',
+    nodes: [
+      { id: 1, type: 'kind',          x: 120, y: 200, label: 'Water:Liquid' },
+      { id: 2, type: 'kind',          x: 480, y: 200, label: 'Water:Gaseous' },
+      { id: 3, type: 'state-strong',  x: 300, y: 200, label: '' },
+      { id: 4, type: 'process',       x: 300, y: 80,  label: 'Vaporize Water' },
+      { id: 5, type: 'kind',          x: 120, y: 360, label: 'Water:Solid' },
+      { id: 6, type: 'state-weak',    x: 300, y: 360, label: '' },
+    ],
+    edges: [
+      { id: 101, type: 'connect-plain', fromId: 1, toId: 3, label: '' },
+      { id: 102, type: 'connect-plain', fromId: 3, toId: 2, label: '' },
+      { id: 103, type: 'connect-plain', fromId: 4, toId: 3, label: '' },
+      { id: 104, type: 'connect-plain', fromId: 5, toId: 6, label: '' },
+      { id: 105, type: 'connect-plain', fromId: 6, toId: 2, label: '' },
+    ],
+    nextId: 200,
+  },
+  'vehicle-classification': {
+    label: 'Vehicle Classification',
+    nodes: [
+      { id: 1, type: 'kind', x: 300, y: 60,  label: 'Vehicle' },
+      { id: 2, type: 'kind', x: 160, y: 180, label: 'Land Vehicle' },
+      { id: 3, type: 'kind', x: 440, y: 180, label: 'Water Vehicle' },
+      { id: 4, type: 'kind', x: 80,  y: 320, label: 'Car' },
+      { id: 5, type: 'kind', x: 240, y: 320, label: 'Truck' },
+      { id: 6, type: 'kind', x: 380, y: 320, label: 'Boat' },
+      { id: 7, type: 'kind', x: 520, y: 320, label: 'Ship' },
+      { id: 8, type: 'kind', x: 160, y: 460, label: 'Bicycle' },
+      { id: 9, type: 'kind', x: 300, y: 460, label: 'Motorcycle' },
+    ],
+    edges: [
+      { id: 101, type: 'subkind-of', fromId: 2, toId: 1, label: '' },
+      { id: 102, type: 'subkind-of', fromId: 3, toId: 1, label: '' },
+      { id: 103, type: 'subkind-of', fromId: 4, toId: 2, label: '' },
+      { id: 104, type: 'subkind-of', fromId: 5, toId: 2, label: '' },
+      { id: 105, type: 'subkind-of', fromId: 6, toId: 3, label: '' },
+      { id: 106, type: 'subkind-of', fromId: 7, toId: 3, label: '' },
+      { id: 107, type: 'subkind-of', fromId: 8, toId: 2, label: '' },
+      { id: 108, type: 'subkind-of', fromId: 9, toId: 2, label: '' },
+    ],
+    nextId: 200,
+  },
+  'fastener-classification': {
+    label: 'Fastener Classification',
+    nodes: [
+      { id: 1,  type: 'kind', x: 300, y: 60,  label: 'Fastener' },
+      { id: 2,  type: 'kind', x: 160, y: 190, label: 'Threaded Fastener' },
+      { id: 3,  type: 'kind', x: 440, y: 190, label: 'Non-Threaded Fastener' },
+      { id: 4,  type: 'kind', x: 80,  y: 330, label: 'Bolt' },
+      { id: 5,  type: 'kind', x: 200, y: 330, label: 'Screw' },
+      { id: 6,  type: 'kind', x: 320, y: 330, label: 'Nail' },
+      { id: 7,  type: 'kind', x: 440, y: 330, label: 'Rivet' },
+      { id: 8,  type: 'kind', x: 560, y: 330, label: 'Staple' },
+      { id: 9,  type: 'kind', x: 80,  y: 460, label: 'Hex Bolt' },
+      { id: 10, type: 'kind', x: 200, y: 460, label: 'Carriage Bolt' },
+    ],
+    edges: [
+      { id: 101, type: 'subkind-of', fromId: 2,  toId: 1, label: '' },
+      { id: 102, type: 'subkind-of', fromId: 3,  toId: 1, label: '' },
+      { id: 103, type: 'subkind-of', fromId: 4,  toId: 2, label: '' },
+      { id: 104, type: 'subkind-of', fromId: 5,  toId: 2, label: '' },
+      { id: 105, type: 'subkind-of', fromId: 6,  toId: 3, label: '' },
+      { id: 106, type: 'subkind-of', fromId: 7,  toId: 3, label: '' },
+      { id: 107, type: 'subkind-of', fromId: 8,  toId: 3, label: '' },
+      { id: 108, type: 'subkind-of', fromId: 9,  toId: 4, label: '' },
+      { id: 109, type: 'subkind-of', fromId: 10, toId: 4, label: '' },
+    ],
+    nextId: 200,
+  },
+};
+
+function loadExample(key) {
+  const ex = EXAMPLES[key];
+  if (!ex) return;
+  const hasContent = state.nodes.length > 0 || state.edges.length > 0;
+  if (hasContent && !confirm(`Load example "${ex.label}"?\nThis will replace the current diagram.`)) return;
+  saveUndo();
+  state.nodes = ex.nodes.map(n => ({ ...n }));
+  state.edges = ex.edges.map(e => ({ ...e }));
+  state.nextId = ex.nextId;
+  selectedIds.clear();
+  renderAll();
+  updateProperties();
+  persistLocal();
+  fitToWindow();
+}
+
+document.getElementById('btn-examples').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('examples-menu').classList.toggle('open');
+});
+
+document.getElementById('examples-menu').addEventListener('click', e => {
+  const item = e.target.closest('.tb-dropdown-item');
+  if (!item) return;
+  document.getElementById('examples-menu').classList.remove('open');
+  loadExample(item.dataset.example);
+});
+
+document.addEventListener('click', () => {
+  document.getElementById('examples-menu').classList.remove('open');
+});
 
 function exportSVG() {
   // Compute bounding box of all nodes
