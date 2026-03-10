@@ -1263,6 +1263,16 @@ document.querySelectorAll('.toolbox-item').forEach(item => {
     e.dataTransfer.setData('node-type', item.dataset.type);
     e.dataTransfer.effectAllowed = 'copy';
   });
+  // Click a connection tool to enter connection mode (no drag needed)
+  const edgeType = TOOLBOX_EDGE_TYPES[item.dataset.type];
+  if (edgeType) {
+    item.addEventListener('click', () => {
+      cancelToolboxConnect();                     // clear any prior mode
+      toolboxConnectStart = { edgeType, fromId: null };
+      canvasContainer.style.cursor = 'crosshair';
+      showToolboxConnectHint(true);               // "Click the source node"
+    });
+  }
 });
 
 canvasContainer.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
