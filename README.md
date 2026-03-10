@@ -6,7 +6,7 @@ Quiddity is a simple diagramming tool that leverages IDEF5 for creating ontologi
 
 ## How to use Quiddity
 
-Quiddity is a SPA. Clone the repo and load up quiddity.html in your browser. I've included some example ontologies from the IDEF5 spec in the Examples menu.
+Quiddity is a single-page application (SPA). Clone the repo and load up quiddity.html in your browser. I've included some example ontologies from the IDEF5 spec in the Examples menu.
 
 ## Quid est?
 
