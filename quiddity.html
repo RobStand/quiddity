@@ -250,8 +250,7 @@
       </div>
       <div class="toolbox-item" draggable="true" data-type="transition-instant" title="An instantaneous state transition">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <polygon points="18,6 30,30 6,30" fill="white" stroke="#333" stroke-width="1.5"/>
-          <text x="18" y="27" text-anchor="middle" font-size="12" fill="#333">&#916;</text>
+          <text x="18" y="26" text-anchor="middle" font-size="22" fill="#333">&#916;</text>
         </svg>
         <span class="toolbox-item-label">Instant. Transition</span>
       </div>
@@ -389,7 +388,6 @@ const TOOLBOX_EDGE_TYPES = {
   'relation-alt':       'relation-alt',
   'state-weak':         'state-weak',
   'state-strong':       'state-strong',
-  'transition-instant': 'state-weak',
   'connect-fwd':        'connect-fwd',
   'connect-bwd':        'connect-bwd',
   'connect-plain':      'connect-plain',
@@ -788,8 +786,9 @@ function createNodeSVG(node) {
       } else {
         g.appendChild(svgEl('polygon', { points: `${x2-6},${arrowY-4} ${x2+2},${arrowY} ${x2-6},${arrowY+4}`, fill: strokeColor }));
       }
-      // center open circle
-      g.appendChild(svgEl('circle', { cx: node.x, cy: arrowY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+      // center open circle (enlarged with Δ inside if instantaneous)
+      if (node.instantaneous) g.appendChild(instantaneousCircle(node.x, arrowY, strokeColor));
+      else g.appendChild(svgEl('circle', { cx: node.x, cy: arrowY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
       if (node.label) g.appendChild(svgText(node.x, arrowY - 12, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: '#444' }));
       break;
     }
@@ -909,15 +908,17 @@ function createEdgeSVG(edge) {
     }
     case 'state-weak': {
       g.appendChild(svgEl('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: strokeColor, 'stroke-width': 1.5, 'marker-end': arrowMarker, class: 'edge-line' }));
-      g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
-      if (edge.label) g.appendChild(edgeLabel(midX, midY - 12, edge.label, strokeColor));
+      if (edge.instantaneous) g.appendChild(instantaneousCircle(midX, midY, strokeColor));
+      else g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+      if (edge.label) g.appendChild(edgeLabel(midX, midY - 14, edge.label, strokeColor));
       break;
     }
     case 'state-strong': {
       const doubleMarker = isSelected ? 'url(#arrowhead-double-blue)' : 'url(#arrowhead-double)';
       g.appendChild(svgEl('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: strokeColor, 'stroke-width': 1.5, 'marker-end': doubleMarker, class: 'edge-line' }));
-      g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
-      if (edge.label) g.appendChild(edgeLabel(midX, midY - 12, edge.label, strokeColor));
+      if (edge.instantaneous) g.appendChild(instantaneousCircle(midX, midY, strokeColor));
+      else g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+      if (edge.label) g.appendChild(edgeLabel(midX, midY - 14, edge.label, strokeColor));
       break;
     }
     case 'process-connect': {
@@ -956,6 +957,15 @@ function createEdgeSVG(edge) {
   const hit = svgEl('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: 'transparent', 'stroke-width': 12, class: 'edge-hit' });
   g.appendChild(hit);
 
+  return g;
+}
+
+// Renders the instantaneous transition marker: a slightly larger circle with Δ centered inside.
+// Call this INSTEAD of the plain circle when edge/node has instantaneous=true.
+function instantaneousCircle(cx, cy, color) {
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.appendChild(svgEl('circle', { cx, cy, r: 9, fill: 'white', stroke: color, 'stroke-width': 1.5 }));
+  g.appendChild(svgText(cx, cy + 5, 'Δ', { 'text-anchor': 'middle', 'font-size': 10, fill: color }));
   return g;
 }
 
@@ -1324,6 +1334,26 @@ canvasContainer.addEventListener('drop', e => {
     toolboxConnectStart = { edgeType, fromId: sourceNode ? sourceNode.id : null };
     canvasContainer.style.cursor = 'crosshair';
     showToolboxConnectHint(!sourceNode);
+    return;
+  }
+
+  // Instantaneous transition marker: applies to the circle of an existing state transition
+  if (type === 'transition-instant') {
+    const transHit = hitTestTransitionCircle(pos.x, pos.y);
+    if (transHit) {
+      saveUndo();
+      transHit.edge.instantaneous = !transHit.edge.instantaneous; // toggle
+      renderAll();
+      persistLocal();
+    } else {
+      const stateNode = hitTestNode(pos.x, pos.y);
+      if (stateNode && (stateNode.type === 'state-weak' || stateNode.type === 'state-strong')) {
+        saveUndo();
+        stateNode.instantaneous = !stateNode.instantaneous; // toggle
+        renderAll();
+        persistLocal();
+      }
+    }
     return;
   }
 
