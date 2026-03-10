@@ -199,6 +199,15 @@
         <span class="toolbox-item-label">Junction (AND)</span>
       </div>
 
+      <div class="toolbox-section">Grouping</div>
+      <div class="toolbox-item" draggable="true" data-type="container" title="A dashed rectangle for visually grouping related symbols">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <rect x="3" y="3" width="30" height="30" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <text x="7" y="12" font-size="6" fill="#555" font-style="italic">Grp</text>
+        </svg>
+        <span class="toolbox-item-label">Container</span>
+      </div>
+
       <div class="toolbox-section">Connecting Symbols</div>
       <div class="toolbox-item" draggable="true" data-type="connect-fwd" title="Directed connection with forward arrow">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
@@ -333,6 +342,8 @@ const DEFAULTS = {
   stateW: 80,
   stateH: 30,
   transitionSize: 36,
+  containerW: 300,
+  containerH: 200,
   portRadius: 5,
   snapGrid: 10,
 };
@@ -354,6 +365,7 @@ const NODE_TYPES = {
   'connect-fwd':   { label: 'Connect (Forward)',  defaultLabel: '' },
   'connect-bwd':   { label: 'Connect (Backward)', defaultLabel: '' },
   'connect-plain': { label: 'Connect (Plain)',    defaultLabel: '' },
+  'container':     { label: 'Container',          defaultLabel: 'Group' },
 };
 
 const EDGE_TYPE_LABELS = {
@@ -401,6 +413,7 @@ const SYMBOL_INFO = {
   'connect-fwd': 'A forward connecting symbol. A solid line with a forward-pointing chevron (▶) at the midpoint. Used to show directed flow or association between elements in a process or state diagram.',
   'connect-bwd': 'A backward connecting symbol. A solid line with a backward-pointing chevron (◀) at the midpoint. Used to show reverse directed flow or association between elements.',
   'connect-plain': 'A plain connecting symbol. A solid line with no directional indicator. Used to associate elements without implying a direction — for example, connecting a process to a state transition circle.',
+  'container': 'A grouping container. A dashed rectangle used to visually group related symbols together on the diagram. The label appears in the top-left corner. Containers have no semantic effect on connections — they are purely organizational.',
 
   // Edge types
   'first-order': 'A first-order relation edge. Connects a relation node to the kinds or individuals it relates. The arrowhead points toward the node that plays the "range" role in the relation.',
@@ -528,6 +541,10 @@ function getBBox(node) {
       const s = DEFAULTS.transitionSize;
       return { x: node.x - s/2, y: node.y - s/2, w: s, h: s, cx: node.x, cy: node.y };
     }
+    case 'container': {
+      const w = node.w || DEFAULTS.containerW, h = node.h || DEFAULTS.containerH;
+      return { x: node.x - w/2, y: node.y - h/2, w, h, cx: node.x, cy: node.y };
+    }
     default: {
       const w = 80, h = 40;
       return { x: node.x - w/2, y: node.y - h/2, w, h, cx: node.x, cy: node.y };
@@ -632,10 +649,12 @@ function renderAll() {
 function renderNodes() {
   const layer = document.getElementById('nodes-layer');
   layer.innerHTML = '';
-  // Render in order
+  // Render containers first so they appear behind other nodes
   for (const node of state.nodes) {
-    const g = createNodeSVG(node);
-    layer.appendChild(g);
+    if (node.type === 'container') layer.appendChild(createNodeSVG(node));
+  }
+  for (const node of state.nodes) {
+    if (node.type !== 'container') layer.appendChild(createNodeSVG(node));
   }
 }
 
@@ -799,6 +818,25 @@ function createNodeSVG(node) {
         g.appendChild(svgEl('polyline', { points: `${node.x + 7},${ay - 6} ${node.x - 5},${ay} ${node.x + 7},${ay + 6}`, fill: 'none', stroke: strokeColor, 'stroke-width': 1.5 }));
       }
       if (node.label) g.appendChild(svgText(node.x, ay - 12, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: '#444' }));
+      break;
+    }
+    case 'container': {
+      const w = node.w || DEFAULTS.containerW, h = node.h || DEFAULTS.containerH;
+      const bx = node.x - w/2, by = node.y - h/2;
+      g.appendChild(svgEl('rect', { x: bx, y: by, width: w, height: h, fill: 'white', 'fill-opacity': 0.3, stroke: strokeColor, 'stroke-width': strokeW, 'stroke-dasharray': '8,4', class: 'node-shape shape-outline' }));
+      if (node.label) g.appendChild(svgText(bx + 8, by + 16, node.label, { 'text-anchor': 'start', 'font-size': 12, fill: '#444', 'font-style': 'italic' }));
+      // Resize handles when selected
+      if (isSelected) {
+        const hs = 5;
+        const mx = bx + w/2, my = by + h/2;
+        const handles = [
+          [bx, by], [bx + w, by], [bx, by + h], [bx + w, by + h],  // corners
+          [mx, by], [mx, by + h], [bx, my], [bx + w, my],           // edges
+        ];
+        for (const [hx, hy] of handles) {
+          g.appendChild(svgEl('rect', { x: hx - hs, y: hy - hs, width: hs * 2, height: hs * 2, fill: 'white', stroke: '#4a90e2', 'stroke-width': 1.5 }));
+        }
+      }
       break;
     }
   }
@@ -999,6 +1037,7 @@ function createNode(type, x, y) {
   if (type === 'process') { node.w = DEFAULTS.processW; node.h = DEFAULTS.processH; }
   if (type === 'referent') { node.w = DEFAULTS.referentW; node.h = DEFAULTS.referentH; node.refId = 'ID'; node.methodName = 'Method'; }
   if (type === 'state-weak' || type === 'state-strong') { node.w = DEFAULTS.stateW; }
+  if (type === 'container') { node.w = DEFAULTS.containerW; node.h = DEFAULTS.containerH; }
   return node;
 }
 
@@ -1329,11 +1368,26 @@ canvas.addEventListener('pointerup', onCanvasPointerUp);
 canvas.addEventListener('dblclick', onCanvasDblClick);
 canvas.addEventListener('contextmenu', onCanvasContextMenu);
 
+// Resize cursor feedback on hover
+const HANDLE_CURSORS = { nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize' };
+canvas.addEventListener('pointermove', e => {
+  if (dragState) return;
+  if (toolboxConnectStart) return;
+  const wp = clientToWorld(e.clientX, e.clientY);
+  const rh = hitTestResizeHandle(wp.x, wp.y);
+  canvasContainer.style.cursor = rh ? HANDLE_CURSORS[rh.handle] : '';
+});
+
 function hitTestNode(wx, wy) {
-  // Test in reverse order (top-most first)
+  // Test in reverse order (top-most first), but skip containers on first pass
+  let containerHit = null;
   for (let i = state.nodes.length - 1; i >= 0; i--) {
     const node = state.nodes[i];
     const bb = getBBox(node);
+    if (node.type === 'container') {
+      if (!containerHit && wx >= bb.x && wx <= bb.x + bb.w && wy >= bb.y && wy <= bb.y + bb.h) containerHit = node;
+      continue;
+    }
     if (node.type === 'kind' || node.type === 'individual' ||
         node.type === 'junction-xor' || node.type === 'junction-or' || node.type === 'junction-and') {
       const r = bb.w / 2;
@@ -1342,6 +1396,30 @@ function hitTestNode(wx, wy) {
     } else {
       if (wx >= bb.x && wx <= bb.x + bb.w && wy >= bb.y && wy <= bb.y + bb.h) return node;
     }
+  }
+  return containerHit;
+}
+
+// Returns { node, handle } if near a resize handle of a selected container
+// handle is one of: 'nw','ne','sw','se','n','s','e','w'
+function hitTestResizeHandle(wx, wy) {
+  const margin = 8;
+  for (const id of selectedIds) {
+    const node = state.nodes.find(n => n.id === id);
+    if (!node || node.type !== 'container') continue;
+    const bb = getBBox(node);
+    const l = bb.x, r = bb.x + bb.w, t = bb.y, b = bb.y + bb.h;
+    const mx = (l + r) / 2, my = (t + b) / 2;
+    // Corners first
+    if (Math.abs(wx - l) < margin && Math.abs(wy - t) < margin) return { node, handle: 'nw' };
+    if (Math.abs(wx - r) < margin && Math.abs(wy - t) < margin) return { node, handle: 'ne' };
+    if (Math.abs(wx - l) < margin && Math.abs(wy - b) < margin) return { node, handle: 'sw' };
+    if (Math.abs(wx - r) < margin && Math.abs(wy - b) < margin) return { node, handle: 'se' };
+    // Edge midpoints
+    if (Math.abs(wx - mx) < margin && Math.abs(wy - t) < margin) return { node, handle: 'n' };
+    if (Math.abs(wx - mx) < margin && Math.abs(wy - b) < margin) return { node, handle: 's' };
+    if (Math.abs(wx - l) < margin && Math.abs(wy - my) < margin) return { node, handle: 'w' };
+    if (Math.abs(wx - r) < margin && Math.abs(wy - my) < margin) return { node, handle: 'e' };
   }
   return null;
 }
@@ -1451,6 +1529,16 @@ function onCanvasPointerDown(e) {
   const wp = clientToWorld(e.clientX, e.clientY);
   pointerDownPos = { x: e.clientX, y: e.clientY };
 
+  // Check for container resize handle first
+  const resizeHit = hitTestResizeHandle(wp.x, wp.y);
+  if (resizeHit) {
+    const bb = getBBox(resizeHit.node);
+    dragState = { type: 'resize', node: resizeHit.node, handle: resizeHit.handle, origBB: { x: bb.x, y: bb.y, w: bb.w, h: bb.h }, moved: false };
+    canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
+
   // Hit test
   const node = hitTestNode(wp.x, wp.y);
   if (node) {
@@ -1500,6 +1588,24 @@ function onCanvasPointerMove(e) {
     return;
   }
 
+  if (dragState.type === 'resize') {
+    const wp = clientToWorld(e.clientX, e.clientY);
+    const n = dragState.node, h = dragState.handle, o = dragState.origBB;
+    const minW = 60, minH = 40;
+    let newL = o.x, newT = o.y, newR = o.x + o.w, newB = o.y + o.h;
+    if (h.includes('w')) newL = Math.min(snap(wp.x), newR - minW);
+    if (h.includes('e')) newR = Math.max(snap(wp.x), newL + minW);
+    if (h.includes('n')) newT = Math.min(snap(wp.y), newB - minH);
+    if (h.includes('s')) newB = Math.max(snap(wp.y), newT + minH);
+    n.w = newR - newL;
+    n.h = newB - newT;
+    n.x = newL + n.w / 2;
+    n.y = newT + n.h / 2;
+    dragState.moved = true;
+    renderAll();
+    return;
+  }
+
   if (dragState.type === 'node') {
     const wp = clientToWorld(e.clientX, e.clientY);
     for (const [id, off] of Object.entries(dragState.nodeOffsets)) {
@@ -1537,7 +1643,7 @@ function renderRubberBand() {
 
 function onCanvasPointerUp(e) {
   if (dragState) {
-    if (dragState.type === 'node' && dragState.moved) {
+    if ((dragState.type === 'node' || dragState.type === 'resize') && dragState.moved) {
       saveUndo();
     }
     if (dragState.type === 'rubberband' && rubberBandRect) {
