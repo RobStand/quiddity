@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiddity - Ontology Diagramming</title>
+  <title>Quiddity - Knowledge Engineering with IDEF5</title>
   <style>
     /* ===== RESET & BASE ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -13,7 +13,7 @@
     #app { display: flex; flex-direction: column; height: 100vh; }
     #toolbar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #2c2c2c; border-bottom: 1px solid #111; flex-shrink: 0; }
     #main { display: flex; flex: 1; overflow: hidden; }
-    #toolbox { width: 200px; background: #fafafa; border-right: 1px solid #ddd; overflow-y: auto; flex-shrink: 0; }
+    #toolbox { width: 200px; background: #fafafa; border-right: 1px solid #ddd; overflow-y: auto; flex-shrink: 0; padding-bottom: 20px; }
     #canvas-container { flex: 1; overflow: hidden; position: relative; background: #e8e8e8; cursor: default; }
     #canvas { width: 100%; height: 100%; display: block; }
     #properties { width: 250px; background: #fafafa; border-left: 1px solid #ddd; overflow-y: auto; flex-shrink: 0; padding: 10px; }
@@ -110,14 +110,14 @@
     <!-- TOOLBOX -->
     <div id="toolbox">
       <div class="toolbox-section">Kinds &amp; Individuals</div>
-      <div class="toolbox-item" draggable="true" data-type="kind">
+      <div class="toolbox-item" draggable="true" data-type="kind" title="A category of things that share defining properties">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="14" fill="white" stroke="#333" stroke-width="1.5"/>
           <text x="18" y="22" text-anchor="middle" font-size="8" fill="#333">Kind</text>
         </svg>
         <span class="toolbox-item-label">Kind</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="individual">
+      <div class="toolbox-item" draggable="true" data-type="individual" title="A specific named instance of a kind">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="14" fill="white" stroke="#333" stroke-width="1.5"/>
           <text x="18" y="17" text-anchor="middle" font-size="7" fill="#333">Ind.</text>
@@ -127,14 +127,14 @@
       </div>
 
       <div class="toolbox-section">Relations</div>
-      <div class="toolbox-item" draggable="true" data-type="relation-first">
+      <div class="toolbox-item" draggable="true" data-type="relation-first" title="A relationship between kinds or individuals">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <rect x="3" y="10" width="30" height="16" rx="8" fill="white" stroke="#333" stroke-width="1.5"/>
           <text x="18" y="22" text-anchor="middle" font-size="7" fill="#333">Rel</text>
         </svg>
         <span class="toolbox-item-label">1st-Order Rel.</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="relation-second">
+      <div class="toolbox-item" draggable="true" data-type="relation-second" title="A relationship about another relation">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <text x="18" y="14" text-anchor="middle" font-size="6" fill="#333">2nd-Ord</text>
           <line x1="8" y1="24" x2="33" y2="24" stroke="#333" stroke-width="1.5"/>
@@ -142,7 +142,7 @@
         </svg>
         <span class="toolbox-item-label">2nd-Order Rel.</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="relation-alt">
+      <div class="toolbox-item" draggable="true" data-type="relation-alt" title="A 2-place relation shown as a labeled line">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <text x="18" y="14" text-anchor="middle" font-size="6" fill="#333">Alt 2-Pl</text>
           <line x1="3" y1="24" x2="28" y2="24" stroke="#333" stroke-width="1.5"/>
@@ -152,7 +152,7 @@
       </div>
 
       <div class="toolbox-section">Process</div>
-      <div class="toolbox-item" draggable="true" data-type="process">
+      <div class="toolbox-item" draggable="true" data-type="process" title="An activity that transforms inputs into outputs">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <rect x="3" y="7" width="30" height="22" fill="white" stroke="#333" stroke-width="1.5"/>
           <line x1="3" y1="22" x2="33" y2="22" stroke="#333" stroke-width="1.5"/>
@@ -163,7 +163,7 @@
       </div>
 
       <div class="toolbox-section">Referent</div>
-      <div class="toolbox-item" draggable="true" data-type="referent">
+      <div class="toolbox-item" draggable="true" data-type="referent" title="A classification node with ID, method, and concept fields">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <rect x="2" y="5" width="32" height="26" fill="white" stroke="#333" stroke-width="1.5"/>
           <rect x="2" y="5" width="4" height="26" fill="#333"/>
@@ -177,21 +177,21 @@
       </div>
 
       <div class="toolbox-section">Junctions</div>
-      <div class="toolbox-item" draggable="true" data-type="junction-xor">
+      <div class="toolbox-item" draggable="true" data-type="junction-xor" title="Exactly one path must be taken (exclusive or)">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
           <text x="18" y="22" text-anchor="middle" font-size="12" fill="#333" font-family="Times New Roman, Times, serif" font-weight="bold">X</text>
         </svg>
         <span class="toolbox-item-label">Junction (XOR)</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="junction-or">
+      <div class="toolbox-item" draggable="true" data-type="junction-or" title="At least one path must be taken">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
           <text x="18" y="23" text-anchor="middle" font-size="12" fill="#333">O</text>
         </svg>
         <span class="toolbox-item-label">Junction (OR)</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="junction-and">
+      <div class="toolbox-item" draggable="true" data-type="junction-and" title="All paths must be satisfied">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
           <text x="18" y="23" text-anchor="middle" font-size="12" fill="#333">&amp;</text>
@@ -200,21 +200,21 @@
       </div>
 
       <div class="toolbox-section">Connecting Symbols</div>
-      <div class="toolbox-item" draggable="true" data-type="connect-fwd">
+      <div class="toolbox-item" draggable="true" data-type="connect-fwd" title="Directed connection with forward arrow">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
           <polyline points="13,13 19,18 13,23" fill="none" stroke="#333" stroke-width="1.5"/>
         </svg>
         <span class="toolbox-item-label">Connect (Forward)</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="connect-bwd">
+      <div class="toolbox-item" draggable="true" data-type="connect-bwd" title="Directed connection with backward arrow">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
           <polyline points="23,13 17,18 23,23" fill="none" stroke="#333" stroke-width="1.5"/>
         </svg>
         <span class="toolbox-item-label">Connect (Backward)</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="connect-plain">
+      <div class="toolbox-item" draggable="true" data-type="connect-plain" title="Undirected connection line">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
         </svg>
@@ -222,7 +222,7 @@
       </div>
 
       <div class="toolbox-section">State Transitions</div>
-      <div class="toolbox-item" draggable="true" data-type="state-weak">
+      <div class="toolbox-item" draggable="true" data-type="state-weak" title="A possible but not guaranteed state change">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <line x1="4" y1="18" x2="32" y2="18" stroke="#333" stroke-width="1.5"/>
           <polygon points="32,14 36,18 32,22" fill="#333"/>
@@ -230,7 +230,7 @@
         </svg>
         <span class="toolbox-item-label">State Trans. (Weak)</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="state-strong">
+      <div class="toolbox-item" draggable="true" data-type="state-strong" title="A necessary and irreversible state change">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <line x1="4" y1="18" x2="26" y2="18" stroke="#333" stroke-width="1.5"/>
           <polygon points="20,14 26,18 20,22" fill="#333"/>
@@ -239,7 +239,7 @@
         </svg>
         <span class="toolbox-item-label">State Trans. (Strong)</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="transition-instant">
+      <div class="toolbox-item" draggable="true" data-type="transition-instant" title="An instantaneous state transition">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <polygon points="18,6 30,30 6,30" fill="white" stroke="#333" stroke-width="1.5"/>
           <text x="18" y="27" text-anchor="middle" font-size="12" fill="#333">&#916;</text>
@@ -1128,10 +1128,6 @@ function renderNodeProps(panel, node) {
     node.notes = e.target.value;
     persistLocal();
   });
-
-  // Position
-  addProp('Position', `<span style="font-size:11px;color:#888">x: ${Math.round(node.x)}, y: ${Math.round(node.y)}</span>`);
-  addProp('ID', `<span style="font-size:11px;color:#aaa">${node.id}</span>`);
 
   addInfoSection(panel, node.type);
 }

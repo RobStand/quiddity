@@ -1,6 +1,6 @@
 # Quiddity
 
-Quiddity is a simple diagramming tool that leverages IDEF5 for creating ontologies. I've been working with ontologies for many years and I always wanted a tool that could create models that used IDEF5. I created a [Visio stencil](https://github.com/robstand/IDEF5) back in 2018, but I always wanted something lightweight that ran in the browser. Ergo, Quiddity was born.
+Quiddity is a simple knowledge engineering that leverages IDEF5 for creating and modeling ontologies. I've been working with ontologies for many years and I always wanted a tool that could create models that used IDEF5. I created a [Visio stencil](https://github.com/robstand/IDEF5) back in 2018, but I always wanted something lightweight that ran in the browser. Ergo, Quiddity was born.
 
 ![Quiddity screenshot](screenshot.png)
 
