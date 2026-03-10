@@ -1477,20 +1477,10 @@ function onCanvasPointerDown(e) {
     return;
   }
 
-  // Empty space: start rubberband or pan
-  if (e.shiftKey) {
-    // Rubber band selection
-    rubberBandRect = { x: wp.x, y: wp.y, w: 0, h: 0, startX: wp.x, startY: wp.y };
-    dragState = { type: 'rubberband' };
-    canvas.setPointerCapture(e.pointerId);
-  } else {
-    // Pan
-    selectedIds.clear();
-    renderAll();
-    updateProperties();
-    dragState = { type: 'pan', startX: e.clientX, startY: e.clientY, vpStart: { x: viewport.x, y: viewport.y } };
-    canvas.setPointerCapture(e.pointerId);
-  }
+  // Empty space: start rubber band selection (pan via middle mouse)
+  rubberBandRect = { x: wp.x, y: wp.y, w: 0, h: 0, startX: wp.x, startY: wp.y };
+  dragState = { type: 'rubberband' };
+  canvas.setPointerCapture(e.pointerId);
   e.preventDefault();
 }
 
@@ -1545,16 +1535,22 @@ function onCanvasPointerUp(e) {
       saveUndo();
     }
     if (dragState.type === 'rubberband' && rubberBandRect) {
-      // Select nodes in rect
       const r = rubberBandRect;
-      const x1 = Math.min(r.startX, r.startX + r.w);
-      const y1 = Math.min(r.startY, r.startY + r.h);
-      const x2 = Math.max(r.startX, r.startX + r.w);
-      const y2 = Math.max(r.startY, r.startY + r.h);
-      if (!e.shiftKey) selectedIds.clear();
-      for (const node of state.nodes) {
-        const bb = getBBox(node);
-        if (bb.cx >= x1 && bb.cx <= x2 && bb.cy >= y1 && bb.cy <= y2) selectedIds.add(node.id);
+      const wasDrag = Math.abs(r.w) > 4 || Math.abs(r.h) > 4;
+      if (wasDrag) {
+        // Select all nodes whose center falls within the rubber band rect
+        const x1 = Math.min(r.startX, r.startX + r.w);
+        const y1 = Math.min(r.startY, r.startY + r.h);
+        const x2 = Math.max(r.startX, r.startX + r.w);
+        const y2 = Math.max(r.startY, r.startY + r.h);
+        if (!e.shiftKey) selectedIds.clear();
+        for (const node of state.nodes) {
+          const bb = getBBox(node);
+          if (bb.cx >= x1 && bb.cx <= x2 && bb.cy >= y1 && bb.cy <= y2) selectedIds.add(node.id);
+        }
+      } else {
+        // Plain click on empty space — deselect all
+        selectedIds.clear();
       }
       rubberBandRect = null;
       const el = document.getElementById('rubberband-rect');
