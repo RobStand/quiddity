@@ -6,7 +6,7 @@ Quiddity is a simple knowledge engineering that leverages IDEF5 for creating and
 
 ## How to use Quiddity
 
-Quiddity is a single-page application (SPA). Clone the repo and load up quiddity.html in your browser. I've included some example ontologies from the IDEF5 spec in the Examples menu.
+Clone the repo and load up quiddity.html in your browser. I've included some example ontologies from the IDEF5 spec in the Examples menu.
 
 ## Quid est?
 

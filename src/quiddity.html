@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiddity - Knowledge Engineering with IDEF5</title>
+  <link rel="stylesheet" href="css/quiddity.css">
+</head>
+<body>
+<div id="app">
+  <!-- TOOLBAR -->
+  <div id="toolbar">
+    <span class="tb-label">Quiddity</span>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-new" title="New diagram">&#128196; New</button>
+    <button class="tb-btn" id="btn-save" title="Save JSON">&#128190; Save</button>
+    <button class="tb-btn" id="btn-load" title="Load JSON">&#128193; Load</button>
+    <button class="tb-btn" id="btn-export-svg" title="Export SVG">&#128228; SVG</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)">&#8592; Undo</button>
+    <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)">&#8594; Redo</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-zoom-in" title="Zoom In">+</button>
+    <span class="zoom-display" id="zoom-display">100%</span>
+    <button class="tb-btn" id="btn-zoom-out" title="Zoom Out">&#8722;</button>
+    <button class="tb-btn" id="btn-zoom-fit" title="Fit to window">Fit</button>
+    <div class="tb-sep"></div>
+    <div class="tb-dropdown" id="examples-dropdown">
+      <button class="tb-btn" id="btn-examples">Examples &#9660;</button>
+      <div class="tb-dropdown-menu" id="examples-menu">
+        <button class="tb-dropdown-item" data-example="ballpoint-pen">Ballpoint Pen Components</button>
+        <button class="tb-dropdown-item" data-example="water-transitions">Water Phase Transitions</button>
+        <button class="tb-dropdown-item" data-example="vehicle-classification">Vehicle Classification</button>
+        <button class="tb-dropdown-item" data-example="fastener-classification">Fastener Classification</button>
+      </div>
+    </div>
+    <input type="file" id="file-input" accept=".json" style="display:none">
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- TOOLBOX -->
+    <div id="toolbox">
+      <div class="toolbox-section">Kinds &amp; Individuals</div>
+      <div class="toolbox-item" draggable="true" data-type="kind" title="A category of things that share defining properties">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="22" text-anchor="middle" font-size="8" fill="#333">Kind</text>
+        </svg>
+        <span class="toolbox-item-label">Kind</span>
+      </div>
+      <div class="toolbox-item" draggable="true" data-type="individual" title="A specific named instance of a kind">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="17" text-anchor="middle" font-size="7" fill="#333">Ind.</text>
+          <circle cx="18" cy="27" r="3" fill="#333"/>
+        </svg>
+        <span class="toolbox-item-label">Individual</span>
+      </div>
+
+      <div class="toolbox-section">Relations</div>
+      <div class="toolbox-item" draggable="true" data-type="relation-first" title="A relationship between kinds or individuals">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <rect x="3" y="10" width="30" height="16" rx="8" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="22" text-anchor="middle" font-size="7" fill="#333">Rel</text>
+        </svg>
+        <span class="toolbox-item-label">1st-Order Rel.</span>
+      </div>
+      <div class="toolbox-item" draggable="true" data-type="relation-second" title="A relationship about another relation">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <text x="18" y="14" text-anchor="middle" font-size="6" fill="#333">2nd-Ord</text>
+          <line x1="8" y1="24" x2="33" y2="24" stroke="#333" stroke-width="1.5"/>
+          <polygon points="2,20 8,24 2,28" fill="#333"/>
+        </svg>
+        <span class="toolbox-item-label">2nd-Order Rel.</span>
+      </div>
+      <div class="toolbox-item" draggable="true" data-type="relation-alt" title="A 2-place relation shown as a labeled line">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <text x="18" y="14" text-anchor="middle" font-size="6" fill="#333">Alt 2-Pl</text>
+          <line x1="3" y1="24" x2="28" y2="24" stroke="#333" stroke-width="1.5"/>
+          <polygon points="28,20 34,24 28,28" fill="#333"/>
+        </svg>
+        <span class="toolbox-item-label">Alt. 2-Place Rel.</span>
+      </div>
+
+      <div class="toolbox-section">Process</div>
+      <div class="toolbox-item" draggable="true" data-type="process" title="An activity that transforms inputs into outputs">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <rect x="3" y="7" width="30" height="22" fill="white" stroke="#333" stroke-width="1.5"/>
+          <line x1="3" y1="22" x2="33" y2="22" stroke="#333" stroke-width="1.5"/>
+          <line x1="18" y1="22" x2="18" y2="29" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="17" text-anchor="middle" font-size="7" fill="#333">Proc</text>
+        </svg>
+        <span class="toolbox-item-label">Process</span>
+      </div>
+
+      <div class="toolbox-section">Referent</div>
+      <div class="toolbox-item" draggable="true" data-type="referent" title="A classification node with ID, method, and concept fields">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <rect x="2" y="5" width="32" height="26" fill="white" stroke="#333" stroke-width="1.5"/>
+          <rect x="2" y="5" width="4" height="26" fill="#333"/>
+          <line x1="6" y1="18" x2="34" y2="18" stroke="#333" stroke-width="1"/>
+          <line x1="14" y1="5" x2="14" y2="18" stroke="#333" stroke-width="1"/>
+          <text x="10" y="14" text-anchor="middle" font-size="5.5" fill="#222">ID</text>
+          <text x="24" y="14" text-anchor="middle" font-size="5" fill="#555">Method</text>
+          <text x="20" y="27" text-anchor="middle" font-size="5" fill="#555">Concept</text>
+        </svg>
+        <span class="toolbox-item-label">Referent</span>
+      </div>
+
+      <div class="toolbox-section">Junctions</div>
+      <div class="toolbox-item" draggable="true" data-type="junction-xor" title="Exactly one path must be taken (exclusive or)">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="22" text-anchor="middle" font-size="12" fill="#333" font-family="Times New Roman, Times, serif" font-weight="bold">X</text>
+        </svg>
+        <span class="toolbox-item-label">Junction (XOR)</span>
+      </div>
+      <div class="toolbox-item" draggable="true" data-type="junction-or" title="At least one path must be taken">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="23" text-anchor="middle" font-size="12" fill="#333">O</text>
+        </svg>
+        <span class="toolbox-item-label">Junction (OR)</span>
+      </div>
+      <div class="toolbox-item" draggable="true" data-type="junction-and" title="All paths must be satisfied">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="23" text-anchor="middle" font-size="12" fill="#333">&amp;</text>
+        </svg>
+        <span class="toolbox-item-label">Junction (AND)</span>
+      </div>
+
+      <div class="toolbox-section">Grouping</div>
+      <div class="toolbox-item" draggable="true" data-type="container" title="A dashed rectangle for visually grouping related symbols">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <rect x="3" y="3" width="30" height="30" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <text x="7" y="12" font-size="6" fill="#555" font-style="italic">Grp</text>
+        </svg>
+        <span class="toolbox-item-label">Container</span>
+      </div>
+
+      <div class="toolbox-section">Connecting Symbols</div>
+      <div class="toolbox-item" draggable="true" data-type="connect-fwd" title="Directed connection with forward arrow">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
+          <polyline points="13,13 19,18 13,23" fill="none" stroke="#333" stroke-width="1.5"/>
+        </svg>
+        <span class="toolbox-item-label">Connect (Forward)</span>
+      </div>
+      <div class="toolbox-item" draggable="true" data-type="connect-bwd" title="Directed connection with backward arrow">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
+          <polyline points="23,13 17,18 23,23" fill="none" stroke="#333" stroke-width="1.5"/>
+        </svg>
+        <span class="toolbox-item-label">Connect (Backward)</span>
+      </div>
+      <div class="toolbox-item" draggable="true" data-type="connect-plain" title="Undirected connection line">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
+        </svg>
+        <span class="toolbox-item-label">Connect (Plain)</span>
+      </div>
+
+      <div class="toolbox-section">State Transitions</div>
+      <div class="toolbox-item" draggable="true" data-type="state-weak" title="A possible but not guaranteed state change">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <line x1="4" y1="18" x2="32" y2="18" stroke="#333" stroke-width="1.5"/>
+          <polygon points="32,14 36,18 32,22" fill="#333"/>
+          <circle cx="18" cy="18" r="4" fill="white" stroke="#333" stroke-width="1.5"/>
+        </svg>
+        <span class="toolbox-item-label">State Trans. (Weak)</span>
+      </div>
+      <div class="toolbox-item" draggable="true" data-type="state-strong" title="A necessary and irreversible state change">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <line x1="4" y1="18" x2="26" y2="18" stroke="#333" stroke-width="1.5"/>
+          <polygon points="20,14 26,18 20,22" fill="#333"/>
+          <polygon points="26,14 32,18 26,22" fill="#333"/>
+          <circle cx="14" cy="18" r="4" fill="white" stroke="#333" stroke-width="1.5"/>
+        </svg>
+        <span class="toolbox-item-label">State Trans. (Strong)</span>
+      </div>
+      <div class="toolbox-item" draggable="true" data-type="transition-instant" title="An instantaneous state transition">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <text x="18" y="26" text-anchor="middle" font-size="22" fill="#333">&#916;</text>
+        </svg>
+        <span class="toolbox-item-label">Instant. Transition</span>
+      </div>
+      <div class="toolbox-section">Key</div>
+      <div class="toolbox-item" draggable="true" data-type="key" title="A legend/key for the diagram">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <rect x="3" y="5" width="30" height="26" fill="white" stroke="#333" stroke-width="1.5"/>
+          <rect x="3" y="5" width="30" height="10" fill="#f4f4f4" stroke="none"/>
+          <line x1="3" y1="15" x2="33" y2="15" stroke="#333" stroke-width="1"/>
+          <text x="18" y="13" text-anchor="middle" font-size="6" font-weight="bold" fill="#333">Key</text>
+          <polygon points="6,23 13,23 9.5,27" fill="none" stroke="#333" stroke-width="1"/>
+          <line x1="14" y1="25" x2="30" y2="25" stroke="#333" stroke-width="1"/>
+        </svg>
+        <span class="toolbox-item-label">Key</span>
+      </div>
+    </div>
+
+    <!-- CANVAS -->
+    <div id="canvas-container">
+      <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+          </marker>
+          <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#4a90e2"/>
+          </marker>
+          <!-- marker-start variants: refX=0 so the base sits at the node boundary, tip extends into the line -->
+          <marker id="arrowhead-start" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+          </marker>
+          <marker id="arrowhead-start-blue" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#4a90e2"/>
+          </marker>
+          <!-- double arrowhead for strong transition (both at end) -->
+          <marker id="arrowhead-double" markerWidth="18" markerHeight="7" refX="17" refY="3.5" orient="auto">
+            <polygon points="0 0, 8 3.5, 0 7" fill="#555"/>
+            <polygon points="8 0, 16 3.5, 8 7" fill="#555"/>
+          </marker>
+          <marker id="arrowhead-double-blue" markerWidth="18" markerHeight="7" refX="17" refY="3.5" orient="auto">
+            <polygon points="0 0, 8 3.5, 0 7" fill="#4a90e2"/>
+            <polygon points="8 0, 16 3.5, 8 7" fill="#4a90e2"/>
+          </marker>
+          <marker id="arrowhead-back" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
+            <polygon points="10 0, 0 3.5, 10 7" fill="#555"/>
+          </marker>
+          <marker id="arrowhead-double-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
+            <polygon points="10 0, 0 3.5, 10 7" fill="#555"/>
+          </marker>
+          <pattern id="dot-grid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+            <circle cx="10" cy="10" r="0.8" fill="#bbb"/>
+          </pattern>
+          <rect id="grid-bg" width="4000" height="4000" x="-2000" y="-2000" fill="url(#dot-grid)"/>
+        </defs>
+        <g id="grid-layer">
+          <use href="#grid-bg"/>
+        </g>
+        <g id="edges-layer"></g>
+        <g id="nodes-layer"></g>
+        <g id="ui-layer"></g>
+      </svg>
+    </div>
+
+    <!-- PROPERTIES -->
+    <div id="properties">
+      <div id="props-content">
+        <p class="prop-empty">Select an element to view properties</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div id="context-menu">
+  <div class="ctx-item" id="ctx-delete" data-action="delete">&#128465; Delete</div>
+  <div class="ctx-item" id="ctx-duplicate" data-action="duplicate">&#9112; Duplicate</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-front" data-action="front">Bring to Front</div>
+  <div class="ctx-item" id="ctx-back" data-action="back">Send to Back</div>
+</div>
+
+
+<script src="js/quiddity.js"></script>
+</body>
+</html>

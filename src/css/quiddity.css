@@ -1,0 +1,81 @@
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; background: #f0f0f0; color: #222; height: 100vh; overflow: hidden; }
+
+    /* ===== LAYOUT ===== */
+    #app { display: flex; flex-direction: column; height: 100vh; }
+    #toolbar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #2c2c2c; border-bottom: 1px solid #111; flex-shrink: 0; }
+    #main { display: flex; flex: 1; overflow: hidden; }
+    #toolbox { width: 200px; background: #fafafa; border-right: 1px solid #ddd; overflow-y: auto; flex-shrink: 0; padding-bottom: 20px; }
+    #canvas-container { flex: 1; overflow: hidden; position: relative; background: #e8e8e8; cursor: default; }
+    #canvas { width: 100%; height: 100%; display: block; }
+    #properties { width: 250px; background: #fafafa; border-left: 1px solid #ddd; overflow-y: auto; flex-shrink: 0; padding: 10px; }
+
+    /* ===== TOOLBAR ===== */
+    .tb-btn { display: flex; align-items: center; gap: 4px; padding: 5px 10px; background: #444; color: #eee; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
+    .tb-btn:hover { background: #555; }
+    .tb-btn:active { background: #333; }
+    .tb-sep { width: 1px; background: #555; height: 24px; margin: 0 2px; }
+    .tb-label { color: #aaa; font-size: 11px; }
+    .zoom-display { color: #ccc; font-size: 12px; min-width: 40px; text-align: center; }
+    .tb-dropdown { position: relative; }
+    .tb-dropdown-menu { display: none; position: absolute; top: calc(100% + 4px); left: 0; background: #2c2c2c; border: 1px solid #555; border-radius: 4px; min-width: 220px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+    .tb-dropdown-menu.open { display: block; }
+    .tb-dropdown-item { display: block; width: 100%; padding: 8px 14px; background: none; border: none; color: #eee; font-size: 12px; text-align: left; cursor: pointer; white-space: nowrap; }
+    .tb-dropdown-item:hover { background: #444; }
+
+    /* ===== TOOLBOX ===== */
+    .toolbox-section { padding: 8px 8px 4px; font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #e0e0e0; }
+    .toolbox-section:first-child { border-top: none; }
+    .toolbox-item { display: flex; align-items: center; gap: 8px; padding: 5px 8px; cursor: grab; border-radius: 4px; margin: 1px 4px; user-select: none; }
+    .toolbox-item:hover { background: #e8f0fe; }
+    .toolbox-item:active { cursor: grabbing; }
+    .toolbox-item-label { font-size: 12px; color: #333; }
+    .toolbox-preview { flex-shrink: 0; }
+
+    /* ===== PROPERTIES PANEL ===== */
+    #properties h3 { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: #444; border-bottom: 1px solid #e0e0e0; padding-bottom: 6px; }
+    .prop-group { margin-bottom: 10px; }
+    .prop-label { font-size: 11px; color: #666; margin-bottom: 3px; display: block; }
+    .prop-input { width: 100%; padding: 5px 7px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; background: white; }
+    .prop-input:focus { outline: none; border-color: #4a90e2; box-shadow: 0 0 0 2px rgba(74,144,226,0.2); }
+    textarea.prop-input { resize: vertical; min-height: 60px; font-family: inherit; }
+    .prop-checkbox-row { display: flex; align-items: center; gap: 6px; }
+    .prop-empty { color: #999; font-size: 12px; text-align: center; padding: 20px 0; }
+    select.prop-input { cursor: pointer; }
+    .color-picker { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .color-swatch { width: 20px; height: 20px; border-radius: 3px; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; }
+    .color-swatch:hover { opacity: 0.85; }
+    .color-swatch.selected { border-color: #4a90e2; box-shadow: 0 0 0 1px #4a90e2; }
+    .color-swatch-default { background: white; border: 2px solid #999 !important; position: relative; }
+    .color-swatch-default::after { content: '✕'; font-size: 9px; color: #999; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+    .key-entry-row { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+    .key-entry-type { font-size: 10px; color: #888; min-width: 70px; }
+    .key-entry-lbl { flex: 1; font-size: 11px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .key-entry-del { font-size: 11px; color: #e53e3e; cursor: pointer; background: none; border: none; padding: 1px 4px; line-height: 1; }
+    .key-add-row { display: flex; gap: 4px; margin-top: 6px; }
+    .key-add-row select { font-size: 11px; padding: 3px 4px; border: 1px solid #ccc; border-radius: 3px; flex: 1; }
+    .key-add-lbl { font-size: 11px; padding: 3px 5px; border: 1px solid #ccc; border-radius: 3px; width: 70px; }
+    .key-add-btn { font-size: 11px; padding: 3px 7px; background: #4a90e2; color: white; border: none; border-radius: 3px; cursor: pointer; white-space: nowrap; }
+    .prop-info { margin-top: 14px; padding-top: 10px; border-top: 1px solid #e0e0e0; }
+    .prop-info-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .prop-info-text { font-size: 11px; color: #555; line-height: 1.5; }
+
+    /* ===== CONTEXT MENU ===== */
+    #context-menu { position: fixed; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 1000; min-width: 160px; padding: 4px 0; display: none; }
+    .ctx-item { padding: 7px 14px; cursor: pointer; font-size: 12px; color: #333; }
+    .ctx-item:hover { background: #f0f4ff; color: #4a90e2; }
+    .ctx-sep { border-top: 1px solid #eee; margin: 3px 0; }
+    .ctx-item.danger:hover { background: #fff0f0; color: #e53e3e; }
+
+    /* ===== CANVAS SVG ===== */
+    .node-shape { cursor: move; }
+    .node-shape.selected .shape-outline { stroke: #4a90e2 !important; stroke-width: 2.5px !important; }
+    .edge-line { cursor: pointer; }
+    .edge-line.selected { stroke: #4a90e2 !important; }
+    .edge-line.selected path, .edge-line.selected line { stroke: #4a90e2 !important; }
+    .rubberband { fill: rgba(74,144,226,0.1); stroke: #4a90e2; stroke-width: 1; stroke-dasharray: 4,2; pointer-events: none; }
+    .selection-handle { fill: #4a90e2; cursor: pointer; }
+    .inline-edit-fo { pointer-events: all; }
+
+    /* ===== OVERLAY DROPDOWN ===== */
