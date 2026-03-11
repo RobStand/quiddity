@@ -50,6 +50,20 @@
     .prop-checkbox-row { display: flex; align-items: center; gap: 6px; }
     .prop-empty { color: #999; font-size: 12px; text-align: center; padding: 20px 0; }
     select.prop-input { cursor: pointer; }
+    .color-picker { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .color-swatch { width: 20px; height: 20px; border-radius: 3px; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; }
+    .color-swatch:hover { opacity: 0.85; }
+    .color-swatch.selected { border-color: #4a90e2; box-shadow: 0 0 0 1px #4a90e2; }
+    .color-swatch-default { background: white; border: 2px solid #999 !important; position: relative; }
+    .color-swatch-default::after { content: '✕'; font-size: 9px; color: #999; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+    .key-entry-row { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+    .key-entry-type { font-size: 10px; color: #888; min-width: 70px; }
+    .key-entry-lbl { flex: 1; font-size: 11px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .key-entry-del { font-size: 11px; color: #e53e3e; cursor: pointer; background: none; border: none; padding: 1px 4px; line-height: 1; }
+    .key-add-row { display: flex; gap: 4px; margin-top: 6px; }
+    .key-add-row select { font-size: 11px; padding: 3px 4px; border: 1px solid #ccc; border-radius: 3px; flex: 1; }
+    .key-add-lbl { font-size: 11px; padding: 3px 5px; border: 1px solid #ccc; border-radius: 3px; width: 70px; }
+    .key-add-btn { font-size: 11px; padding: 3px 7px; background: #4a90e2; color: white; border: none; border-radius: 3px; cursor: pointer; white-space: nowrap; }
     .prop-info { margin-top: 14px; padding-top: 10px; border-top: 1px solid #e0e0e0; }
     .prop-info-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .prop-info-text { font-size: 11px; color: #555; line-height: 1.5; }
@@ -254,6 +268,18 @@
         </svg>
         <span class="toolbox-item-label">Instant. Transition</span>
       </div>
+      <div class="toolbox-section">Key</div>
+      <div class="toolbox-item" draggable="true" data-type="key" title="A legend/key for the diagram">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <rect x="3" y="5" width="30" height="26" fill="white" stroke="#333" stroke-width="1.5"/>
+          <rect x="3" y="5" width="30" height="10" fill="#f4f4f4" stroke="none"/>
+          <line x1="3" y1="15" x2="33" y2="15" stroke="#333" stroke-width="1"/>
+          <text x="18" y="13" text-anchor="middle" font-size="6" font-weight="bold" fill="#333">Key</text>
+          <polygon points="6,23 13,23 9.5,27" fill="none" stroke="#333" stroke-width="1"/>
+          <line x1="14" y1="25" x2="30" y2="25" stroke="#333" stroke-width="1"/>
+        </svg>
+        <span class="toolbox-item-label">Key</span>
+      </div>
     </div>
 
     <!-- CANVAS -->
@@ -343,6 +369,10 @@ const DEFAULTS = {
   transitionSize: 36,
   containerW: 300,
   containerH: 200,
+  keyW: 180,
+  keyHeaderH: 26,
+  keyEntryH: 22,
+  keyPad: 6,
   portRadius: 5,
   snapGrid: 10,
 };
@@ -350,9 +380,9 @@ const DEFAULTS = {
 const NODE_TYPES = {
   kind:            { label: 'Kind',             defaultLabel: 'Kind' },
   individual:      { label: 'Individual',       defaultLabel: 'Individual' },
-  'relation-first':{ label: '1st-Order Rel.',   defaultLabel: 'Relation' },
-  'relation-second':{ label: '2nd-Order Rel.',  defaultLabel: 'Relation' },
-  'relation-alt':   { label: 'Alt. 2-Place Rel.', defaultLabel: 'Relation' },
+  'relation-first':{ label: '1st-Order Rel.',   defaultLabel: '' },
+  'relation-second':{ label: '2nd-Order Rel.',  defaultLabel: '' },
+  'relation-alt':   { label: 'Alt. 2-Place Rel.', defaultLabel: '' },
   process:         { label: 'Process',          defaultLabel: 'Process' },
   referent:        { label: 'Referent',         defaultLabel: 'Referent' },
   'junction-xor':  { label: 'Junction (XOR)',   defaultLabel: 'XOR' },
@@ -365,18 +395,19 @@ const NODE_TYPES = {
   'connect-bwd':   { label: 'Connect (Backward)', defaultLabel: '' },
   'connect-plain': { label: 'Connect (Plain)',    defaultLabel: '' },
   'container':     { label: 'Container',          defaultLabel: 'Group' },
+  'key':           { label: 'Key',                defaultLabel: 'Key' },
 };
 
 const EDGE_TYPE_LABELS = {
-  'first-order':    'Relation',
-  'second-order':   'Second-order',
-  'subkind-of':     'Subkind-of',
-  'instance-of':    'Instance-of',
-  'part-of':        'Part-of',
+  'first-order':    '',
+  'second-order':   '',
+  'subkind-of':     '',
+  'instance-of':    '',
+  'part-of':        '',
   'state-weak':     '',
   'state-strong':   '',
   'process-connect':'',
-  'relation-alt':   'Relation',
+  'relation-alt':   '',
   'connect-fwd':    '',
   'connect-bwd':    '',
   'connect-plain':  '',
@@ -392,6 +423,25 @@ const TOOLBOX_EDGE_TYPES = {
   'connect-bwd':        'connect-bwd',
   'connect-plain':      'connect-plain',
 };
+
+const NODE_COLORS = [
+  { label: 'Default',    value: '' },
+  { label: 'Red',        value: '#e53e3e' },
+  { label: 'Orange',     value: '#dd6b20' },
+  { label: 'Yellow',     value: '#d69e2e' },
+  { label: 'Green',      value: '#38a169' },
+  { label: 'Teal',       value: '#319795' },
+  { label: 'Cyan',       value: '#00b5d8' },
+  { label: 'Blue',       value: '#3182ce' },
+  { label: 'Indigo',     value: '#5a67d8' },
+  { label: 'Purple',     value: '#805ad5' },
+  { label: 'Pink',       value: '#d53f8c' },
+  { label: 'Rose',       value: '#e53e6e' },
+  { label: 'Brown',      value: '#975a16' },
+  { label: 'Gray',       value: '#718096' },
+  { label: 'Dark Gray',  value: '#2d3748' },
+  { label: 'Black',      value: '#000000' },
+];
 
 // Descriptions drawn from the IDEF5 Schematic Language basic lexicon
 const SYMBOL_INFO = {
@@ -411,6 +461,7 @@ const SYMBOL_INFO = {
   'connect-fwd': 'A forward connecting symbol. A solid line with a forward-pointing chevron (▶) at the midpoint. Used to show directed flow or association between elements in a process or state diagram.',
   'connect-bwd': 'A backward connecting symbol. A solid line with a backward-pointing chevron (◀) at the midpoint. Used to show reverse directed flow or association between elements.',
   'connect-plain': 'A plain connecting symbol. A solid line with no directional indicator. Used to associate elements without implying a direction — for example, connecting a process to a state transition circle.',
+  'key': 'A legend box that explains the symbols used in the diagram. Each entry pairs a symbol with a descriptive label, helping readers interpret the schematic without having to know the IDEF5 notation by heart.',
   'container': 'A grouping container. A dashed rectangle used to visually group related symbols together on the diagram. The label appears in the top-left corner. Containers have no semantic effect on connections — they are purely organizational.',
 
   // Edge types
@@ -541,6 +592,12 @@ function getBBox(node) {
     }
     case 'container': {
       const w = node.w || DEFAULTS.containerW, h = node.h || DEFAULTS.containerH;
+      return { x: node.x - w/2, y: node.y - h/2, w, h, cx: node.x, cy: node.y };
+    }
+    case 'key': {
+      const entries = node.entries || [];
+      const w = DEFAULTS.keyW;
+      const h = DEFAULTS.keyHeaderH + DEFAULTS.keyPad + entries.length * DEFAULTS.keyEntryH + DEFAULTS.keyPad;
       return { x: node.x - w/2, y: node.y - h/2, w, h, cx: node.x, cy: node.y };
     }
     default: {
@@ -678,7 +735,8 @@ function createNodeSVG(node) {
     case 'kind':
     case 'individual': {
       const r = node.r || DEFAULTS.kindRadius;
-      const circle = svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' });
+      const borderColor = isSelected ? '#4a90e2' : (node.color || '#333');
+      const circle = svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: borderColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' });
       g.appendChild(circle);
       // (individual dot drawn below with label, after circle)
       const label = node.label || '';
@@ -697,7 +755,7 @@ function createNodeSVG(node) {
       const w = node.w || DEFAULTS.relationW, h = node.h || DEFAULTS.relationH;
       const rx = h / 2;
       g.appendChild(svgEl('rect', { x: node.x - w/2, y: node.y - h/2, width: w, height: h, rx, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
-      g.appendChild(svgWrappedText(node.x, node.y, node.label || 'Relation', w * 0.82, 11, '#222'));
+      if (node.label) g.appendChild(svgWrappedText(node.x, node.y, node.label, w * 0.82, 11, '#222'));
       break;
     }
     case 'relation-second': {
@@ -710,7 +768,7 @@ function createNodeSVG(node) {
       // Arrow line starts from triangle tip
       g.appendChild(svgEl('line', { x1: ax1 + 10, y1: ay, x2: ax2, y2: ay, stroke: strokeColor, 'stroke-width': 1.5 }));
       // Label above the arrow
-      g.appendChild(svgWrappedText(node.x, node.y - 6, node.label || 'Relation', w * 0.85, 11, '#222'));
+      if (node.label) g.appendChild(svgWrappedText(node.x, node.y - 6, node.label, w * 0.85, 11, '#222'));
       break;
     }
     case 'relation-alt': {
@@ -723,7 +781,7 @@ function createNodeSVG(node) {
       // Arrowhead at RIGHT (front) end — pointing right
       g.appendChild(svgEl('polygon', { points: `${ax2 - 8},${ay - 4} ${ax2},${ay} ${ax2 - 8},${ay + 4}`, fill: strokeColor }));
       // Label above the arrow
-      g.appendChild(svgWrappedText(node.x, node.y - 6, node.label || 'Relation', w * 0.85, 11, '#222'));
+      if (node.label) g.appendChild(svgWrappedText(node.x, node.y - 6, node.label, w * 0.85, 11, '#222'));
       break;
     }
     case 'process': {
@@ -817,6 +875,78 @@ function createNodeSVG(node) {
         g.appendChild(svgEl('polyline', { points: `${node.x + 7},${ay - 6} ${node.x - 5},${ay} ${node.x + 7},${ay + 6}`, fill: 'none', stroke: strokeColor, 'stroke-width': 1.5 }));
       }
       if (node.label) g.appendChild(svgText(node.x, ay - 12, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: '#444' }));
+      break;
+    }
+    case 'key': {
+      const entries = node.entries || [];
+      const kw = DEFAULTS.keyW;
+      const kh = DEFAULTS.keyHeaderH + DEFAULTS.keyPad + entries.length * DEFAULTS.keyEntryH + DEFAULTS.keyPad;
+      const bx = node.x - kw/2, by = node.y - kh/2;
+      const symW = 50, pad = 6;
+      // Outer box
+      g.appendChild(svgEl('rect', { x: bx, y: by, width: kw, height: kh, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
+      // Header background + label
+      g.appendChild(svgEl('rect', { x: bx, y: by, width: kw, height: DEFAULTS.keyHeaderH, fill: '#f4f4f4', stroke: 'none' }));
+      g.appendChild(svgEl('line', { x1: bx, y1: by + DEFAULTS.keyHeaderH, x2: bx + kw, y2: by + DEFAULTS.keyHeaderH, stroke: strokeColor, 'stroke-width': 1 }));
+      g.appendChild(svgText(bx + kw/2, by + DEFAULTS.keyHeaderH * 0.65, node.label || 'Key', { 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#333' }));
+      // Entries
+      entries.forEach((entry, i) => {
+        const rowY = by + DEFAULTS.keyHeaderH + DEFAULTS.keyPad + i * DEFAULTS.keyEntryH;
+        const my = rowY + DEFAULTS.keyEntryH / 2;
+        const lx = bx + pad, rx = bx + symW - pad;
+        const mx = bx + symW / 2;
+        const color = strokeColor;
+        // Symbol preview
+        switch (entry.symbolType) {
+          case 'second-order':
+            g.appendChild(svgEl('polygon', { points: `${lx},${my-4} ${lx+8},${my} ${lx},${my+4}`, fill: color }));
+            g.appendChild(svgEl('line', { x1: lx+8, y1: my, x2: rx, y2: my, stroke: color, 'stroke-width': 1.5 }));
+            break;
+          case 'subkind-of':
+            g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx-6, y2: my, stroke: color, 'stroke-width': 1.5, 'stroke-dasharray': '4,2' }));
+            g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: 'white', stroke: color, 'stroke-width': 1 }));
+            break;
+          case 'instance-of':
+            g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx-6, y2: my, stroke: color, 'stroke-width': 1.5, 'stroke-dasharray': '4,2' }));
+            g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: color }));
+            break;
+          case 'state-weak':
+            g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx-5, y2: my, stroke: color, 'stroke-width': 1.5 }));
+            g.appendChild(svgEl('circle', { cx: mx, cy: my, r: 3, fill: 'white', stroke: color, 'stroke-width': 1.5 }));
+            g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: color }));
+            break;
+          case 'state-strong':
+            g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx-10, y2: my, stroke: color, 'stroke-width': 1.5 }));
+            g.appendChild(svgEl('circle', { cx: mx, cy: my, r: 3, fill: 'white', stroke: color, 'stroke-width': 1.5 }));
+            g.appendChild(svgEl('polygon', { points: `${rx-10},${my-3} ${rx-4},${my} ${rx-10},${my+3}`, fill: color }));
+            g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: color }));
+            break;
+          case 'connect-fwd':
+            g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx, y2: my, stroke: color, 'stroke-width': 1.5 }));
+            g.appendChild(svgEl('polyline', { points: `${mx-4},${my-5} ${mx+4},${my} ${mx-4},${my+5}`, fill: 'none', stroke: color, 'stroke-width': 1.5 }));
+            break;
+          case 'connect-bwd':
+            g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx, y2: my, stroke: color, 'stroke-width': 1.5 }));
+            g.appendChild(svgEl('polyline', { points: `${mx+4},${my-5} ${mx-4},${my} ${mx+4},${my+5}`, fill: 'none', stroke: color, 'stroke-width': 1.5 }));
+            break;
+          case 'connect-plain':
+            g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx, y2: my, stroke: color, 'stroke-width': 1.5 }));
+            break;
+          case 'relation-alt':
+            g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx-8, y2: my, stroke: color, 'stroke-width': 1.5 }));
+            g.appendChild(svgEl('polygon', { points: `${rx-8},${my-4} ${rx},${my} ${rx-8},${my+4}`, fill: color }));
+            break;
+          default: // first-order / part-of
+            g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx-6, y2: my, stroke: color, 'stroke-width': 1.5 }));
+            g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: color }));
+        }
+        // Label
+        g.appendChild(svgText(bx + symW + pad, my + 4, entry.label || '', { 'text-anchor': 'start', 'font-size': 10, fill: '#333' }));
+        // Separator line (except last)
+        if (i < entries.length - 1) {
+          g.appendChild(svgEl('line', { x1: bx + pad, y1: rowY + DEFAULTS.keyEntryH, x2: bx + kw - pad, y2: rowY + DEFAULTS.keyEntryH, stroke: '#ddd', 'stroke-width': 0.5 }));
+        }
+      });
       break;
     }
     case 'container': {
@@ -1048,6 +1178,7 @@ function createNode(type, x, y) {
   if (type === 'referent') { node.w = DEFAULTS.referentW; node.h = DEFAULTS.referentH; node.refId = 'ID'; node.methodName = 'Method'; }
   if (type === 'state-weak' || type === 'state-strong') { node.w = DEFAULTS.stateW; }
   if (type === 'container') { node.w = DEFAULTS.containerW; node.h = DEFAULTS.containerH; }
+  if (type === 'key') { node.entries = []; }
   return node;
 }
 
@@ -1163,6 +1294,32 @@ function renderNodeProps(panel, node) {
     });
   }
 
+  // Border color for kind/individual
+  if (node.type === 'kind' || node.type === 'individual') {
+    const dc = document.createElement('div');
+    dc.className = 'prop-group';
+    dc.innerHTML = '<label class="prop-label">Border Color</label>';
+    const grid = document.createElement('div');
+    grid.className = 'color-picker';
+    NODE_COLORS.forEach(c => {
+      const sw = document.createElement('div');
+      sw.className = 'color-swatch' + (c.value === '' ? ' color-swatch-default' : '');
+      if (c.value) sw.style.background = c.value;
+      if ((node.color || '') === c.value) sw.classList.add('selected');
+      sw.title = c.label;
+      sw.addEventListener('click', () => {
+        grid.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        sw.classList.add('selected');
+        node.color = c.value;
+        renderAll();
+        persistLocal();
+      });
+      grid.appendChild(sw);
+    });
+    dc.appendChild(grid);
+    panel.appendChild(dc);
+  }
+
   // Referent fields
   if (node.type === 'referent') {
     const d2 = addProp('Reference ID', `<input class="prop-input" id="prop-refid" value="${escHtml(node.refId || '')}"/>`);
@@ -1177,6 +1334,58 @@ function renderNodeProps(panel, node) {
     node.notes = e.target.value;
     persistLocal();
   });
+
+  // Key entry management
+  if (node.type === 'key') {
+    if (!node.entries) node.entries = [];
+    const dEntries = document.createElement('div');
+    dEntries.className = 'prop-group';
+    const renderEntryList = () => {
+      dEntries.innerHTML = '<label class="prop-label">Entries</label>';
+      if (node.entries.length === 0) {
+        dEntries.innerHTML += '<p style="font-size:11px;color:#999;margin:3px 0">No entries yet.</p>';
+      }
+      node.entries.forEach((entry, i) => {
+        const row = document.createElement('div');
+        row.className = 'key-entry-row';
+        row.innerHTML = `<span class="key-entry-type">${entry.symbolType}</span><span class="key-entry-lbl">${escHtml(entry.label)}</span><button class="key-entry-del" title="Remove">✕</button>`;
+        row.querySelector('.key-entry-del').addEventListener('click', () => {
+          saveUndo();
+          node.entries.splice(i, 1);
+          renderAll();
+          renderEntryList();
+          persistLocal();
+        });
+        dEntries.appendChild(row);
+      });
+      // Add entry row
+      const symOpts = [
+        ['first-order','First-Order Rel.'],['second-order','2nd-Order Rel.'],
+        ['relation-alt','Alt. 2-Place Rel.'],['subkind-of','Subkind-of'],
+        ['instance-of','Instance-of'],['part-of','Part-of'],
+        ['state-weak','State Trans. (Weak)'],['state-strong','State Trans. (Strong)'],
+        ['connect-fwd','Connect (Forward)'],['connect-bwd','Connect (Backward)'],
+        ['connect-plain','Connect (Plain)'],
+      ].map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+      const addRow = document.createElement('div');
+      addRow.className = 'key-add-row';
+      addRow.innerHTML = `<select id="key-add-type">${symOpts}</select><input class="key-add-lbl" id="key-add-label" placeholder="Label" /><button class="key-add-btn">Add</button>`;
+      addRow.querySelector('.key-add-btn').addEventListener('click', () => {
+        const t = addRow.querySelector('#key-add-type').value;
+        const l = addRow.querySelector('#key-add-label').value.trim();
+        if (!l) return;
+        saveUndo();
+        node.entries.push({ symbolType: t, label: l });
+        addRow.querySelector('#key-add-label').value = '';
+        renderAll();
+        renderEntryList();
+        persistLocal();
+      });
+      dEntries.appendChild(addRow);
+    };
+    renderEntryList();
+    panel.appendChild(dEntries);
+  }
 
   addInfoSection(panel, node.type);
 }
