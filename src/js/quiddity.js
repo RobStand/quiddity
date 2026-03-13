@@ -230,6 +230,11 @@ function getBBox(node) {
     }
     case 'state-weak':
     case 'state-strong':
+      if (node.junction) {
+        const r = 5;
+        return { x: node.x - r, y: node.y - r, w: r * 2, h: r * 2, cx: node.x, cy: node.y };
+      }
+      // falls through to connect-fwd/bwd/plain for standalone arrow rendering
     case 'connect-fwd':
     case 'connect-bwd':
     case 'connect-plain': {
@@ -385,19 +390,23 @@ function createNodeSVG(node) {
     case 'kind':
     case 'individual': {
       const r = node.r || DEFAULTS.kindRadius;
-      const borderColor = isSelected ? '#4a90e2' : (node.color || '#333');
-      const circle = svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: borderColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' });
+      const borderColor = isSelected ? '#4a90e2' : '#333';
+      const fillColor = node.color ? node.color + '80' : 'white'; // 80 = 50% opacity in hex
+      const circle = svgEl('circle', { cx: node.x, cy: node.y, r, fill: fillColor, stroke: borderColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' });
       g.appendChild(circle);
       // (individual dot drawn below with label, after circle)
       const label = node.label || '';
+      const textColor = labelColor(node.color);
       if (node.type === 'individual') {
         // Label centered inside circle, slightly above center to make room for the dot
-        g.appendChild(svgWrappedText(node.x, node.y - r * 0.15, label, r * 1.35, 12, '#222'));
+        const fs = fitFontSize(label, r * 1.9, r * 1.1, 12);
+        g.appendChild(svgWrappedText(node.x, node.y - r * 0.15, label, r * 1.9, fs, textColor));
         // Filled dot at bottom-center inside the circle
-        g.appendChild(svgEl('circle', { cx: node.x, cy: node.y + r * 0.62, r: 4, fill: '#333' }));
+        g.appendChild(svgEl('circle', { cx: node.x, cy: node.y + r * 0.62, r: 4, fill: textColor }));
       } else {
         // Label centered inside the circle
-        g.appendChild(svgWrappedText(node.x, node.y, label, r * 1.4, 12, '#222'));
+        const fs = fitFontSize(label, r * 1.9, r * 1.6, 12);
+        g.appendChild(svgWrappedText(node.x, node.y, label, r * 1.9, fs, textColor));
       }
       break;
     }
@@ -479,6 +488,14 @@ function createNodeSVG(node) {
     }
     case 'state-weak':
     case 'state-strong': {
+      if (node.junction) {
+        // Render as a small open circle (split junction marker, as in IDEF5 Fig. 4-37)
+        const r = 5;
+        g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r: r + 8, fill: 'transparent', class: 'node-shape shape-outline', stroke: isSelected ? '#4a90e2' : 'none', 'stroke-width': 1 }));
+        if (node.instantaneous) g.appendChild(instantaneousCircle(node.x, node.y, strokeColor));
+        else g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+        break;
+      }
       const w = node.w || DEFAULTS.stateW, h = 4;
       // Draw as an arrow element on canvas (not a connector, but a standalone node-symbol)
       const arrowY = node.y;
@@ -688,16 +705,20 @@ function createEdgeSVG(edge) {
     }
     case 'state-weak': {
       g.appendChild(svgEl('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: strokeColor, 'stroke-width': 1.5, 'marker-end': arrowMarker, class: 'edge-line' }));
-      if (edge.instantaneous) g.appendChild(instantaneousCircle(midX, midY, strokeColor));
-      else g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+      if (!fromNode.junction) {
+        if (edge.instantaneous) g.appendChild(instantaneousCircle(midX, midY, strokeColor));
+        else g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+      }
       if (edge.label) g.appendChild(edgeLabel(midX, midY - 14, edge.label, strokeColor));
       break;
     }
     case 'state-strong': {
       const doubleMarker = isSelected ? 'url(#arrowhead-double-blue)' : 'url(#arrowhead-double)';
       g.appendChild(svgEl('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: strokeColor, 'stroke-width': 1.5, 'marker-end': doubleMarker, class: 'edge-line' }));
-      if (edge.instantaneous) g.appendChild(instantaneousCircle(midX, midY, strokeColor));
-      else g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+      if (!fromNode.junction) {
+        if (edge.instantaneous) g.appendChild(instantaneousCircle(midX, midY, strokeColor));
+        else g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+      }
       if (edge.label) g.appendChild(edgeLabel(midX, midY - 14, edge.label, strokeColor));
       break;
     }
@@ -757,6 +778,19 @@ function edgeLabel(x, y, text, color) {
   return g;
 }
 
+// Returns '#fff' or '#222' depending on which contrasts better against the given hex fill color.
+// Accounts for the 50% opacity blend over white: effectiveLuminance = 0.5 * colorLuminance + 0.5
+function labelColor(hexColor) {
+  if (!hexColor) return '#222';
+  const r = parseInt(hexColor.slice(1, 3), 16) / 255;
+  const g = parseInt(hexColor.slice(3, 5), 16) / 255;
+  const b = parseInt(hexColor.slice(5, 7), 16) / 255;
+  const lin = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  const lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  const effective = 0.5 * lum + 0.5; // blend over white at 50% opacity
+  return effective < 0.4 ? '#fff' : '#222';
+}
+
 function svgEl(tag, attrs) {
   const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
   for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
@@ -770,6 +804,28 @@ function svgText(x, y, text, attrs) {
   for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
   el.textContent = text;
   return el;
+}
+
+// Returns the largest font size <= startSize at which `text`, word-wrapped to maxWidth,
+// fits within both maxWidth and maxHeight. Uses the same char-width estimate as svgWrappedText.
+function fitFontSize(text, maxWidth, maxHeight, startSize, minSize = 7) {
+  const words = (text || '').split(/\s+/).filter(w => w.length > 0);
+  if (words.length === 0) return startSize;
+  for (let fs = startSize; fs >= minSize; fs -= 0.5) {
+    const charW = fs * 0.62;
+    const lines = [];
+    let current = '';
+    for (const word of words) {
+      const test = current ? current + ' ' + word : word;
+      if (test.length * charW <= maxWidth) { current = test; }
+      else { if (current) lines.push(current); current = word; }
+    }
+    if (current) lines.push(current);
+    const maxLineW = Math.max(...lines.map(l => l.length * charW));
+    const totalH = lines.length * fs * 1.35;
+    if (maxLineW <= maxWidth && totalH <= maxHeight) return fs;
+  }
+  return minSize;
 }
 
 // Wraps text into multiple <tspan> lines centered at (cx, cy).
@@ -821,7 +877,7 @@ function svgWrappedText(cx, cy, text, maxWidth, fontSize, fill) {
 function createNode(type, x, y) {
   const id = 'n' + nextId();
   const def = NODE_TYPES[type] || {};
-  const node = { id, type, x: snap(x), y: snap(y), label: def.defaultLabel || type, notes: '' };
+  const node = { id, type, x: snap(x), y: snap(y), label: def.defaultLabel !== undefined ? def.defaultLabel : type, notes: '' };
   if (type === 'kind' || type === 'individual') node.r = DEFAULTS.kindRadius;
   if (type === 'relation-first' || type === 'relation-second') { node.w = DEFAULTS.relationW; node.h = DEFAULTS.relationH; }
   if (type === 'process') { node.w = DEFAULTS.processW; node.h = DEFAULTS.processH; }
@@ -1349,10 +1405,11 @@ function splitTransitionAndConnect(transHit, sourceNodeId, edgeType) {
   const { edge, midX, midY } = transHit;
   const nodeType = edge.type; // 'state-weak' or 'state-strong'
   const transNode = createNode(nodeType, snap(midX), snap(midY));
+  transNode.junction = true;
   state.nodes.push(transNode);
   state.edges = state.edges.filter(e => e.id !== edge.id);
   state.edges.push(createEdge(edge.fromId, transNode.id, 'connect-plain'));
-  state.edges.push(createEdge(transNode.id, edge.toId, 'connect-plain'));
+  state.edges.push(createEdge(transNode.id, edge.toId, edge.type));
   state.edges.push(createEdge(sourceNodeId, transNode.id, edgeType));
   renderAll();
   updateProperties();
@@ -1770,19 +1827,17 @@ const EXAMPLES = {
   'water-transitions': {
     label: 'Water Phase Transitions',
     nodes: [
-      { id: 1, type: 'kind',          x: 120, y: 200, label: 'Water:Liquid' },
-      { id: 2, type: 'kind',          x: 480, y: 200, label: 'Water:Gaseous' },
-      { id: 3, type: 'state-strong',  x: 300, y: 200, label: '' },
+      { id: 1, type: 'kind',          x: 120, y: 200, label: 'Water: Liquid' },
+      { id: 2, type: 'kind',          x: 480, y: 200, label: 'Water: Gaseous' },
+      { id: 3, type: 'state-strong',  x: 300, y: 200, label: '', junction: true },
       { id: 4, type: 'process',       x: 300, y: 80,  label: 'Vaporize Water' },
-      { id: 5, type: 'kind',          x: 120, y: 360, label: 'Water:Solid' },
-      { id: 6, type: 'state-weak',    x: 300, y: 360, label: '' },
     ],
     edges: [
       { id: 101, type: 'connect-plain', fromId: 1, toId: 3, label: '' },
-      { id: 102, type: 'connect-plain', fromId: 3, toId: 2, label: '' },
+      { id: 102, type: 'state-strong',  fromId: 3, toId: 2, label: '' },
       { id: 103, type: 'connect-plain', fromId: 4, toId: 3, label: '' },
       { id: 104, type: 'connect-plain', fromId: 5, toId: 6, label: '' },
-      { id: 105, type: 'connect-plain', fromId: 6, toId: 2, label: '' },
+      { id: 105, type: 'state-weak',    fromId: 6, toId: 2, label: '' },
     ],
     nextId: 200,
   },
