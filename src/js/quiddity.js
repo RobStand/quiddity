@@ -1235,14 +1235,11 @@ document.querySelectorAll('.toolbox-item').forEach(item => {
   }
 });
 
-canvasContainer.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
-canvasContainer.addEventListener('drop', e => {
-  e.preventDefault();
-  const type = e.dataTransfer.getData('node-type');
-  if (!type) return;
-  const pos = clientToWorld(e.clientX, e.clientY);
+// Shared handler for placing a toolbox item at a canvas client position (mouse drop or touch).
+function placeToolboxItem(type, clientX, clientY) {
+  const pos = clientToWorld(clientX, clientY);
 
-  // If this toolbox item is a connection tool, enter connection mode
+  // Connection tool: enter connection mode
   const edgeType = TOOLBOX_EDGE_TYPES[type];
   if (edgeType) {
     const sourceNode = hitTestNode(pos.x, pos.y);
@@ -1252,19 +1249,19 @@ canvasContainer.addEventListener('drop', e => {
     return;
   }
 
-  // Instantaneous transition marker: applies to the circle of an existing state transition
+  // Instantaneous transition marker: toggles on an existing state transition circle
   if (type === 'transition-instant') {
     const transHit = hitTestTransitionCircle(pos.x, pos.y);
     if (transHit) {
       saveUndo();
-      transHit.edge.instantaneous = !transHit.edge.instantaneous; // toggle
+      transHit.edge.instantaneous = !transHit.edge.instantaneous;
       renderAll();
       persistLocal();
     } else {
       const stateNode = hitTestNode(pos.x, pos.y);
       if (stateNode && (stateNode.type === 'state-weak' || stateNode.type === 'state-strong')) {
         saveUndo();
-        stateNode.instantaneous = !stateNode.instantaneous; // toggle
+        stateNode.instantaneous = !stateNode.instantaneous;
         renderAll();
         persistLocal();
       }
@@ -1279,6 +1276,51 @@ canvasContainer.addEventListener('drop', e => {
   selectedIds.add(node.id);
   renderAll();
   updateProperties();
+}
+
+canvasContainer.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+canvasContainer.addEventListener('drop', e => {
+  e.preventDefault();
+  const type = e.dataTransfer.getData('node-type');
+  if (type) placeToolboxItem(type, e.clientX, e.clientY);
+});
+
+// Touch drag support for toolbox items (iOS/iPadOS doesn't support HTML5 drag-and-drop)
+let touchDragType = null;
+let touchDragGhost = null;
+
+document.querySelectorAll('.toolbox-item').forEach(item => {
+  item.addEventListener('touchstart', e => {
+    touchDragType = item.dataset.type;
+    const touch = e.touches[0];
+    touchDragGhost = item.cloneNode(true);
+    touchDragGhost.style.cssText = `position:fixed;left:${touch.clientX - 30}px;top:${touch.clientY - 20}px;opacity:0.75;pointer-events:none;z-index:9999;`;
+    document.body.appendChild(touchDragGhost);
+    e.preventDefault();
+  }, { passive: false });
+});
+
+document.addEventListener('touchmove', e => {
+  if (!touchDragGhost) return;
+  const touch = e.touches[0];
+  touchDragGhost.style.left = (touch.clientX - 30) + 'px';
+  touchDragGhost.style.top  = (touch.clientY - 20) + 'px';
+  e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('touchend', e => {
+  if (!touchDragType) return;
+  const touch = e.changedTouches[0];
+  touchDragGhost.remove();
+  touchDragGhost = null;
+  const type = touchDragType;
+  touchDragType = null;
+
+  const rect = canvasContainer.getBoundingClientRect();
+  if (touch.clientX < rect.left || touch.clientX > rect.right ||
+      touch.clientY < rect.top  || touch.clientY > rect.bottom) return;
+
+  placeToolboxItem(type, touch.clientX, touch.clientY);
 });
 
 function showToolboxConnectHint(pickingSource) {

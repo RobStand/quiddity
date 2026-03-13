@@ -43,6 +43,7 @@
 
     <div class="nav-section">Reference</div>
     <a href="#keyboard">Keyboard shortcuts</a>
+    <a href="#ios">Using on iPad / iPhone</a>
     <a href="#idef5">About IDEF5</a>
   </nav>
 
@@ -145,11 +146,12 @@
 
     <h3>Connector tools (two-click workflow)</h3>
 
-    <ol class="steps">
-      <li>Drag a connector item (e.g. <em>State Trans. (Weak)</em>) from the toolbox onto the canvas.</li>
-      <li>Click the <strong>source</strong> node. A dashed preview line tracks your cursor.</li>
-      <li>Click the <strong>target</strong> node to complete the connection.</li>
-    </ol>
+    <p>There are two ways to start a connection:</p>
+    <ul>
+      <li><strong>Click</strong> a connector item in the toolbox to enter connection mode, then click the source node.</li>
+      <li><strong>Drag</strong> a connector item from the toolbox directly onto the source node to enter connection mode with the source already set.</li>
+    </ul>
+    <p>Either way, finish by clicking the <strong>target</strong> node. A dashed preview line tracks your cursor while the target is being picked.</p>
 
     <p>Press <kbd>Esc</kbd> at any point to cancel the operation.</p>
 
@@ -175,7 +177,7 @@
     <p>Every node has a free-text <em>Notes</em> field in the Properties panel. Use it to record definitions, source references, or modelling decisions. Notes are saved with the diagram but are not displayed on the canvas.</p>
 
     <h3>Color (kinds and individuals)</h3>
-    <p>With a kind or individual selected, a color swatch grid appears in the Properties panel. Click a color to tint the node's border. The default swatch (white with a cross) resets to no color.</p>
+    <p>With a kind or individual selected, a color swatch grid appears in the Properties panel. Click a color to fill the node with that color at 50% opacity. The default swatch (white with a cross) resets to no color.</p>
 
     <h3>Resizing</h3>
     <p>Select a resizable node (relation rectangle, process, referent, or container). Blue corner handles appear. Drag any handle to resize the node.</p>
@@ -624,6 +626,55 @@
       <tr><td><kbd>Space</kbd> + drag</td><td>Pan the canvas</td></tr>
       <tr><td>Mouse wheel</td><td>Zoom in / out (centred on cursor)</td></tr>
     </table>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="ios">Using on iPad / iPhone</h2>
+
+    <p>Quiddity works on iOS and iPadOS in Safari. Touch gestures replace mouse and keyboard interactions throughout.</p>
+
+    <h3>Navigating the canvas</h3>
+    <table>
+      <tr><th>Action</th><th>Touch gesture</th></tr>
+      <tr><td>Pan</td><td>Drag with one finger on empty canvas space</td></tr>
+      <tr><td>Zoom in / out</td><td>Pinch with two fingers, or use the <strong>+</strong> / <strong>−</strong> toolbar buttons</td></tr>
+      <tr><td>Fit to window</td><td>Tap <strong>Fit</strong> in the toolbar</td></tr>
+    </table>
+
+    <h3>Adding nodes</h3>
+    <p>Touch and hold a symbol in the toolbox, then drag it onto the canvas. A translucent copy of the symbol follows your finger. Lift your finger over the canvas to place the node.</p>
+
+    <h3>Drawing connections</h3>
+    <ol class="steps">
+      <li>Touch and drag a connector item (e.g. <em>State Trans. (Strong)</em>, <em>Connect (Plain)</em>) from the toolbox and drop it onto the <strong>source</strong> node on the canvas.</li>
+      <li>Tap the <strong>target</strong> node to complete the connection.</li>
+    </ol>
+    <p>Tap <strong>Esc</strong> is not available on a touch keyboard. Tap any empty canvas area and then start again, or use the on-screen keyboard's Escape key if your keyboard has one.</p>
+
+    <h3>Selecting and moving nodes</h3>
+    <table>
+      <tr><th>Action</th><th>Touch gesture</th></tr>
+      <tr><td>Select a node</td><td>Tap it</td></tr>
+      <tr><td>Move a node</td><td>Tap to select, then drag</td></tr>
+      <tr><td>Multi-select</td><td>Not available without a keyboard. Select and act on one node at a time.</td></tr>
+      <tr><td>Deselect</td><td>Tap empty canvas space</td></tr>
+    </table>
+
+    <h3>Editing labels</h3>
+    <p>Double-tap any node to open the inline label editor. The on-screen keyboard will appear. Tap outside the editor or press Return to confirm.</p>
+
+    <h3>Context menu</h3>
+    <p>The context menu is not available on iOS. It requires a right-click. To delete a selected node or edge, select it and use the <kbd>Delete</kbd> key on a connected hardware keyboard. Duplicate and layer-ordering options are not currently accessible without a mouse.</p>
+
+    <h3>Toolbar buttons</h3>
+    <p>All toolbar buttons (New, Save, Load, SVG, Undo, Redo, Fit, Examples) work normally with a tap. <strong>Save</strong> and <strong>SVG</strong> will trigger the iOS share sheet, from which you can save the file to Files, send it by email, or copy it.</p>
+
+    <div class="callout">
+      <strong>Tip:</strong> For the best experience on iPad, add Quiddity to your Home Screen via the Share button in Safari. This opens it full-screen without the browser chrome.
+    </div>
+
+    <div class="callout warning">
+      <strong>Note:</strong> Keyboard shortcuts (Ctrl+Z, Delete, etc.) require a hardware keyboard connected to the iPad. Without a keyboard, use the toolbar Undo/Redo buttons and the long-press context menu to delete elements.
+    </div>
 
     <!-- ════════════════════════════════════════ -->
     <h2 id="idef5">About IDEF5</h2>

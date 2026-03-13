@@ -6,7 +6,14 @@ Quiddity is a simple knowledge engineering that leverages IDEF5 for creating and
 
 ## How to use Quiddity
 
-Clone the repo and load up quiddity.html in your browser. I've included some example ontologies from the IDEF5 spec in the Examples menu.
+There are two ways you can access Quiddity:
+
+- Try the [hosted version](https://standefer.com/quiddity/) in desktop browsers and iOS
+- Clone the repo and load up index.html in your browser
+
+Documentation for how to use Quiddity is in the Help menu on the toolbar.
+
+There are some example ontologies in the Examples menu.
 
 ## Quid est?
 
