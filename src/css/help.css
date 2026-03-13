@@ -1,0 +1,179 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #222;
+  background: #f5f5f5;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+
+nav {
+  width: 220px;
+  flex-shrink: 0;
+  background: #2c2c2c;
+  color: #ccc;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 20px 0 40px;
+}
+
+nav .nav-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  padding: 0 18px 12px;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #444;
+  margin-bottom: 10px;
+}
+
+nav a {
+  display: block;
+  padding: 6px 18px;
+  color: #aaa;
+  text-decoration: none;
+  font-size: 13px;
+}
+nav a:hover { color: #fff; background: #3a3a3a; }
+nav .nav-section {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #666;
+  padding: 14px 18px 4px;
+}
+
+main {
+  flex: 1;
+  max-width: 860px;
+  padding: 40px 48px 80px;
+}
+
+/* ── Typography ── */
+h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 48px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e0e0e0;
+  scroll-margin-top: 20px;
+}
+h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  color: #333;
+  scroll-margin-top: 20px;
+}
+p { margin-bottom: 12px; }
+ul, ol { margin: 0 0 14px 20px; }
+li { margin-bottom: 4px; }
+code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; background: #eee; padding: 1px 5px; border-radius: 3px; }
+
+.subtitle { color: #666; font-size: 15px; margin-bottom: 30px; }
+
+/* ── Callouts ── */
+.callout {
+  border-left: 4px solid #4a90e2;
+  background: #eef4fd;
+  padding: 12px 16px;
+  border-radius: 0 6px 6px 0;
+  margin: 16px 0;
+  font-size: 13px;
+}
+.callout.tip { border-color: #38a169; background: #f0fff4; }
+.callout.warning { border-color: #dd6b20; background: #fff3e0; }
+
+/* ── Keyboard shortcuts ── */
+kbd {
+  display: inline-block;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  background: #f0f0f0;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  box-shadow: 0 1px 0 #aaa;
+  white-space: nowrap;
+}
+
+/* ── Tables ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0 22px;
+  font-size: 13px;
+}
+th {
+  text-align: left;
+  padding: 8px 12px;
+  background: #eee;
+  border: 1px solid #ddd;
+  font-weight: 600;
+}
+td {
+  padding: 7px 12px;
+  border: 1px solid #ddd;
+  vertical-align: top;
+}
+tr:nth-child(even) td { background: #fafafa; }
+
+/* ── Symbol rows ── */
+.symbol-grid {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 0;
+  margin: 14px 0 22px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 13px;
+}
+.symbol-grid .sym-cell {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  background: #fff;
+}
+.symbol-grid .sym-cell:nth-child(4n+1),
+.symbol-grid .sym-cell:nth-child(4n+2) { background: #fafafa; }
+.symbol-grid .sym-cell.icon { justify-content: center; border-right: 1px solid #eee; }
+.symbol-grid .sym-cell:last-child,
+.symbol-grid .sym-cell:nth-last-child(2) { border-bottom: none; }
+
+.sym-name { font-weight: 600; }
+.sym-desc { color: #555; font-size: 12px; margin-top: 2px; }
+
+/* ── Numbered steps ── */
+.steps { counter-reset: step; list-style: none; margin-left: 0; }
+.steps li {
+  counter-increment: step;
+  padding: 8px 0 8px 36px;
+  position: relative;
+  border-bottom: 1px solid #f0f0f0;
+}
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 24px;
+  height: 24px;
+  background: #4a90e2;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
