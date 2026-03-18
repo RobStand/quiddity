@@ -1597,7 +1597,7 @@ function onCanvasPointerMove(e) {
   if (dragState.type === 'node') {
     const wp = clientToWorld(e.clientX, e.clientY);
     for (const [id, off] of Object.entries(dragState.nodeOffsets)) {
-      const node = state.nodes.find(n => n.id === id);
+      const node = state.nodes.find(n => String(n.id) === id);
       if (node) { node.x = snap(wp.x - off.dx); node.y = snap(wp.y - off.dy); }
     }
     dragState.moved = true;
@@ -1905,6 +1905,33 @@ const EXAMPLES = {
       { id: 106, type: 'subkind-of', fromId: 7, toId: 3, label: '' },
       { id: 107, type: 'subkind-of', fromId: 8, toId: 2, label: '' },
       { id: 108, type: 'subkind-of', fromId: 9, toId: 2, label: '' },
+    ],
+    nextId: 200,
+  },
+  'agent-ontology': {
+    label: 'Agent Classification',
+    nodes: [
+      { id: 1,  type: 'kind',           x: 400, y: 260, label: 'Agent' },
+      { id: 2,  type: 'kind',           x: 220, y: 420, label: 'Autonomous Agent' },
+      { id: 3,  type: 'kind',           x: 580, y: 420, label: 'Reactive Agent' },
+      { id: 4,  type: 'kind',           x: 100, y: 580, label: 'Software Agent' },
+      { id: 5,  type: 'kind',           x: 340, y: 580, label: 'Human Agent' },
+      { id: 6,  type: 'kind',           x: 100, y: 740, label: 'AI Agent' },
+      { id: 7,  type: 'individual',     x: 320, y: 740, label: 'Copilot' },
+      { id: 8,  type: 'kind',           x: 220, y: 100, label: 'Perception' },
+      { id: 9,  type: 'kind',           x: 580, y: 100, label: 'Action' },
+      { id: 10, type: 'kind',           x: 700, y: 260, label: 'Environment' },
+    ],
+    edges: [
+      { id: 101, type: 'subkind-of',  fromId: 2,  toId: 1,  label: '' },
+      { id: 102, type: 'subkind-of',  fromId: 3,  toId: 1,  label: '' },
+      { id: 103, type: 'subkind-of',  fromId: 4,  toId: 2,  label: '' },
+      { id: 104, type: 'subkind-of',  fromId: 5,  toId: 2,  label: '' },
+      { id: 105, type: 'subkind-of',  fromId: 6,  toId: 4,  label: '' },
+      { id: 106, type: 'part-of',     fromId: 8,  toId: 1,  label: '' },
+      { id: 107, type: 'part-of',     fromId: 9,  toId: 1,  label: '' },
+      { id: 108, type: 'relation-alt', fromId: 1,  toId: 10, label: 'operates in' },
+      { id: 109, type: 'instance-of', fromId: 7,  toId: 6,  label: '' },
     ],
     nextId: 200,
   },
