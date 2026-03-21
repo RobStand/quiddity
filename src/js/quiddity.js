@@ -141,6 +141,7 @@ let state = {
 let undoStack = [];
 let redoStack = [];
 const MAX_UNDO = 50;
+let isDirty = false;
 
 let selectedIds = new Set();
 let viewport = { x: 0, y: 0, scale: 1 };
@@ -155,6 +156,7 @@ function saveUndo() {
   undoStack.push(snapshot);
   if (undoStack.length > MAX_UNDO) undoStack.shift();
   redoStack = [];
+  isDirty = true;
   persistLocal();
 }
 
@@ -354,6 +356,14 @@ function renderAll() {
   renderEdges();
   renderNodes();
   applyViewport();
+  updateCanvasHint();
+}
+
+function updateCanvasHint() {
+  const hint = document.getElementById('canvas-hint');
+  if (!hint) return;
+  if (state.nodes.length === 0) hint.classList.remove('hidden');
+  else hint.classList.add('hidden');
 }
 
 function renderNodes() {
@@ -1689,6 +1699,9 @@ function showContextMenu(x, y) {
   menu.style.left = x + 'px';
   menu.style.top = y + 'px';
   menu.style.display = 'block';
+  // Focus the first actionable item for keyboard nav
+  const first = menu.querySelector('.ctx-item:not(.ctx-sep)');
+  if (first) { first.setAttribute('tabindex', '0'); first.focus(); }
 }
 
 function hideContextMenu() {
@@ -1703,6 +1716,30 @@ document.getElementById('context-menu').addEventListener('click', e => {
   if (action === 'duplicate') duplicateSelected();
   if (action === 'front') bringToFront();
   if (action === 'back') sendToBack();
+});
+
+// Context menu keyboard navigation
+document.getElementById('context-menu').addEventListener('keydown', e => {
+  const menu = document.getElementById('context-menu');
+  const items = Array.from(menu.querySelectorAll('.ctx-item[data-action]'));
+  const focused = document.activeElement;
+  const idx = items.indexOf(focused);
+  if (e.key === 'Escape') { hideContextMenu(); e.preventDefault(); return; }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const next = items[(idx + 1) % items.length];
+    items.forEach(i => i.setAttribute('tabindex', '-1'));
+    next.setAttribute('tabindex', '0');
+    next.focus();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const prev = items[(idx - 1 + items.length) % items.length];
+    items.forEach(i => i.setAttribute('tabindex', '-1'));
+    prev.setAttribute('tabindex', '0');
+    prev.focus();
+  } else if (e.key === 'Enter' && focused && focused.dataset.action) {
+    focused.click();
+  }
 });
 
 function bringToFront() {
@@ -1742,7 +1779,7 @@ document.addEventListener('keydown', e => {
   const tag = document.activeElement && document.activeElement.tagName.toLowerCase();
   const isTyping = tag === 'input' || tag === 'textarea' || !!editingNodeId;
   if (isTyping) return;
-  if (e.key === 'Escape') { cancelToolboxConnect(); }
+  if (e.key === 'Escape') { cancelToolboxConnect(); hideContextMenu(); }
   if (e.key === ' ') { spaceDown = true; canvasContainer.style.cursor = toolboxConnectStart ? 'crosshair' : 'grab'; e.preventDefault(); }
   if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
   if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
@@ -1814,6 +1851,7 @@ document.getElementById('btn-save').addEventListener('click', () => {
   a.download = 'idef5-diagram.json';
   a.click();
   URL.revokeObjectURL(url);
+  isDirty = false;
 });
 
 document.getElementById('btn-load').addEventListener('click', () => {
@@ -1822,7 +1860,11 @@ document.getElementById('btn-load').addEventListener('click', () => {
 
 document.getElementById('file-input').addEventListener('change', e => {
   const file = e.target.files[0];
-  if (!file) return;
+  if (!file) { e.target.value = ''; return; }
+  if ((state.nodes.length > 0 || state.edges.length > 0) && !confirm('Load "' + file.name + '"?\nThis will replace the current diagram.')) {
+    e.target.value = '';
+    return;
+  }
   const reader = new FileReader();
   reader.onload = ev => {
     try {
@@ -1832,6 +1874,7 @@ document.getElementById('file-input').addEventListener('change', e => {
       state.edges = data.edges || [];
       state.nextId = data.nextId || 1;
       selectedIds.clear();
+      isDirty = false;
       renderAll();
       updateProperties();
       fitToWindow();
@@ -2045,6 +2088,41 @@ function exportSVG() {
   a.download = 'idef5-diagram.svg';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// TOOLBOX KEYBOARD: Enter key to place / activate
+// ============================================================
+document.getElementById('toolbox').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const item = e.target.closest('.toolbox-item');
+  if (!item) return;
+  e.preventDefault();
+  const type = item.dataset.type;
+  if (!type) return;
+  // For edge-type tools: same as clicking the item (enter connection mode)
+  if (TOOLBOX_EDGE_TYPES[type]) {
+    cancelToolboxConnect();
+    toolboxConnectStart = { edgeType: TOOLBOX_EDGE_TYPES[type], fromId: null };
+    canvasContainer.style.cursor = 'crosshair';
+    showToolboxConnectHint(true);
+    return;
+  }
+  // For node-type tools: place at canvas center
+  const rect = canvasContainer.getBoundingClientRect();
+  placeToolboxItem(type, rect.left + rect.width / 2, rect.top + rect.height / 2);
+});
+
+// ============================================================
+// PROPERTIES PANEL TOGGLE (tablet)
+// ============================================================
+const propsToggle = document.getElementById('props-toggle');
+if (propsToggle) {
+  propsToggle.addEventListener('click', () => {
+    const panel = document.getElementById('properties');
+    const open = panel.classList.toggle('open');
+    propsToggle.textContent = open ? '\u25B6' : '\u25C4';
+  });
 }
 
 // ============================================================
