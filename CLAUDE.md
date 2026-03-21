@@ -34,6 +34,22 @@ Global state holds `nodes[]` and `edges[]`, plus undo/redo stacks. Both are seri
 - Viewport (pan/zoom) stored separately from node coordinates; applied via `applyViewport()`
 - Undo stack capped at 50 levels; `saveUndo()` called before any mutating operation
 
+## Design System
+
+Always read `DESIGN.md` before making any visual or UI decisions.
+All font choices, colors, spacing, and aesthetic direction are defined there.
+Do not deviate without explicit user approval.
+
+Key rules at a glance:
+
+- Toolbar bg: `#1a1e2e` (ink blue-black) — not charcoal gray
+- Accent: `#3b82f6` — the sole interactive/selection color; do not introduce a second
+- Font: Geist Sans + Geist Mono (loaded from Google Fonts)
+- No animations on canvas interactions, ever
+- Do not alter IDEF5 symbol shapes — they are defined by the specification
+
+In QA or design-review mode, flag any code that doesn't match DESIGN.md.
+
 ## gstack
 
 Use the `/browse` skill from gstack for all web browsing. Never use `mcp__claude-in-chrome__*` tools.
