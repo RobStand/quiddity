@@ -39,6 +39,8 @@
     <input type="file" id="file-input" accept=".json" style="display:none">
     <div class="tb-sep"></div>
     <a class="tb-btn" href="help.html" target="_blank" title="Open help documentation">? Help</a>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-ai" title="Open AI assistant" aria-label="Open AI assistant">&#10022; AI</button>
   </div>
 
   <!-- MAIN -->
@@ -206,6 +208,10 @@
 
     <!-- CANVAS -->
     <div id="canvas-container">
+      <!-- AI generating spinner overlay (shown during API call) -->
+      <div id="ai-canvas-spinner" aria-live="assertive" aria-atomic="true" style="display:none">
+        <span class="ai-spinner"></span> Generating…
+      </div>
       <div id="canvas-hint" aria-hidden="true">
         <p>Drag symbols from the left panel to start</p>
         <p>or load an example from the toolbar</p>
@@ -259,6 +265,38 @@
     <div id="properties">
       <div id="props-content">
         <p class="prop-empty">Select an element to view properties</p>
+      </div>
+    </div>
+
+    <!-- AI PANEL -->
+    <div id="ai-panel" role="complementary" aria-label="AI assistant">
+      <div id="ai-panel-header">
+        <span class="ai-panel-title">&#10022; AI Assistant</span>
+        <button class="ai-panel-close" id="ai-panel-close" aria-label="Close AI panel">&#215;</button>
+      </div>
+      <!-- Key section: two states toggled by JS -->
+      <div id="ai-key-section">
+        <!-- No-key state (default) -->
+        <div id="ai-key-input-row">
+          <label class="ai-key-label" for="ai-key-input">&#128273; Anthropic API key:</label>
+          <input type="password" id="ai-key-input" class="ai-key-input" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" aria-label="Anthropic API key">
+          <div class="ai-key-hint">Key stored in your browser only — never sent to a server.</div>
+        </div>
+        <!-- Stored-key state (hidden until key saved) -->
+        <div id="ai-key-stored-row" style="display:none">
+          <span class="ai-key-mask" id="ai-key-mask">&#128273; sk-ant-&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;</span>
+          <button class="ai-key-clear" id="ai-key-clear" aria-label="Clear API key">&#215;</button>
+        </div>
+      </div>
+      <!-- Conversation thread -->
+      <div id="ai-messages" role="log" aria-live="polite" aria-label="AI conversation"></div>
+      <!-- Input footer -->
+      <div id="ai-panel-footer">
+        <textarea id="ai-textarea" class="ai-textarea" rows="3" aria-label="Message to AI" placeholder="Paste your Anthropic API key above to get started."></textarea>
+        <div class="ai-footer-row">
+          <span class="ai-footer-hint">Ctrl+Enter to send &middot; Ctrl+Z to undo last turn</span>
+          <button id="ai-send-btn" class="ai-send-btn" aria-label="Send message">Send</button>
+        </div>
       </div>
     </div>
   </div>

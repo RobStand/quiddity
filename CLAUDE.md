@@ -24,7 +24,7 @@ The app is structured as three files:
 Global state holds `nodes[]` and `edges[]`, plus undo/redo stacks. Both are serialized to JSON for save/load and persisted to `localStorage` for auto-save.
 
 - **Node**: `{ id, type, x, y, label, color, w, h, ... }` — type is one of 17 IDEF5 symbol types (kind, individual, relation-first/second/alt, process, referent, junction-xor/or/and, state-weak/strong, transition-instant, connect-fwd/bwd/plain, container, key)
-- **Edge**: `{ id, from, to, type, label }` — 11 edge types
+- **Edge**: `{ id, fromId, toId, type, label }` — 11 edge types (`fromId`/`toId`, not `from`/`to`)
 
 ## Key Conventions
 

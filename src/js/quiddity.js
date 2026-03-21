@@ -371,10 +371,18 @@ function renderNodes() {
   layer.innerHTML = '';
   // Render containers first so they appear behind other nodes
   for (const node of state.nodes) {
-    if (node.type === 'container') layer.appendChild(createNodeSVG(node));
+    if (node.type === 'container') {
+      const g = createNodeSVG(node);
+      if (aiNewNodeIds.has(node.id)) g.classList.add('ai-new-node');
+      layer.appendChild(g);
+    }
   }
   for (const node of state.nodes) {
-    if (node.type !== 'container') layer.appendChild(createNodeSVG(node));
+    if (node.type !== 'container') {
+      const g = createNodeSVG(node);
+      if (aiNewNodeIds.has(node.id)) g.classList.add('ai-new-node');
+      layer.appendChild(g);
+    }
   }
 }
 
@@ -1803,9 +1811,18 @@ document.getElementById('btn-new').addEventListener('click', () => {
   state.nextId = 1;
   selectedIds.clear();
   viewport = { x: 0, y: 0, scale: 1 };
+  // Reset AI state for new diagram
+  isFirstAIGeneration = true;
+  aiConversationHistory = [];
+  aiNewNodeIds = new Set();
+  setAILoading(false);   // restore UI if a request was in-flight
+  aiGenerationId++;      // discard any in-flight response (checked in finally)
+  const aiThread = document.getElementById('ai-messages');
+  if (aiThread) aiThread.innerHTML = '';
   renderAll();
   updateProperties();
   persistLocal();
+  isDirty = false;  // new diagram is clean
 });
 
 document.getElementById('btn-undo').addEventListener('click', undo);
@@ -2088,6 +2105,414 @@ function exportSVG() {
   a.download = 'idef5-diagram.svg';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// AI PANEL
+// ============================================================
+
+const AI_MODEL       = 'claude-sonnet-4-6';
+const AI_ENDPOINT    = 'https://api.anthropic.com/v1/messages';
+const AI_MAX_TOKENS  = 4096;
+const AI_TIMEOUT_MS  = 45000;
+const AI_HISTORY_MAX = 20;  // messages (10 turns)
+const AI_SYSTEM_PROMPT = `You are a knowledge engineering assistant for Quiddity, a browser-based IDEF5 ontology editor.
+
+IDEF5 symbol types you may use:
+  Nodes: kind, individual, relation-first, relation-second, relation-alt, process,
+         referent, junction-xor, junction-or, junction-and, state-weak, state-strong,
+         transition-instant, connect-fwd, connect-bwd, connect-plain, container, key
+  Edges: subtype, composition, characteristic, relation, referent, transition,
+         connect, constraint, containment, association, equivalence
+
+Respond ONLY with valid JSON — no prose, no markdown fences, just raw JSON:
+{
+  "description": "one-sentence summary of what was modeled",
+  "nodes": [
+    { "id": "n1", "type": "kind", "label": "Patient" }
+  ],
+  "edges": [
+    { "id": "e1", "from": "n1", "to": "n2", "type": "subtype", "label": "" }
+  ]
+}
+
+Rules:
+- Node IDs: use short identifiers like "n1", "n2" — the client remaps these to globally unique IDs.
+- Use "kind" for categories, "individual" for specific named instances.
+- Ensure all node labels are unique within each response.
+- Do not include x, y, w, h, color — the client handles layout.
+- Generate no more than 20 nodes per response.
+- For extensions: you will receive existing node and edge context. Reference existing node IDs
+  in edge from/to fields to connect new nodes to existing ones.`;
+
+// AI state variables
+let aiConversationHistory = [];
+let aiPanelOpen = false;
+let isFirstAIGeneration = true;
+let aiNewNodeIds = new Set();
+let aiGenerationId = 0;
+
+// ---- utility: mask an API key for display ----
+function maskApiKey(key) {
+  if (!key || key.length < 10) return key;
+  return key.slice(0, 7) + '\u2022'.repeat(8);
+}
+
+// ---- show/hide panel ----
+function openAIPanel() {
+  aiPanelOpen = true;
+  document.getElementById('ai-panel').classList.add('open');
+  document.getElementById('btn-ai').classList.add('ai-active');
+  syncAIKeySection();
+  syncAITextareaPlaceholder();
+  if (document.getElementById('ai-messages').children.length === 0) {
+    appendAIMessage('ai', 'Describe a domain and I\'ll build an IDEF5 knowledge graph on the canvas. Try: <em>Model how a hospital manages patients.</em>');
+  }
+}
+
+function closeAIPanel() {
+  aiPanelOpen = false;
+  document.getElementById('ai-panel').classList.remove('open');
+  document.getElementById('btn-ai').classList.remove('ai-active');
+}
+
+function syncAIKeySection() {
+  const key = localStorage.getItem('quiddity-ai-key') || '';
+  const inputRow  = document.getElementById('ai-key-input-row');
+  const storedRow = document.getElementById('ai-key-stored-row');
+  const maskEl    = document.getElementById('ai-key-mask');
+  if (key) {
+    inputRow.style.display  = 'none';
+    storedRow.style.display = 'flex';
+    maskEl.textContent = '\uD83D\uDD13 ' + maskApiKey(key);
+  } else {
+    inputRow.style.display  = '';
+    storedRow.style.display = 'none';
+  }
+}
+
+function syncAITextareaPlaceholder() {
+  const key = localStorage.getItem('quiddity-ai-key') || '';
+  const ta = document.getElementById('ai-textarea');
+  ta.placeholder = key
+    ? 'Add concepts, refine, or ask questions\u2026'
+    : 'Paste your Anthropic API key above to get started.';
+}
+
+// ---- append a message bubble to the thread ----
+function appendAIMessage(role, html, chip) {
+  const thread = document.getElementById('ai-messages');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + role;
+  const roleLabel = document.createElement('div');
+  roleLabel.className = 'ai-msg-role';
+  roleLabel.textContent = role === 'user' ? 'You' : 'AI';
+  const body = document.createElement('div');
+  body.className = 'ai-msg-body';
+  body.innerHTML = html;
+  div.appendChild(roleLabel);
+  div.appendChild(body);
+  if (chip) {
+    const chipEl = document.createElement('div');
+    chipEl.className = 'ai-confirm-chip';
+    chipEl.textContent = chip;
+    div.appendChild(chipEl);
+  }
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+  return body;
+}
+
+// ---- set in-flight UI state ----
+function setAILoading(loading) {
+  const btn = document.getElementById('ai-send-btn');
+  const ta  = document.getElementById('ai-textarea');
+  if (loading) {
+    btn.innerHTML = '<span class="ai-spinner"></span>';
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    btn.setAttribute('aria-disabled', 'true');
+    ta.disabled = true;
+    document.getElementById('ai-canvas-spinner').style.display = 'flex';
+  } else {
+    btn.innerHTML = 'Send';
+    btn.disabled = false;
+    btn.removeAttribute('aria-busy');
+    btn.removeAttribute('aria-disabled');
+    ta.disabled = false;
+    document.getElementById('ai-canvas-spinner').style.display = 'none';
+  }
+}
+
+// ---- callClaudeAPI ----
+async function callClaudeAPI(userMessage) {
+  const key = localStorage.getItem('quiddity-ai-key') || '';
+  if (!key) {
+    appendAIMessage('ai', '<span class="ai-error">Enter your Anthropic API key above to get started.</span>');
+    return;
+  }
+
+  const myId = ++aiGenerationId;
+
+  // Build context message (not stored in history)
+  const contextMessage = {
+    role: 'user',
+    content: `Current graph state:\n${JSON.stringify({
+      existing_nodes: state.nodes.map(n => ({ id: n.id, type: n.type, label: n.label })),
+      existing_edges: state.edges.map(e => ({ id: e.id, from: e.fromId, to: e.toId, type: e.type, label: e.label }))
+    }, null, 2)}\n\nUser request: ${userMessage}`
+  };
+  const messages = [...aiConversationHistory, contextMessage];
+
+  // Show user bubble + thinking state
+  appendAIMessage('user', escapeHtml(userMessage));
+  const thinkingBody = appendAIMessage('ai', '<span class="ai-thinking">Thinking\u2026</span>');
+  setAILoading(true);
+
+  // Timeout controller
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+
+  let rawText = '';
+  try {
+    const resp = await fetch(AI_ENDPOINT, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: AI_MODEL,
+        max_tokens: AI_MAX_TOKENS,
+        system: AI_SYSTEM_PROMPT,
+        messages,
+      }),
+    });
+    clearTimeout(timer);
+
+    if (myId !== aiGenerationId) return;  // stale — new diagram clicked mid-flight
+
+    if (resp.status === 401) throw Object.assign(new Error('API key rejected. Check your key and try again.'), { aiError: true });
+    if (resp.status === 429) throw Object.assign(new Error('Rate limited \u2014 wait a moment and try again.'), { aiError: true });
+    if (!resp.ok) throw Object.assign(new Error(`API error ${resp.status}. Try again.`), { aiError: true });
+
+    const data = await resp.json();
+    rawText = data.content?.[0]?.text ?? '';
+
+    // Strip markdown fences if present
+    rawText = rawText.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim();
+
+    const payload = JSON.parse(rawText);
+    mergeAIGraph(payload);
+
+    // Update history only on success
+    aiConversationHistory.push({ role: 'user', content: userMessage });
+    aiConversationHistory.push({ role: 'assistant', content: rawText });
+    if (aiConversationHistory.length > AI_HISTORY_MAX) aiConversationHistory.splice(0, 2);
+
+    const chip = `\u2713 ${payload.nodes.length} node${payload.nodes.length !== 1 ? 's' : ''} \u00B7 ${payload.edges.length} edge${payload.edges.length !== 1 ? 's' : ''} added`;
+    thinkingBody.closest('.ai-msg').remove();
+    appendAIMessage('ai', escapeHtml(payload.description || 'Done.'), chip);
+    document.getElementById('ai-textarea').value = '';
+
+  } catch (err) {
+    clearTimeout(timer);
+    if (myId !== aiGenerationId) return;
+
+    let msg;
+    if (err.name === 'AbortError') {
+      msg = 'Request timed out. Try again.';
+    } else if (err.aiError) {
+      msg = err.message;
+    } else if (err instanceof SyntaxError) {
+      msg = 'AI returned an unexpected response. Try rephrasing your prompt.';
+      console.warn('[AI] Non-JSON response:', rawText);
+    } else {
+      msg = 'Network error. Check your connection.';
+    }
+    thinkingBody.innerHTML = `<span class="ai-error">\u26A0 ${escapeHtml(msg)}</span>`;
+    thinkingBody.classList.remove('ai-thinking');
+    // textarea preserved on error so user can retry
+  } finally {
+    if (myId === aiGenerationId) setAILoading(false);
+  }
+}
+
+// ---- escapeHtml helper ----
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ---- validateAIPayload ----
+function validateAIPayload(payload) {
+  if (!Array.isArray(payload.nodes) || !Array.isArray(payload.edges)) {
+    throw new Error('AI returned an unexpected response. Try rephrasing your prompt.');
+  }
+  if (payload.nodes.length === 0 && payload.edges.length === 0) {
+    throw new Error('AI returned an empty graph. Try a more specific description.');
+  }
+  for (const n of payload.nodes) {
+    if (!n.id || !n.type || !n.label) {
+      throw new Error('AI returned malformed nodes. Try again.');
+    }
+  }
+  for (const e of payload.edges) {
+    if (!e.id || !e.from || !e.to || !e.type) {
+      throw new Error('AI returned malformed edges. Try again.');
+    }
+  }
+  // Edge references: warn + omit bad ones rather than rejecting entire payload
+  const validIds = new Set([
+    ...payload.nodes.map(n => n.id),
+    ...state.nodes.map(n => n.id)
+  ]);
+  for (const e of payload.edges) {
+    if (!validIds.has(e.from) || !validIds.has(e.to)) {
+      console.warn('[AI] Edge references unknown node, will be omitted:', e);
+    }
+  }
+}
+
+// ---- computeBoundingBox ----
+function computeBoundingBox() {
+  if (!state.nodes.length) return { x: 80, y: 80, w: 0, h: 0 };
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const n of state.nodes) {
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + (n.w ?? 80));
+    maxY = Math.max(maxY, n.y + (n.h ?? 40));
+  }
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+// ---- computeAILayout ----
+function computeAILayout(count) {
+  const positions = [];
+  if (state.nodes.length === 0) {
+    // Initial generation: column-major grid, max 10 columns
+    for (let i = 0; i < count; i++) {
+      positions.push({ x: 80 + (i % 10) * 180, y: 80 + Math.floor(i / 10) * 150 });
+    }
+  } else {
+    // Extension: place right of existing bounding box
+    const bbox = computeBoundingBox();
+    let startX = bbox.x + bbox.w + 120;
+    let startY = bbox.y;
+    if (startX > 1200) { startX = bbox.x; startY = bbox.y + bbox.h + 120; }
+    for (let i = 0; i < count; i++) {
+      positions.push({ x: startX + (i % 4) * 180, y: startY + Math.floor(i / 4) * 150 });
+    }
+  }
+  return positions;
+}
+
+// ---- mergeAIGraph ----
+function mergeAIGraph(payload) {
+  const turnPrefix = 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+  const idMap = {};
+
+  validateAIPayload(payload);  // throws if invalid — saveUndo NOT called yet
+  saveUndo();                  // only reached if payload is valid
+
+  const layout = computeAILayout(payload.nodes.length);
+  aiNewNodeIds = new Set();
+
+  for (let i = 0; i < payload.nodes.length; i++) {
+    const node = payload.nodes[i];
+    const newId = turnPrefix + '-' + node.id;
+    idMap[node.id] = newId;
+    aiNewNodeIds.add(newId);
+    state.nodes.push({ id: newId, type: node.type, label: node.label,
+                       x: layout[i].x, y: layout[i].y });
+  }
+
+  // Hoist validIds before edge loop — O(n+m) not O(n×m)
+  const validIds = new Set(state.nodes.map(n => n.id));
+  for (const edge of payload.edges) {
+    const resolvedFrom = idMap[edge.from] ?? edge.from;
+    const resolvedTo   = idMap[edge.to]   ?? edge.to;
+    if (!validIds.has(resolvedFrom) || !validIds.has(resolvedTo)) continue;
+    state.edges.push({
+      id: turnPrefix + '-e-' + Math.random().toString(36).slice(2, 10),
+      fromId: resolvedFrom,
+      toId:   resolvedTo,
+      type: edge.type,
+      label: edge.label ?? ''
+    });
+  }
+
+  renderAll();
+  persistLocal();
+
+  if (isFirstAIGeneration) {
+    fitToWindow();
+    isFirstAIGeneration = false;
+  }
+
+  // Clear highlight after 2s
+  setTimeout(() => { aiNewNodeIds = new Set(); renderAll(); }, 2000);
+}
+
+// ---- Toolbar AI button ----
+document.getElementById('btn-ai').addEventListener('click', () => {
+  if (aiPanelOpen) closeAIPanel(); else openAIPanel();
+});
+
+// ---- Panel close button ----
+document.getElementById('ai-panel-close').addEventListener('click', closeAIPanel);
+
+// ---- Escape key closes panel when focused inside ----
+document.getElementById('ai-panel').addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeAIPanel(); document.getElementById('btn-ai').focus(); }
+});
+
+// ---- API key input: save on Enter or blur ----
+document.getElementById('ai-key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); saveAIKey(); }
+});
+document.getElementById('ai-key-input').addEventListener('blur', saveAIKey);
+function saveAIKey() {
+  const input = document.getElementById('ai-key-input');
+  const key = input.value.trim();
+  if (key) {
+    localStorage.setItem('quiddity-ai-key', key);
+    input.value = '';
+    syncAIKeySection();
+    syncAITextareaPlaceholder();
+  }
+}
+
+// ---- API key clear button ----
+document.getElementById('ai-key-clear').addEventListener('click', () => {
+  localStorage.removeItem('quiddity-ai-key');
+  syncAIKeySection();
+  syncAITextareaPlaceholder();
+});
+
+// ---- Send button ----
+document.getElementById('ai-send-btn').addEventListener('click', handleAISend);
+
+// ---- Ctrl+Enter in textarea ----
+document.getElementById('ai-textarea').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    handleAISend();
+  }
+});
+
+function handleAISend() {
+  const ta = document.getElementById('ai-textarea');
+  const msg = ta.value.trim();
+  if (!msg) return;
+  callClaudeAPI(msg);
 }
 
 // ============================================================
