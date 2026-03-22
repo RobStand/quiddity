@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDEF5 Reference</title>
+  <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body>
+<div class="layout">
+
+  <nav>
+    <div class="nav-header">
+      <div class="nav-title">Quiddity</div>
+      <div class="nav-subtitle">Documentation</div>
+    </div>
+    <div class="nav-switch">
+      <a href="using-quiddity.html">Using Quiddity</a>
+      <a href="idef5-reference.html" class="active">IDEF5 Reference</a>
+    </div>
+
+    <div class="nav-section">Overview</div>
+    <a class="nav-link" href="#what-is-idef5">What is IDEF5?</a>
+    <a class="nav-link" href="#ontology">Ontology fundamentals</a>
+    <a class="nav-link" href="#diagram-types">Diagram types</a>
+    <a class="nav-link" href="#reading">Reading a diagram</a>
+
+    <div class="nav-section">Node Symbols</div>
+    <a class="nav-link" href="#kinds-individuals">Kinds &amp; Individuals</a>
+    <a class="nav-link" href="#relations">Relations</a>
+    <a class="nav-link" href="#process">Process</a>
+    <a class="nav-link" href="#referent">Referent</a>
+    <a class="nav-link" href="#state-transitions">State Transitions</a>
+    <a class="nav-link" href="#junctions">Junctions</a>
+    <a class="nav-link" href="#connecting-symbols">Connecting Symbols</a>
+    <a class="nav-link" href="#grouping">Grouping &amp; Annotation</a>
+
+    <div class="nav-section">Edge Types</div>
+    <a class="nav-link" href="#taxonomic-edges">Taxonomic edges</a>
+    <a class="nav-link" href="#relation-edges">Relation edges</a>
+    <a class="nav-link" href="#state-edges">State transition edges</a>
+    <a class="nav-link" href="#process-edges">Process edges</a>
+    <a class="nav-link" href="#edge-reference">Full edge reference</a>
+
+    <div class="nav-section">Patterns</div>
+    <a class="nav-link" href="#kind-hierarchy">Kind hierarchies</a>
+    <a class="nav-link" href="#part-whole">Part-whole composition</a>
+    <a class="nav-link" href="#state-diagrams">State diagrams</a>
+    <a class="nav-link" href="#process-diagrams">Process diagrams</a>
+
+    <div class="nav-section">Further Reading</div>
+    <a class="nav-link" href="#further-reading">Resources</a>
+  </nav>
+
+  <main>
+    <h1>IDEF5 Reference</h1>
+    <p class="subtitle">The IDEF5 ontology description notation</p>
+
+    <div class="page-intro">
+      This document explains the IDEF5 notation: its purpose, its symbols, how to read a diagram, and common modelling patterns. For documentation on how to operate the Quiddity application — toolbar, canvas, file operations — see <a href="using-quiddity.html">Using Quiddity</a>.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="what-is-idef5">What is IDEF5?</h2>
+
+    <p><strong>IDEF5</strong> (Integrated Definition for Ontology Description Capture) is a formal graphical language for modelling ontologies: systematic accounts of the kinds of things that exist in a domain, the properties those things have, and the relationships between them.</p>
+
+    <p>IDEF5 was developed as part of the U.S. Air Force ICAM (Integrated Computer-Aided Manufacturing) initiative and was standardised in the 1990s. It is one of a family of IDEF modelling methods (IDEF0, IDEF1X, IDEF3, etc.), each targeting a different aspect of system description.</p>
+
+    <p>An IDEF5 ontology schematic answers questions like:</p>
+    <ul>
+      <li>What kinds of things exist in this domain?</li>
+      <li>What essential properties define each kind?</li>
+      <li>How are kinds related to one another — by taxonomy, composition, or association?</li>
+      <li>Which things are specific individuals (named instances) rather than general categories?</li>
+      <li>How do things in this domain change state over time?</li>
+      <li>What processes act on the things in this domain?</li>
+    </ul>
+
+    <p>IDEF5 is well-suited to knowledge engineering for expert systems, formal specification of domain models, and defining deterministic knowledge graphs for AI systems. It is more rigorous than informal concept maps, but less dense than description logics like OWL.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="ontology">Ontology fundamentals</h2>
+
+    <p>Before using IDEF5, it helps to be clear on a few philosophical distinctions the notation takes seriously.</p>
+
+    <h3>Kinds vs. individuals</h3>
+    <p>A <strong>kind</strong> is a category — a type of thing, not a specific thing. <em>Dog</em>, <em>Metal</em>, and <em>Vehicle</em> are kinds. A kind is not just any set of objects; it is a natural category defined by essential properties shared by all its members. Water is a kind because all water shares defining molecular properties. "Things I have seen today" is a set, not a kind.</p>
+
+    <p>An <strong>individual</strong> is a specific, named instance of a kind. <em>Bolt #42</em> is an individual of kind <em>Bolt</em>. <em>The Pacific Ocean</em> is an individual of kind <em>Ocean</em>. Individuals have all the properties of their kind plus their own particular properties.</p>
+
+    <h3>Essential vs. accidental properties</h3>
+    <p>IDEF5 is concerned with <em>essential</em> properties — those that a thing must have in order to be what it is. Being H₂O is essential to being Water. Being cold is not essential: water can be warm. Accidental properties belong to specific instances or situations, not to the kind itself.</p>
+
+    <h3>Relations vs. connections</h3>
+    <p>In IDEF5, a <strong>relation</strong> is a semantic claim about a domain — a real-world association between kinds or individuals. It has ontological content: "Part <em>contains</em> Ink Supply" says something true (or proposed to be true) about the domain. A <strong>connection</strong> symbol (Forward, Backward, Plain) is a diagrammatic device that links process nodes and state nodes. It has no semantic content of its own; it just shows that one thing leads to another in a process flow.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="diagram-types">Diagram types</h2>
+
+    <p>IDEF5 defines three complementary diagram types. A complete ontology typically uses all three:</p>
+
+    <dl>
+      <dt>Schematic diagram</dt>
+      <dd>The primary type. Shows kinds, individuals, and the relations between them. Uses Kind circles, relation rectangles, and the taxonomic edge types (subkind-of, instance-of, part-of). This is what most Quiddity diagrams are.</dd>
+
+      <dt>Elaboration document</dt>
+      <dd>A structured text document that elaborates the properties and constraints of each kind identified in the schematic. Not directly represented in Quiddity's canvas, but the <em>Notes</em> field in the Properties panel is the appropriate place to record elaboration text for each node.</dd>
+
+      <dt>Classification diagram</dt>
+      <dd>A specialised schematic focused on taxonomic hierarchies — chains of subkind-of and instance-of relationships. Often a subset of a full schematic, laid out as a tree. Build these in Quiddity using Kind nodes and Subkind-of edges.</dd>
+    </dl>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="reading">Reading an IDEF5 diagram</h2>
+
+    <p>When reading an IDEF5 schematic, work through the elements in this order:</p>
+
+    <ol>
+      <li><strong>Identify the kinds.</strong> Each circle is a kind. Read the labels to understand what categories exist in this domain.</li>
+      <li><strong>Read the taxonomy.</strong> Dashed lines with open arrowheads are subkind-of edges. They point upward (from subkind to superkind). Follow them to understand the classification hierarchy.</li>
+      <li><strong>Read the composition.</strong> Solid lines with arrowheads pointing to the "whole" are part-of edges. They show how kinds are assembled from components.</li>
+      <li><strong>Read the relations.</strong> Rounded rectangles are first-order relations. Each relation is labelled with the nature of the association. Edges connect the relation to the kinds it relates.</li>
+      <li><strong>Read the state transitions.</strong> Arrowed lines with midpoint circles show how things change state. Single arrowhead = possible (weak) transition; double arrowhead = necessary (strong) transition.</li>
+      <li><strong>Read process flows.</strong> Rectangular process nodes connected by Connect symbols and controlled by junction nodes show how processes sequence and branch.</li>
+    </ol>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="kinds-individuals">Kinds &amp; Individuals</h2>
+
+    <div class="symbol-grid">
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="22" text-anchor="middle" font-size="8" fill="#333">Kind</text>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Kind</div>
+          <div class="sym-desc">A natural category of things that share essential, defining properties. Depicted as a circle. Kinds are the ontological backbone of an IDEF5 model: the types whose nature is being captured. Examples: <em>Metal</em>, <em>Vehicle</em>, <em>Water</em>, <em>Fastener</em>. A kind is not just any grouping — it must be a genuine natural or functional category with properties that hold necessarily of all its members.</div>
+        </div>
+      </div>
+
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="17" text-anchor="middle" font-size="7" fill="#333">Ind.</text>
+          <circle cx="18" cy="27" r="3" fill="#333"/>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Individual</div>
+          <div class="sym-desc">A specific, named instance of a kind. Depicted as a circle with a filled dot at the bottom. The dot is the distinguishing mark — it signals "this is a particular thing, not a category." Examples: <em>Bolt #42</em>, <em>The Pacific Ocean</em>, <em>Apollo 11</em>. Individuals have all the properties of their kind plus their own unique properties. Connect an individual to its kind with an Instance-of edge.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      In Quiddity, any Kind node can be toggled to an Individual in the Properties panel without deleting and re-placing it. The filled dot appears automatically.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="relations">Relations</h2>
+
+    <p>Relations are associations between kinds or individuals that hold as a matter of domain fact. IDEF5 provides three notations for relations, depending on the arity (number of participants) and complexity of the relationship.</p>
+
+    <div class="symbol-grid">
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <rect x="3" y="10" width="30" height="16" rx="8" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="22" text-anchor="middle" font-size="7" fill="#333">Rel</text>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">1st-Order Relation</div>
+          <div class="sym-desc">A relationship whose arguments are kinds or individuals. Depicted as a rounded rectangle. Label the rectangle with the name of the relationship (e.g. <em>contains</em>, <em>is made of</em>, <em>precedes</em>). Draw First-order edges from the rectangle to each participating kind. A first-order relation can have any number of arguments (it is n-ary by default). Use this for most semantic relationships in a domain schematic.</div>
+        </div>
+      </div>
+
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <text x="18" y="14" text-anchor="middle" font-size="6" fill="#333">2nd-Ord</text>
+          <line x1="8" y1="24" x2="33" y2="24" stroke="#333" stroke-width="1.5"/>
+          <polygon points="2,20 8,24 2,28" fill="#333"/>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">2nd-Order Relation</div>
+          <div class="sym-desc">A relation that takes another relation as one of its arguments — a "relation about a relation." Depicted as a line with a filled triangle at the source end. The triangle tip connects to the target relation line. Use second-order relations to assert properties of relations themselves, such as <em>is symmetric</em>, <em>is transitive</em>, or <em>is a refinement of</em>. This is a connector tool in Quiddity: click it in the toolbox, then click the source relation, then the target.</div>
+        </div>
+      </div>
+
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <text x="18" y="14" text-anchor="middle" font-size="6" fill="#333">Alt 2-Pl</text>
+          <line x1="3" y1="24" x2="28" y2="24" stroke="#333" stroke-width="1.5"/>
+          <polygon points="28,20 34,24 28,28" fill="#333"/>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Alt. 2-Place Relation</div>
+          <div class="sym-desc">An alternative notation for a 2-place (binary) first-order relation. Instead of a separate relation rectangle, the relation name is placed directly on the connecting line, with a filled arrowhead at one end. Use this compact form when the relation connects exactly two kinds and the diagram would be cleaner without a separate node. This is also a connector tool in Quiddity.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="process">Process</h2>
+
+    <div class="symbol-grid">
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <rect x="3" y="7" width="30" height="22" fill="white" stroke="#333" stroke-width="1.5"/>
+          <line x1="3" y1="22" x2="33" y2="22" stroke="#333" stroke-width="1.5"/>
+          <line x1="18" y1="22" x2="18" y2="29" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="17" text-anchor="middle" font-size="7" fill="#333">Proc</text>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Process</div>
+          <div class="sym-desc">An activity or operation that transforms inputs into outputs. Depicted as a rectangle with a horizontal line near the bottom, dividing it into a main label area and a lower shelf, with a vertical line bisecting the shelf. Place the process name in the upper area. Connect processes to state transition nodes and junctions using Connect symbols to model a process flow. Use Process nodes when the ontology needs to capture <em>how</em> things change, not just what they are.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="referent">Referent</h2>
+
+    <div class="symbol-grid">
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <rect x="2" y="5" width="32" height="26" fill="white" stroke="#333" stroke-width="1.5"/>
+          <rect x="2" y="5" width="4" height="26" fill="#333"/>
+          <line x1="6" y1="18" x2="34" y2="18" stroke="#333" stroke-width="1"/>
+          <line x1="14" y1="5" x2="14" y2="18" stroke="#333" stroke-width="1"/>
+          <text x="10" y="14" text-anchor="middle" font-size="5.5" fill="#eee">ID</text>
+          <text x="24" y="14" text-anchor="middle" font-size="5" fill="#555">Method</text>
+          <text x="20" y="27" text-anchor="middle" font-size="5" fill="#555">Concept</text>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Referent</div>
+          <div class="sym-desc">A classification schema node used to identify kinds within a formal naming convention. The node has three fields: a <strong>Reference ID</strong> (top-left, in the dark column) — a short code or number identifying this entry in a classification system; a <strong>Method Name</strong> (top-right) — the name of the classification scheme being used; and a <strong>Concept Label</strong> (bottom half) — the human-readable name of the kind being identified. Use Referent nodes when your domain ontology is governed by an existing taxonomy or naming standard (e.g. an ISO standard, a biological classification scheme, or an internal part numbering system).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="state-transitions">State Transitions</h2>
+
+    <p>State transition symbols model how things change over time. They connect a "before" state to an "after" state through a transition marker — the midpoint circle. The nature of the transition (possible vs. necessary) determines which symbol to use.</p>
+
+    <div class="symbol-grid">
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <line x1="4" y1="18" x2="32" y2="18" stroke="#333" stroke-width="1.5"/>
+          <polygon points="32,14 36,18 32,22" fill="#333"/>
+          <circle cx="18" cy="18" r="4" fill="white" stroke="#333" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">State Transition (Weak)</div>
+          <div class="sym-desc">A <em>possible</em> state change — one that may occur under the right conditions, but is not guaranteed. Depicted as a directed line with a single arrowhead at the right end and an open circle at the midpoint. The circle is the transition event marker. Connect the "before" state kind or individual to the circle with an incoming arc; connect the circle to the "after" state with an outgoing arc. Weak transitions represent contingent, conditional, or probabilistic changes.</div>
+        </div>
+      </div>
+
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <line x1="4" y1="18" x2="26" y2="18" stroke="#333" stroke-width="1.5"/>
+          <polygon points="20,14 26,18 20,22" fill="#333"/>
+          <polygon points="26,14 32,18 26,22" fill="#333"/>
+          <circle cx="14" cy="18" r="4" fill="white" stroke="#333" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">State Transition (Strong)</div>
+          <div class="sym-desc">A <em>necessary and irreversible</em> state change — one that must occur once the preconditions are satisfied. Depicted as a directed line with a double arrowhead at the right end and an open circle at the midpoint. The structure is the same as the weak transition; the double arrowhead is the sole distinguishing mark. Use strong transitions for processes that are deterministic and cannot be undone (e.g. combustion, phase transitions at defined temperatures, irreversible chemical reactions).</div>
+        </div>
+      </div>
+
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <text x="18" y="26" text-anchor="middle" font-size="22" fill="#333">&#916;</text>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Instantaneous Transition (Δ)</div>
+          <div class="sym-desc">A state change that occurs instantaneously — one where the duration of the transition is negligible or undefined. Depicted as the Greek letter Δ (delta). In Quiddity, drag the Δ symbol from the toolbox onto an existing state transition edge, or onto a state transition node, to mark it as instantaneous. Use instantaneous transitions for events that are modelled as occurring at a single point in time.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="junctions">Junctions</h2>
+
+    <p>Junctions control the logic of branching and merging in process flows. They express how multiple incoming or outgoing paths combine. All three junctions are depicted as circles distinguished by their interior mark.</p>
+
+    <div class="symbol-grid">
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="22" text-anchor="middle" font-size="12" fill="#333" font-family="Times New Roman, Times, serif" font-weight="bold">X</text>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Junction (XOR) — Exclusive Or</div>
+          <div class="sym-desc">Exactly one path must be taken. When used as a split: the flow goes down exactly one of the outgoing branches. When used as a merge: exactly one of the incoming branches must have fired. Use XOR when alternatives are mutually exclusive — only one can apply at a time.</div>
+        </div>
+      </div>
+
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="23" text-anchor="middle" font-size="12" fill="#333">O</text>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Junction (OR) — Inclusive Or</div>
+          <div class="sym-desc">At least one path must be taken. When used as a split: one or more outgoing branches may be active simultaneously. When used as a merge: at least one incoming branch must have fired. Use OR when alternatives are not mutually exclusive — multiple paths may apply at the same time.</div>
+        </div>
+      </div>
+
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
+          <text x="18" y="23" text-anchor="middle" font-size="12" fill="#333">&amp;</text>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Junction (AND) — Conjunction</div>
+          <div class="sym-desc">All paths must be taken. When used as a split: all outgoing branches are active simultaneously. When used as a merge: all incoming branches must complete before flow continues. Use AND for concurrent activities or joint conditions that must all be satisfied.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="connecting-symbols">Connecting Symbols</h2>
+
+    <p>Connecting symbols are the "wires" of process and state flow diagrams. Unlike relation edges, they carry no semantic IDEF5 content of their own — they simply show that one element leads to another in a sequence or dependency. All three are connector tools in Quiddity.</p>
+
+    <div class="symbol-grid">
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
+          <polyline points="13,13 19,18 13,23" fill="none" stroke="#333" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Connect (Forward)</div>
+          <div class="sym-desc">Directed flow from source to target. A forward-pointing chevron (▶) at the midpoint indicates the direction of flow. Use to show that control or output passes forward from one element to the next in a process diagram.</div>
+        </div>
+      </div>
+
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
+          <polyline points="23,13 17,18 23,23" fill="none" stroke="#333" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Connect (Backward)</div>
+          <div class="sym-desc">Directed flow from target back to source. A backward-pointing chevron (◀) at the midpoint. Use to model feedback loops, return paths, or reversed control flow.</div>
+        </div>
+      </div>
+
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Connect (Plain)</div>
+          <div class="sym-desc">An undirected connection with no implied direction. Use to link elements where direction is not relevant or is symmetric, for example connecting a process node to the midpoint circle of a state transition node.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="grouping">Grouping &amp; Annotation</h2>
+
+    <div class="symbol-grid">
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <rect x="3" y="3" width="30" height="30" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <text x="7" y="12" font-size="6" fill="#555" font-style="italic">Grp</text>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Container</div>
+          <div class="sym-desc">A dashed rectangle for visually grouping related symbols. The label appears in the top-left corner. Containers have no semantic content — they are purely organisational and have no effect on connections or inferencing. Use them to cluster kinds by subsystem, layer, or thematic area to improve diagram readability.</div>
+        </div>
+      </div>
+
+      <div class="sym-cell icon">
+        <svg width="40" height="40" viewBox="0 0 36 36">
+          <rect x="2" y="5" width="32" height="26" fill="white" stroke="#333" stroke-width="1.5"/>
+          <rect x="2" y="5" width="30" height="10" fill="#f4f4f4" stroke="none"/>
+          <line x1="2" y1="15" x2="34" y2="15" stroke="#333" stroke-width="1"/>
+          <text x="18" y="13" text-anchor="middle" font-size="6" font-weight="bold" fill="#333">Key</text>
+          <polygon points="6,23 13,23 9.5,27" fill="none" stroke="#333" stroke-width="1"/>
+          <line x1="14" y1="25" x2="30" y2="25" stroke="#333" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="sym-cell">
+        <div>
+          <div class="sym-name">Key</div>
+          <div class="sym-desc">A legend box that explains the symbols used in the diagram. Each entry pairs a symbol type with a descriptive label. In Quiddity, use the Properties panel to add and remove entries — choose a symbol type from the dropdown and enter a label. Include a Key node in any diagram that will be read by someone who may not know the IDEF5 notation. The key has no semantic effect on the ontology.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="taxonomic-edges">Taxonomic edges</h2>
+
+    <p>These three edge types express the fundamental ontological relationships between kinds and individuals in IDEF5. They are drawn by selecting a node, using a connection tool in Quiddity, and choosing the edge type in the Properties panel, or by setting the edge type when drawing.</p>
+
+    <table>
+      <tr><th>Edge type</th><th>Visual style</th><th>Meaning</th><th>Direction of arrowhead</th></tr>
+      <tr>
+        <td><strong>Subkind-of</strong></td>
+        <td>Dashed line, open triangular arrowhead</td>
+        <td>The source kind is a specialisation of the target kind. Every instance of the subkind is necessarily an instance of the superkind. The subkind inherits all essential properties of the superkind and has additional distinguishing properties of its own.</td>
+        <td>Points to the superkind (more general)</td>
+      </tr>
+      <tr>
+        <td><strong>Instance-of</strong></td>
+        <td>Dashed line, filled arrowhead</td>
+        <td>The source individual is a member of the target kind. The individual has all the essential properties of the kind.</td>
+        <td>Points to the kind</td>
+      </tr>
+      <tr>
+        <td><strong>Part-of</strong></td>
+        <td>Solid line, filled arrowhead</td>
+        <td>Mereological (compositional) relationship. The source is a part, component, or constituent of the target. This is a real-world compositional fact, not a subset relationship.</td>
+        <td>Points to the whole</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      <strong>Subkind-of vs. Part-of:</strong> These two are commonly confused. <em>Subkind-of</em> is a taxonomic (is-a) relationship: a Bolt is a Fastener. <em>Part-of</em> is a compositional (has-a) relationship: a Bolt is part of a Ballpoint Pen. An instance of a subkind IS an instance of the superkind. A part of a whole is NOT itself the whole.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="relation-edges">Relation edges</h2>
+
+    <table>
+      <tr><th>Edge type</th><th>Visual style</th><th>Use</th></tr>
+      <tr>
+        <td><strong>First-order</strong></td>
+        <td>Solid line, filled arrowhead at target</td>
+        <td>Connects a first-order relation rectangle to each kind or individual it relates. The arrowhead points toward the node that plays the "range" (target) role.</td>
+      </tr>
+      <tr>
+        <td><strong>Second-order</strong></td>
+        <td>Solid line, filled triangle at source end</td>
+        <td>Connects a second-order relation to the first-order relation it is "about." The triangle tip points into the line at the source.</td>
+      </tr>
+      <tr>
+        <td><strong>Alt. Relation (2-place)</strong></td>
+        <td>Solid line, filled arrowhead, label on line</td>
+        <td>Compact notation for a binary relation. Used in place of a separate relation rectangle when the relation has exactly two participants.</td>
+      </tr>
+    </table>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="state-edges">State transition edges</h2>
+
+    <table>
+      <tr><th>Edge type</th><th>Visual style</th><th>Use</th></tr>
+      <tr>
+        <td><strong>State Weak</strong></td>
+        <td>Solid line, open midpoint circle, single arrowhead at right</td>
+        <td>Connects a "before" state kind through the midpoint transition circle to an "after" state kind. The transition is possible but not guaranteed.</td>
+      </tr>
+      <tr>
+        <td><strong>State Strong</strong></td>
+        <td>Solid line, open midpoint circle, double arrowhead at right</td>
+        <td>Same structure as weak, but the transition is necessary and irreversible once the preconditions are met.</td>
+      </tr>
+    </table>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="process-edges">Process edges</h2>
+
+    <table>
+      <tr><th>Edge type</th><th>Visual style</th><th>Use</th></tr>
+      <tr>
+        <td><strong>Process Connect</strong></td>
+        <td>Solid line, no arrowhead</td>
+        <td>Links process nodes, junctions, and state nodes in a process flow diagram. Shows that one element feeds into the next. Use Connect (Forward/Backward/Plain) symbols in Quiddity to create these edges.</td>
+      </tr>
+    </table>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="edge-reference">Full edge reference</h2>
+
+    <table>
+      <tr><th>Edge type</th><th>Style</th><th>Meaning</th></tr>
+      <tr><td>First-order</td><td>Solid line, filled arrowhead at target</td><td>Connects a relation node to the kinds/individuals it relates</td></tr>
+      <tr><td>Second-order</td><td>Solid line, filled triangle at source</td><td>Connects a second-order relation to the first-order relation it describes</td></tr>
+      <tr><td>Subkind-of</td><td>Dashed line, open arrowhead pointing to superkind</td><td>Taxonomic specialisation</td></tr>
+      <tr><td>Instance-of</td><td>Dashed line, filled arrowhead pointing to kind</td><td>Individual is a member of a kind</td></tr>
+      <tr><td>Part-of</td><td>Solid line, arrowhead pointing to the whole</td><td>Mereological (compositional) relationship</td></tr>
+      <tr><td>State Weak</td><td>Solid line, midpoint circle, single arrowhead</td><td>Possible state change</td></tr>
+      <tr><td>State Strong</td><td>Solid line, midpoint circle, double arrowhead</td><td>Necessary and irreversible state change</td></tr>
+      <tr><td>Process Connect</td><td>Solid line, no arrowhead</td><td>Sequence or dependency between process elements</td></tr>
+      <tr><td>Alt. Relation</td><td>Solid line, filled arrowhead, label on line</td><td>Compact 2-place first-order relation</td></tr>
+      <tr><td>Connect Fwd</td><td>Solid line, forward chevron at midpoint</td><td>Directed process flow, source to target</td></tr>
+      <tr><td>Connect Bwd</td><td>Solid line, backward chevron at midpoint</td><td>Directed process flow, target to source</td></tr>
+      <tr><td>Connect Plain</td><td>Solid line, no directional mark</td><td>Undirected association in a process or state diagram</td></tr>
+    </table>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="kind-hierarchy">Pattern: Kind hierarchies</h2>
+
+    <p>The most common IDEF5 pattern is a taxonomic hierarchy: a tree of kinds connected by Subkind-of edges, possibly with individuals connected by Instance-of edges at the leaves.</p>
+
+    <p><strong>Rules:</strong></p>
+    <ul>
+      <li>Every kind at the bottom of a Subkind-of edge inherits all essential properties of the kind at the top.</li>
+      <li>A kind can have multiple superkinds (multiple inheritance), but the model must be consistent — the kind must genuinely satisfy all the essential properties of all its superkinds.</li>
+      <li>Subkind-of chains can be as deep as the domain requires. Avoid shallow hierarchies that just group things arbitrarily — only create a subkind when it has defining properties the superkind does not.</li>
+      <li>Individuals at leaves connect to their immediate kind with Instance-of. There is no need to connect an individual to all superkinds — the Instance-of relationship is transitive through the Subkind-of chain.</li>
+    </ul>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="part-whole">Pattern: Part-whole composition</h2>
+
+    <p>Part-of edges model how kinds are assembled from components. This is a compositional, not taxonomic, relationship.</p>
+
+    <p><strong>Rules:</strong></p>
+    <ul>
+      <li>Part-of is <em>not</em> transitive by default. If A is part of B and B is part of C, this does not automatically mean A is part of C unless you model that explicitly. Transitivity depends on the domain.</li>
+      <li>A kind can have many parts, each connected by its own Part-of edge pointing to the whole.</li>
+      <li>Part-of can be combined with Subkind-of: the same kind can be both a subkind of something and a part of something else. These are orthogonal relationships.</li>
+      <li>Place a first-order relation rectangle on the connection when the compositional relationship needs a name or additional attributes (e.g. quantity, role).</li>
+    </ul>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="state-diagrams">Pattern: State diagrams</h2>
+
+    <p>State transition diagrams model how a kind or individual moves between states over time.</p>
+
+    <p><strong>Structure:</strong></p>
+    <ul>
+      <li>Place the "before" and "after" states as Kind nodes.</li>
+      <li>Draw a State Weak or State Strong edge from the before-state kind to the after-state kind. The midpoint circle appears automatically on the edge.</li>
+      <li>To make the transition instantaneous, drag the Δ (Instantaneous Transition) symbol from the toolbox onto the state edge, or onto the midpoint circle, to mark it.</li>
+      <li>Connect process nodes to the midpoint circle using Connect (Plain) edges when the transition is triggered by a process.</li>
+    </ul>
+
+    <p><strong>Weak vs. strong:</strong> Use Weak when the transition is conditional or probabilistic (water <em>may</em> freeze if temperature drops below 0°C under sufficient pressure). Use Strong when the transition is necessary and cannot be reversed (combustion of a fuel is irreversible).</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="process-diagrams">Pattern: Process diagrams</h2>
+
+    <p>Process diagrams show the sequence and branching of activities in a domain.</p>
+
+    <p><strong>Structure:</strong></p>
+    <ul>
+      <li>Place Process nodes for each activity.</li>
+      <li>Connect them with Connect (Forward) or Connect (Plain) edges to show sequence.</li>
+      <li>Insert Junction (AND/OR/XOR) nodes to model branching and merging of flows.</li>
+      <li>Connect process flows to State Transition nodes where a process causes a state change.</li>
+    </ul>
+
+    <p><strong>Junction placement:</strong> Junctions are used in two roles — as splits (one incoming, multiple outgoing) and as merges (multiple incoming, one outgoing). Use the same junction type for a split and its matching merge: an AND-split should be merged by an AND-join, an XOR-split by an XOR-join.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="further-reading">Further reading</h2>
+
+    <ul>
+      <li><a href="https://www.idef.com/idef5-ontology-description-capture-method/" target="_blank">IDEF5 Ontology Description Capture Method</a> — official description at the Integrated DEFinition Methods (IDEF) website.</li>
+      <li>The IDEF5 Method Report (1994), available from the IDEF organisation, is the authoritative reference for the full method including elaboration documents and classification documents.</li>
+      <li>For background on ontology engineering more broadly, the Stanford Encyclopedia of Philosophy article on <a href="https://plato.stanford.edu/entries/logic-ontology/" target="_blank">Logic and Ontology</a> provides philosophical grounding for the concepts IDEF5 formalises.</li>
+    </ul>
+
+  </main>
+</div>
+</body>
+</html>

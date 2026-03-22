@@ -6,27 +6,33 @@
     #app { display: flex; flex-direction: column; height: 100vh; }
     #toolbar { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: #1c1917; border-bottom: 1px solid #0d0b09; flex-shrink: 0; }
     #main { display: flex; flex: 1; overflow: hidden; }
-    #toolbox { width: 200px; background: #fafaf8; border-right: 1px solid #ddd8d0; overflow-y: auto; flex-shrink: 0; padding-bottom: 20px; }
-    #canvas-container { flex: 1; overflow: hidden; position: relative; background: #eae6df; cursor: default; }
+    #toolbox { width: 200px; background: #f2f1ef; border-right: 1px solid #d4cdc4; overflow-y: auto; flex-shrink: 0; padding-bottom: 20px; }
+    #canvas-container { flex: 1; overflow: hidden; position: relative; background: #e8dcc8; cursor: default; }
     #canvas { width: 100%; height: 100%; display: block; }
-    #properties { width: 250px; background: #fafaf8; border-left: 1px solid #ddd8d0; overflow-y: auto; flex-shrink: 0; padding: 14px; }
+    #properties { width: 250px; background: #f2f1ef; border-left: 1px solid #d4cdc4; overflow-y: auto; flex-shrink: 0; padding: 14px; }
 
     /* ===== TOOLBAR ===== */
     .tb-btn { display: flex; align-items: center; gap: 4px; padding: 5px 10px; background: #2d2824; color: #f0ebe4; border: 1px solid #3d3530; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit; white-space: nowrap; text-decoration: none; }
     .tb-btn:hover { background: #3d3530; }
     .tb-btn:active { background: #1a1614; }
     .tb-sep { width: 1px; background: #3d3530; height: 24px; margin: 0 2px; }
-    .tb-label { color: #7c6e5e; font-size: 11px; }
+    .tb-label { color: #d97706; font-size: 15px; }
     .zoom-display { color: #9b8c7a; font-size: 12px; min-width: 40px; text-align: center; font-family: 'Geist Mono', ui-monospace, monospace; }
     .tb-dropdown { position: relative; }
     .tb-dropdown-menu { display: none; position: absolute; top: calc(100% + 4px); left: 0; background: #1c1917; border: 1px solid #3d3530; border-radius: 4px; min-width: 220px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
     .tb-dropdown-menu.open { display: block; }
-    .tb-dropdown-item { display: flex; justify-content: space-between; align-items: center; gap: 24px; width: 100%; padding: 8px 14px; background: none; border: none; color: #f0ebe4; font-size: 12px; font-family: inherit; text-align: left; cursor: pointer; white-space: nowrap; }
+    .tb-dropdown-item { display: flex; justify-content: space-between; align-items: center; gap: 24px; width: 100%; padding: 8px 14px; background: none; border: none; color: #f0ebe4; font-size: 12px; font-family: inherit; text-align: left; cursor: pointer; white-space: nowrap; text-decoration: none; }
     .tb-dropdown-item:hover { background: #2d2824; }
     .tb-dropdown-item-danger { color: #dc2626; }
     .tb-dropdown-item-danger:hover { background: rgba(220,38,38,0.08); color: #dc2626; }
     .tb-dropdown-sep { height: 1px; background: #3d3530; margin: 4px 0; }
     .tb-shortcut { color: #7c6e5e; font-size: 11px; font-family: 'Geist Mono', ui-monospace, monospace; }
+    .tb-dropdown-submenu { position: relative; }
+    .tb-dropdown-item-has-sub { cursor: default; }
+    .tb-dropdown-item-has-sub:hover { background: #2d2824; }
+    .tb-submenu-arrow { font-size: 9px; color: #7c6e5e; }
+    .tb-dropdown-submenu-menu { display: none; position: absolute; left: 100%; top: -5px; background: #1c1917; border: 1px solid #3d3530; border-radius: 4px; min-width: 220px; z-index: 1001; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+    .tb-dropdown-submenu:hover .tb-dropdown-submenu-menu { display: block; }
     .tb-spacer { flex: 1; }
     .tb-btn-accent { background: #d97706; color: white; border-color: #b45309; }
     .tb-btn-accent:hover { background: #b45309; }

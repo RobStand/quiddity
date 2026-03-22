@@ -1075,7 +1075,7 @@ function renderNodeProps(panel, node) {
   if (node.type === 'kind' || node.type === 'individual') {
     const dc = document.createElement('div');
     dc.className = 'prop-group';
-    dc.innerHTML = '<label class="prop-label">Border Color</label>';
+    dc.innerHTML = '<label class="prop-label">Color</label>';
     const grid = document.createElement('div');
     grid.className = 'color-picker';
     NODE_COLORS.forEach(c => {
@@ -1298,10 +1298,16 @@ document.querySelectorAll('.toolbox-item').forEach(item => {
   const edgeType = TOOLBOX_EDGE_TYPES[item.dataset.type];
   if (edgeType) {
     item.addEventListener('click', () => {
-      cancelToolboxConnect();                     // clear any prior mode
-      toolboxConnectStart = { edgeType, fromId: null };
+      cancelToolboxConnect();
+      // If a single Kind/Individual is already selected, use it as the source
+      let fromId = null;
+      if (selectedIds.size === 1) {
+        const sel = state.nodes.find(n => n.id === [...selectedIds][0]);
+        if (sel && (sel.type === 'kind' || sel.type === 'individual')) fromId = sel.id;
+      }
+      toolboxConnectStart = { edgeType, fromId };
       canvasContainer.style.cursor = 'crosshair';
-      showToolboxConnectHint(true);               // "Click the source node"
+      showToolboxConnectHint(!fromId);
     });
   }
 });
@@ -1889,7 +1895,7 @@ document.getElementById('btn-delete').addEventListener('click', deleteSelected);
 function closeAllDropdowns() {
   document.getElementById('file-menu').classList.remove('open');
   document.getElementById('edit-menu').classList.remove('open');
-  document.getElementById('examples-menu').classList.remove('open');
+  document.getElementById('help-menu').classList.remove('open');
 }
 
 document.getElementById('btn-new').addEventListener('click', () => {
@@ -2003,15 +2009,15 @@ const EXAMPLES = {
       { id: 2, type: 'kind', x: 120, y: 220, label: 'Lower Body' },
       { id: 3, type: 'kind', x: 300, y: 220, label: 'Cartridge' },
       { id: 4, type: 'kind', x: 480, y: 220, label: 'Upper Body' },
-      { id: 5, type: 'kind', x: 180, y: 360, label: 'Spring' },
-      { id: 6, type: 'kind', x: 360, y: 360, label: 'Ink Supply' },
-      { id: 7, type: 'kind', x: 540, y: 360, label: 'Ball Tip' },
+      { id: 5, type: 'kind', x: 60,  y: 360, label: 'Spring' },
+      { id: 6, type: 'kind', x: 300, y: 360, label: 'Ink Supply' },
+      { id: 7, type: 'kind', x: 480, y: 360, label: 'Ball Tip' },
     ],
     edges: [
       { id: 101, type: 'part-of', fromId: 2, toId: 1, label: '' },
       { id: 102, type: 'part-of', fromId: 3, toId: 1, label: '' },
       { id: 103, type: 'part-of', fromId: 4, toId: 1, label: '' },
-      { id: 104, type: 'part-of', fromId: 5, toId: 3, label: '' },
+      { id: 104, type: 'part-of', fromId: 5, toId: 2, label: '' },
       { id: 105, type: 'part-of', fromId: 6, toId: 3, label: '' },
       { id: 106, type: 'part-of', fromId: 7, toId: 3, label: '' },
     ],
@@ -2020,85 +2026,89 @@ const EXAMPLES = {
   'water-transitions': {
     label: 'Water Phase Transitions',
     nodes: [
-      { id: 1, type: 'kind',          x: 120, y: 200, label: 'Water: Liquid' },
-      { id: 2, type: 'kind',          x: 480, y: 200, label: 'Water: Gaseous' },
-      { id: 3, type: 'state-strong',  x: 300, y: 200, label: '', junction: true },
-      { id: 4, type: 'process',       x: 300, y: 80,  label: 'Vaporize Water' },
+      { id: 1, type: 'kind',       x: 80,  y: 230, label: 'Ice' },
+      { id: 2, type: 'kind',       x: 360, y: 230, label: 'Liquid Water' },
+      { id: 3, type: 'kind',       x: 640, y: 230, label: 'Steam' },
+      { id: 4, type: 'state-weak', x: 220, y: 230, label: '', junction: true },
+      { id: 5, type: 'state-weak', x: 500, y: 230, label: '', junction: true },
+      { id: 6, type: 'process',    x: 220, y: 80,  label: 'Melt Ice' },
+      { id: 7, type: 'process',    x: 500, y: 80,  label: 'Boil Water' },
     ],
     edges: [
-      { id: 101, type: 'connect-plain', fromId: 1, toId: 3, label: '' },
-      { id: 102, type: 'state-strong',  fromId: 3, toId: 2, label: '' },
-      { id: 103, type: 'connect-plain', fromId: 4, toId: 3, label: '' },
-      { id: 104, type: 'connect-plain', fromId: 5, toId: 6, label: '' },
-      { id: 105, type: 'state-weak',    fromId: 6, toId: 2, label: '' },
+      { id: 101, type: 'connect-plain', fromId: 1, toId: 4, label: '' },
+      { id: 102, type: 'state-weak',    fromId: 4, toId: 2, label: '' },
+      { id: 103, type: 'connect-plain', fromId: 6, toId: 4, label: '' },
+      { id: 104, type: 'connect-plain', fromId: 2, toId: 5, label: '' },
+      { id: 105, type: 'state-weak',    fromId: 5, toId: 3, label: '' },
+      { id: 106, type: 'connect-plain', fromId: 7, toId: 5, label: '' },
     ],
     nextId: 200,
   },
   'vehicle-classification': {
     label: 'Vehicle Classification',
     nodes: [
-      { id: 1, type: 'kind', x: 300, y: 60,  label: 'Vehicle' },
-      { id: 2, type: 'kind', x: 160, y: 180, label: 'Land Vehicle' },
-      { id: 3, type: 'kind', x: 440, y: 180, label: 'Water Vehicle' },
-      { id: 4, type: 'kind', x: 80,  y: 320, label: 'Car' },
-      { id: 5, type: 'kind', x: 240, y: 320, label: 'Truck' },
-      { id: 6, type: 'kind', x: 380, y: 320, label: 'Boat' },
-      { id: 7, type: 'kind', x: 520, y: 320, label: 'Ship' },
-      { id: 8, type: 'kind', x: 160, y: 460, label: 'Bicycle' },
-      { id: 9, type: 'kind', x: 300, y: 460, label: 'Motorcycle' },
+      { id: 1, type: 'kind', x: 480, y: 60,  label: 'Vehicle' },
+      { id: 2, type: 'kind', x: 270, y: 200, label: 'Land Vehicle' },
+      { id: 3, type: 'kind', x: 690, y: 200, label: 'Water Vehicle' },
+      { id: 4, type: 'kind', x: 60,  y: 360, label: 'Car' },
+      { id: 5, type: 'kind', x: 200, y: 360, label: 'Truck' },
+      { id: 6, type: 'kind', x: 340, y: 360, label: 'Bicycle' },
+      { id: 7, type: 'kind', x: 480, y: 360, label: 'Motorcycle' },
+      { id: 8, type: 'kind', x: 620, y: 360, label: 'Boat' },
+      { id: 9, type: 'kind', x: 760, y: 360, label: 'Ship' },
     ],
     edges: [
       { id: 101, type: 'subkind-of', fromId: 2, toId: 1, label: '' },
       { id: 102, type: 'subkind-of', fromId: 3, toId: 1, label: '' },
       { id: 103, type: 'subkind-of', fromId: 4, toId: 2, label: '' },
       { id: 104, type: 'subkind-of', fromId: 5, toId: 2, label: '' },
-      { id: 105, type: 'subkind-of', fromId: 6, toId: 3, label: '' },
-      { id: 106, type: 'subkind-of', fromId: 7, toId: 3, label: '' },
-      { id: 107, type: 'subkind-of', fromId: 8, toId: 2, label: '' },
-      { id: 108, type: 'subkind-of', fromId: 9, toId: 2, label: '' },
+      { id: 105, type: 'subkind-of', fromId: 6, toId: 2, label: '' },
+      { id: 106, type: 'subkind-of', fromId: 7, toId: 2, label: '' },
+      { id: 107, type: 'subkind-of', fromId: 8, toId: 3, label: '' },
+      { id: 108, type: 'subkind-of', fromId: 9, toId: 3, label: '' },
     ],
     nextId: 200,
   },
   'agent-ontology': {
     label: 'Agent Classification',
     nodes: [
-      { id: 1,  type: 'kind',           x: 400, y: 260, label: 'Agent' },
-      { id: 2,  type: 'kind',           x: 220, y: 420, label: 'Autonomous Agent' },
-      { id: 3,  type: 'kind',           x: 580, y: 420, label: 'Reactive Agent' },
-      { id: 4,  type: 'kind',           x: 100, y: 580, label: 'Software Agent' },
-      { id: 5,  type: 'kind',           x: 340, y: 580, label: 'Human Agent' },
-      { id: 6,  type: 'kind',           x: 100, y: 740, label: 'AI Agent' },
-      { id: 7,  type: 'individual',     x: 320, y: 740, label: 'Copilot' },
-      { id: 8,  type: 'kind',           x: 220, y: 100, label: 'Perception' },
-      { id: 9,  type: 'kind',           x: 580, y: 100, label: 'Action' },
-      { id: 10, type: 'kind',           x: 700, y: 260, label: 'Environment' },
+      { id: 1,  type: 'kind',       x: 300, y: 180, label: 'Agent' },
+      { id: 2,  type: 'kind',       x: 580, y: 60,  label: 'Environment' },
+      { id: 3,  type: 'kind',       x: 580, y: 180, label: 'Perception' },
+      { id: 4,  type: 'kind',       x: 580, y: 340, label: 'Action' },
+      { id: 5,  type: 'kind',       x: 120, y: 340, label: 'Autonomous Agent' },
+      { id: 6,  type: 'kind',       x: 460, y: 340, label: 'Reactive Agent' },
+      { id: 7,  type: 'kind',       x: 60,  y: 500, label: 'Software Agent' },
+      { id: 8,  type: 'kind',       x: 240, y: 500, label: 'Human Agent' },
+      { id: 9,  type: 'kind',       x: 60,  y: 660, label: 'AI Agent' },
+      { id: 10, type: 'individual', x: 240, y: 660, label: 'Ada Lovelace' },
     ],
     edges: [
-      { id: 101, type: 'subkind-of',  fromId: 2,  toId: 1,  label: '' },
-      { id: 102, type: 'subkind-of',  fromId: 3,  toId: 1,  label: '' },
-      { id: 103, type: 'subkind-of',  fromId: 4,  toId: 2,  label: '' },
-      { id: 104, type: 'subkind-of',  fromId: 5,  toId: 2,  label: '' },
-      { id: 105, type: 'subkind-of',  fromId: 6,  toId: 4,  label: '' },
-      { id: 106, type: 'part-of',     fromId: 8,  toId: 1,  label: '' },
-      { id: 107, type: 'part-of',     fromId: 9,  toId: 1,  label: '' },
-      { id: 108, type: 'relation-alt', fromId: 1,  toId: 10, label: 'operates in' },
-      { id: 109, type: 'instance-of', fromId: 7,  toId: 6,  label: '' },
+      { id: 101, type: 'subkind-of',  fromId: 5,  toId: 1,  label: '' },
+      { id: 102, type: 'subkind-of',  fromId: 6,  toId: 1,  label: '' },
+      { id: 103, type: 'subkind-of',  fromId: 7,  toId: 5,  label: '' },
+      { id: 104, type: 'subkind-of',  fromId: 8,  toId: 5,  label: '' },
+      { id: 105, type: 'subkind-of',  fromId: 9,  toId: 7,  label: '' },
+      { id: 106, type: 'part-of',     fromId: 3,  toId: 1,  label: '' },
+      { id: 107, type: 'part-of',     fromId: 4,  toId: 1,  label: '' },
+      { id: 108, type: 'relation-alt', fromId: 1,  toId: 2,  label: 'operates in' },
+      { id: 109, type: 'instance-of', fromId: 10, toId: 8,  label: '' },
     ],
     nextId: 200,
   },
   'fastener-classification': {
     label: 'Fastener Classification',
     nodes: [
-      { id: 1,  type: 'kind', x: 300, y: 60,  label: 'Fastener' },
-      { id: 2,  type: 'kind', x: 160, y: 190, label: 'Threaded Fastener' },
-      { id: 3,  type: 'kind', x: 440, y: 190, label: 'Non-Threaded Fastener' },
-      { id: 4,  type: 'kind', x: 80,  y: 330, label: 'Bolt' },
-      { id: 5,  type: 'kind', x: 200, y: 330, label: 'Screw' },
-      { id: 6,  type: 'kind', x: 320, y: 330, label: 'Nail' },
-      { id: 7,  type: 'kind', x: 440, y: 330, label: 'Rivet' },
-      { id: 8,  type: 'kind', x: 560, y: 330, label: 'Staple' },
-      { id: 9,  type: 'kind', x: 80,  y: 460, label: 'Hex Bolt' },
-      { id: 10, type: 'kind', x: 200, y: 460, label: 'Carriage Bolt' },
+      { id: 1,  type: 'kind', x: 380, y: 60,  label: 'Fastener' },
+      { id: 2,  type: 'kind', x: 160, y: 200, label: 'Threaded Fastener' },
+      { id: 3,  type: 'kind', x: 560, y: 200, label: 'Non-Threaded Fastener' },
+      { id: 4,  type: 'kind', x: 80,  y: 340, label: 'Bolt' },
+      { id: 5,  type: 'kind', x: 220, y: 340, label: 'Screw' },
+      { id: 6,  type: 'kind', x: 440, y: 340, label: 'Nail' },
+      { id: 7,  type: 'kind', x: 580, y: 340, label: 'Rivet' },
+      { id: 8,  type: 'kind', x: 720, y: 340, label: 'Staple' },
+      { id: 9,  type: 'kind', x: 60,  y: 480, label: 'Hex Bolt' },
+      { id: 10, type: 'kind', x: 200, y: 480, label: 'Carriage Bolt' },
     ],
     edges: [
       { id: 101, type: 'subkind-of', fromId: 2,  toId: 1, label: '' },
@@ -2110,6 +2120,29 @@ const EXAMPLES = {
       { id: 107, type: 'subkind-of', fromId: 8,  toId: 3, label: '' },
       { id: 108, type: 'subkind-of', fromId: 9,  toId: 4, label: '' },
       { id: 109, type: 'subkind-of', fromId: 10, toId: 4, label: '' },
+    ],
+    nextId: 200,
+  },
+  'library-system': {
+    label: 'Library System',
+    nodes: [
+      { id: 1, type: 'kind',           x: 120, y: 120, label: 'Library' },
+      { id: 2, type: 'kind',           x: 120, y: 300, label: 'Member' },
+      { id: 3, type: 'kind',           x: 560, y: 120, label: 'Book' },
+      { id: 4, type: 'relation-first', x: 340, y: 120, label: 'holds' },
+      { id: 5, type: 'relation-first', x: 340, y: 300, label: 'borrows' },
+      { id: 6, type: 'kind',           x: 460, y: 300, label: 'Fiction' },
+      { id: 7, type: 'kind',           x: 660, y: 300, label: 'Non-Fiction' },
+      { id: 8, type: 'individual',     x: 120, y: 460, label: 'Alice' },
+    ],
+    edges: [
+      { id: 101, type: 'first-order', fromId: 4, toId: 1, label: '' },
+      { id: 102, type: 'first-order', fromId: 4, toId: 3, label: '' },
+      { id: 103, type: 'first-order', fromId: 5, toId: 2, label: '' },
+      { id: 104, type: 'first-order', fromId: 5, toId: 3, label: '' },
+      { id: 105, type: 'subkind-of',  fromId: 6, toId: 3, label: '' },
+      { id: 106, type: 'subkind-of',  fromId: 7, toId: 3, label: '' },
+      { id: 107, type: 'instance-of', fromId: 8, toId: 2, label: '' },
     ],
     nextId: 200,
   },
@@ -2131,16 +2164,16 @@ function loadExample(key) {
   fitToWindow();
 }
 
-document.getElementById('btn-examples').addEventListener('click', e => {
+document.getElementById('btn-help-menu').addEventListener('click', e => {
   e.stopPropagation();
-  const menu = document.getElementById('examples-menu');
+  const menu = document.getElementById('help-menu');
   const wasOpen = menu.classList.contains('open');
   closeAllDropdowns();
   if (!wasOpen) menu.classList.add('open');
 });
 
 document.getElementById('examples-menu').addEventListener('click', e => {
-  const item = e.target.closest('.tb-dropdown-item');
+  const item = e.target.closest('[data-example]');
   if (!item) return;
   closeAllDropdowns();
   loadExample(item.dataset.example);

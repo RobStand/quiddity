@@ -79,9 +79,9 @@ All shape rendering is in `quiddity.js:createNodeSVG()`. Do not modify shape geo
 | `--toolbar-label` | `#7c6e5e` | App name label |
 | `--toolbar-icon` | `#f0ebe4` | Button text/icon color |
 | `--toolbar-sep` | `#3d3530` | Separator color |
-| `--panel-bg` | `#fafaf8` | Toolbox and properties panel background (ivory) |
-| `--panel-border` | `#ddd8d0` | Panel outer border |
-| `--canvas-bg` | `#eae6df` | Canvas container background (warm parchment) |
+| `--panel-bg` | `#f2f1ef` | Toolbox and properties panel background (light warm gray) |
+| `--panel-border` | `#d4cdc4` | Panel outer border |
+| `--canvas-bg` | `#e8dcc8` | Canvas container background (warm parchment) |
 | `--accent` | `#d97706` | Selection stroke, focus ring, active states — amber |
 | `--accent-dark` | `#b45309` | Accent hover/pressed state |
 | `--accent-light` | `rgba(217,119,6,0.10)` | Rubberband fill, selection overlay, toolbox hover |
@@ -226,8 +226,8 @@ Fixed-position floating overlay. `6px` border radius, `box-shadow: 0 4px 16px rg
 ## Canvas
 
 - Background: `#eae6df` (warm parchment)
-- Grid: dot grid at 20px pitch, dots at `r=0.8`, fill `#c8c0b4` (slightly warmer than previous #bbb)
-- Grid rendered as SVG `<pattern>` applied to a 4000×4000 rect centered at origin
+- Grid: dot grid at 20px pitch, dots at `r=1.5`, fill `#c0ae90`
+- Grid rendered as SVG `<pattern>` applied to a 6000×6000 rect centered at origin
 - Layers (bottom to top): `grid-layer` → `edges-layer` → `nodes-layer` → `ui-layer`
 
 **IDEF5 symbol shapes are defined by the IDEF5 specification and must not be altered for aesthetic reasons.** All shape rendering is in `quiddity.js:createNodeSVG()`. See IDEF5 Symbol Integrity section above.
@@ -275,7 +275,8 @@ Fixed-position floating overlay. `6px` border radius, `box-shadow: 0 4px 16px rg
 | 2026-03-21 | Accent color: `#3b82f6` → `#d97706` | Amber is unique in this tool category. Signals intellectual/scholarly tradition vs generic engineering blue. |
 | 2026-03-21 | Canvas: `#e8e8e8` → `#eae6df` | Slight warm shift. Reads as good paper rather than factory floor. |
 | 2026-03-21 | Panels: `#fafafa` → `#fafaf8` | Ivory, not pure white. Same warm temperature envelope as toolbar and canvas. |
-| 2026-03-21 | Canvas grid dots: `#bbb` → `#c8c0b4` | Warmer dot color to match canvas background temperature. |
+| 2026-03-21 | Canvas grid dots: `#bbb` → `#c0ae90` | Warm amber-tinted dots match parchment canvas. |
+| 2026-03-21 | Canvas bg: `#eae6df` → `#e8dcc8`; panels: `#fafaf8` → `#f2f1ef` | Clearer separation — canvas reads as parchment, panels as light warm gray. |
 | 2026-03-21 | Font: system stack → Geist + Geist Mono | No EA/ontology tool uses Geist. Sets Quiddity apart from Eclipse-era Java tools. |
 | 2026-03-21 | Aesthetic direction named: Scholar's Instrument | Quiddity models essence of things (quidditas). Should feel like a scholarly instrument, not a dev tool. |
 | 2026-03-21 | Full design system refresh via /design-consultation | Research confirmed amber is unused in this category. All risks accepted. |

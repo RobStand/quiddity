@@ -28,9 +28,23 @@
 - New `✦ File` toolbar dropdown consolidating New, Save JSON, Load JSON, and Export to SVG
 - Replaces the four individual toolbar buttons with a single organized menu
 
+#### Help Menu and Documentation
+
+- New `Help` toolbar dropdown replaces the standalone `? Help` link
+- "Using Quiddity" link opens new application usage guide at `docs/using-quiddity.html`
+- "IDEF5 Reference" link opens new notation reference at `docs/idef5-reference.html`
+- Examples submenu moved under Help as a CSS hover flyout
+- New `src/docs/using-quiddity.html` — covers toolbar menus, canvas navigation, adding nodes, connection workflows (including "select Kind first" shortcut), editing, clipboard, context menu, AI assistant, file operations, auto-save, examples, and keyboard shortcuts
+- New `src/docs/idef5-reference.html` — covers what is IDEF5, ontology fundamentals, all 17 symbol types with SVG previews, all 12 edge types, and 4 modelling patterns
+- Shared `src/css/docs.css` for both documentation pages (moved from `src/docs/docs.css` for consistency)
+
+#### Library System Example
+
+- New example demonstrating `relation-first` nodes (holds, borrows), `first-order` edges, `subkind-of` (Fiction/Non-Fiction under Book), and `instance-of` (Alice is a Member)
+
 ### Changed
 
-#### Scholar's Instrument design overhaul
+#### Scholar's Instrument Design Overhaul
 
 - Aesthetic direction established: *Scholar's Instrument* — the precision of a scientific tool meets the warmth of scholarly work
 - Accent color changed from blue (`#3b82f6`) to amber (`#d97706`) — the sole interactive/selection color throughout
@@ -43,20 +57,36 @@
 - Context menu background changed from white to ivory (`#fafaf8`); border warmed
 - `✦ AI` button always shown in amber accent color; active state (panel open) matches
 
-#### Toolbar layout
+#### Toolbar
 
 - File and Edit menus replace individual buttons, reducing toolbar clutter
 - Flex spacer added between zoom controls and Help/AI — pushes Help and AI to the far right
 - Fit button now shows `□ Fit` to match the reference screenshot
-- Examples, Undo, and Redo remain as standalone toolbar items
+- `Quiddity` label color changed to amber (`#d97706`) to match the AI button
+- `Quiddity` label font size increased to 15px
+- "Border Color" label in properties panel renamed to "Color"
 
-#### Design system (DESIGN.md)
+#### Connection Shortcut
+
+- Clicking a relation or connection tool in the toolbox while a Kind or Individual is selected pre-populates it as the source — user can click a target node directly without needing to click the source first
+- Toolbox hints updated to describe this behavior
+
+#### Design System (DESIGN.md)
 
 - Full design system document written covering: aesthetic direction, philosophy, color palette, typography, spacing, border radius, interactive states, motion, component specs, canvas spec, responsive breakpoints, accessibility, and a decisions log
 - IDEF5 Symbol Integrity section establishes that the 17 symbol shapes are defined by the specification and must not be altered
 - Added to CLAUDE.md: always read DESIGN.md before making visual or UI decisions
 
+#### Examples (IDEF5 Correctness and Layout)
+
+- **Ballpoint Pen** — Spring corrected to `part-of` Lower Body (was incorrectly `part-of` Cartridge)
+- **Water Phase Transitions** — Complete rebuild; was broken with edges referencing non-existent nodes. Now shows Ice → Liquid Water → Steam with `state-weak` junction nodes and Melt Ice / Boil Water process nodes
+- **Vehicle Classification** — Bicycle and Motorcycle moved to the same row as Car and Truck (all four as children of Land Vehicle); layout no longer has a stranded third row
+- **Agent Ontology** — Perception and Action repositioned beside Agent rather than above; removed product-specific "Copilot" individual, replaced with "Ada Lovelace" as an instance of Human Agent
+- **Fastener Classification** — Wider horizontal spread creates a clear visual gap between Threaded and Non-Threaded groups
+
 ### Fixed
 
 - Keyboard shortcuts (Undo, Redo, Duplicate, and new Cut/Copy/Paste) now work on macOS using the Cmd key (`e.metaKey`), in addition to Ctrl on Windows/Linux — previously all shortcuts only checked `e.ctrlKey`
 - Toolbar buttons now inherit the correct font family (`font-family: inherit`) so text renders in Geist rather than the browser default
+- Links inside Help dropdown no longer show browser-default underline
