@@ -87,6 +87,9 @@
 
 ### Fixed
 
+- AI system prompt listed incorrect edge types (`subtype`, `composition`, etc.) that don't exist in the renderer — all AI-generated edges were silently invisible; corrected to actual IDEF5 edge types (`subkind-of`, `instance-of`, `part-of`, etc.)
+- `validateAIPayload` now checks node and edge types against explicit whitelists; unknown types from the AI throw an error instead of producing broken graph data
+- Clipboard paste cascade drift now resets after 5 pastes (100px) so repeated pastes don't push nodes off-canvas
 - Keyboard shortcuts (Undo, Redo, Duplicate, and new Cut/Copy/Paste) now work on macOS using the Cmd key (`e.metaKey`), in addition to Ctrl on Windows/Linux — previously all shortcuts only checked `e.ctrlKey`
 - Toolbar buttons now inherit the correct font family (`font-family: inherit`) so text renders in Geist rather than the browser default
 - Links inside Help dropdown no longer show browser-default underline
