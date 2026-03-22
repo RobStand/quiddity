@@ -144,6 +144,7 @@ const MAX_UNDO = 50;
 let isDirty = false;
 
 let selectedIds = new Set();
+let clipboard = { nodes: [], edges: [] };
 let viewport = { x: 0, y: 0, scale: 1 };
 
 // Interaction state
@@ -401,14 +402,14 @@ function createNodeSVG(node) {
   g.setAttribute('data-id', node.id);
 
   const isSelected = selectedIds.has(node.id);
-  const strokeColor = isSelected ? '#d97706' : '#333';
+  const strokeColor = isSelected ? '#d97706' : '#1c1917';
   const strokeW = isSelected ? 2.5 : 1.5;
 
   switch (node.type) {
     case 'kind':
     case 'individual': {
       const r = node.r || DEFAULTS.kindRadius;
-      const borderColor = isSelected ? '#d97706' : '#333';
+      const borderColor = isSelected ? '#d97706' : '#1c1917';
       const fillColor = node.color ? node.color + '80' : 'white'; // 80 = 50% opacity in hex
       const circle = svgEl('circle', { cx: node.x, cy: node.y, r, fill: fillColor, stroke: borderColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' });
       g.appendChild(circle);
@@ -501,7 +502,7 @@ function createNodeSVG(node) {
       const r = DEFAULTS.junctionR;
       g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
       const sym = node.type === 'junction-xor' ? 'X' : node.type === 'junction-or' ? 'O' : '&';
-      g.appendChild(svgText(node.x, node.y + 5, sym, { 'text-anchor': 'middle', 'font-size': 14, fill: '#333', 'font-weight': 'bold', 'font-family': 'Times New Roman, Times, serif' }));
+      g.appendChild(svgText(node.x, node.y + 5, sym, { 'text-anchor': 'middle', 'font-size': 14, fill: '#1c1917', 'font-weight': 'bold', 'font-family': 'Times New Roman, Times, serif' }));
       break;
     }
     case 'state-weak':
@@ -539,7 +540,7 @@ function createNodeSVG(node) {
       const s = DEFAULTS.transitionSize;
       const pts = `${node.x},${node.y - s/2} ${node.x + s/2},${node.y + s/2} ${node.x - s/2},${node.y + s/2}`;
       g.appendChild(svgEl('polygon', { points: pts, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
-      g.appendChild(svgText(node.x, node.y + 6, 'Δ', { 'text-anchor': 'middle', 'font-size': 16, fill: '#333' }));
+      g.appendChild(svgText(node.x, node.y + 6, 'Δ', { 'text-anchor': 'middle', 'font-size': 16, fill: '#1c1917' }));
       if (node.label) g.appendChild(svgText(node.x, node.y + s/2 + 14, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: '#444' }));
       break;
     }
@@ -573,7 +574,7 @@ function createNodeSVG(node) {
       // Header background + label
       g.appendChild(svgEl('rect', { x: bx, y: by, width: kw, height: DEFAULTS.keyHeaderH, fill: '#f4f4f4', stroke: 'none' }));
       g.appendChild(svgEl('line', { x1: bx, y1: by + DEFAULTS.keyHeaderH, x2: bx + kw, y2: by + DEFAULTS.keyHeaderH, stroke: strokeColor, 'stroke-width': 1 }));
-      g.appendChild(svgText(bx + kw/2, by + DEFAULTS.keyHeaderH * 0.65, node.label || 'Key', { 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#333' }));
+      g.appendChild(svgText(bx + kw/2, by + DEFAULTS.keyHeaderH * 0.65, node.label || 'Key', { 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#1c1917' }));
       // Entries
       entries.forEach((entry, i) => {
         const rowY = by + DEFAULTS.keyHeaderH + DEFAULTS.keyPad + i * DEFAULTS.keyEntryH;
@@ -626,7 +627,7 @@ function createNodeSVG(node) {
             g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: color }));
         }
         // Label
-        g.appendChild(svgText(bx + symW + pad, my + 4, entry.label || '', { 'text-anchor': 'start', 'font-size': 10, fill: '#333' }));
+        g.appendChild(svgText(bx + symW + pad, my + 4, entry.label || '', { 'text-anchor': 'start', 'font-size': 10, fill: '#1c1917' }));
         // Separator line (except last)
         if (i < entries.length - 1) {
           g.appendChild(svgEl('line', { x1: bx + pad, y1: rowY + DEFAULTS.keyEntryH, x2: bx + kw - pad, y2: rowY + DEFAULTS.keyEntryH, stroke: '#ddd', 'stroke-width': 0.5 }));
@@ -690,7 +691,7 @@ function createEdgeSVG(edge) {
       const lbl = edge.label || 'R';
       const lw = Math.max(50, lbl.length * 8 + 16);
       g.appendChild(svgEl('rect', { x: midX - lw/2, y: midY - 11, width: lw, height: 22, rx: 11, fill: 'white', stroke: strokeColor, 'stroke-width': 1 }));
-      g.appendChild(svgText(midX, midY + 4, lbl, { 'text-anchor': 'middle', 'font-size': 11, fill: '#333' }));
+      g.appendChild(svgText(midX, midY + 4, lbl, { 'text-anchor': 'middle', 'font-size': 11, fill: '#1c1917' }));
       break;
     }
     case 'second-order': {
@@ -937,6 +938,58 @@ function deleteSelected() {
   selectedIds.clear();
   renderAll();
   updateProperties();
+}
+
+function copySelected() {
+  if (selectedIds.size === 0) return;
+  clipboard.nodes = [];
+  clipboard.edges = [];
+  for (const id of selectedIds) {
+    const node = state.nodes.find(n => n.id === id);
+    if (node) clipboard.nodes.push(JSON.parse(JSON.stringify(node)));
+  }
+  for (const edge of state.edges) {
+    if (selectedIds.has(edge.fromId) && selectedIds.has(edge.toId)) {
+      clipboard.edges.push(JSON.parse(JSON.stringify(edge)));
+    }
+  }
+}
+
+function cutSelected() {
+  if (selectedIds.size === 0) return;
+  copySelected();
+  deleteSelected();
+}
+
+function pasteClipboard() {
+  if (clipboard.nodes.length === 0) return;
+  saveUndo();
+  const idMap = {};
+  const newIds = new Set();
+  for (const node of clipboard.nodes) {
+    const newNode = JSON.parse(JSON.stringify(node));
+    const oldId = newNode.id;
+    newNode.id = 'n' + nextId();
+    newNode.x += 20;
+    newNode.y += 20;
+    idMap[oldId] = newNode.id;
+    state.nodes.push(newNode);
+    newIds.add(newNode.id);
+  }
+  for (const edge of clipboard.edges) {
+    const newEdge = JSON.parse(JSON.stringify(edge));
+    newEdge.id = 'e' + nextId();
+    newEdge.fromId = idMap[edge.fromId];
+    newEdge.toId = idMap[edge.toId];
+    if (newEdge.fromId && newEdge.toId) state.edges.push(newEdge);
+  }
+  // Update clipboard positions so repeated pastes cascade
+  clipboard.nodes.forEach(n => { n.x += 20; n.y += 20; });
+  selectedIds.clear();
+  newIds.forEach(id => selectedIds.add(id));
+  renderAll();
+  updateProperties();
+  persistLocal();
 }
 
 function duplicateSelected() {
@@ -1790,9 +1843,13 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { cancelToolboxConnect(); hideContextMenu(); }
   if (e.key === ' ') { spaceDown = true; canvasContainer.style.cursor = toolboxConnectStart ? 'crosshair' : 'grab'; e.preventDefault(); }
   if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
-  if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
-  if (e.ctrlKey && (e.key === 'y' || e.key === 'Z')) { e.preventDefault(); redo(); }
-  if (e.ctrlKey && e.key === 'd') { e.preventDefault(); duplicateSelected(); }
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key === 'z') { e.preventDefault(); undo(); }
+  if (mod && (e.key === 'y' || e.key === 'Z')) { e.preventDefault(); redo(); }
+  if (mod && e.key === 'd') { e.preventDefault(); duplicateSelected(); }
+  if (mod && e.key === 'c') { e.preventDefault(); copySelected(); }
+  if (mod && e.key === 'x') { e.preventDefault(); cutSelected(); }
+  if (mod && e.key === 'v') { e.preventDefault(); pasteClipboard(); }
 });
 document.addEventListener('keyup', e => {
   if (e.key === ' ') { spaceDown = false; canvasContainer.style.cursor = 'default'; }
@@ -1801,6 +1858,40 @@ document.addEventListener('keyup', e => {
 // ============================================================
 // TOOLBAR ACTIONS
 // ============================================================
+
+// ===== FILE DROPDOWN =====
+document.getElementById('btn-file').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('file-menu');
+  const wasOpen = menu.classList.contains('open');
+  closeAllDropdowns();
+  if (!wasOpen) menu.classList.add('open');
+});
+
+// ===== EDIT DROPDOWN =====
+document.getElementById('btn-edit').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('edit-menu');
+  const wasOpen = menu.classList.contains('open');
+  closeAllDropdowns();
+  if (!wasOpen) menu.classList.add('open');
+});
+document.getElementById('edit-menu').addEventListener('click', e => {
+  const item = e.target.closest('.tb-dropdown-item');
+  if (!item) return;
+  document.getElementById('edit-menu').classList.remove('open');
+});
+document.getElementById('btn-cut').addEventListener('click', cutSelected);
+document.getElementById('btn-copy').addEventListener('click', copySelected);
+document.getElementById('btn-paste').addEventListener('click', pasteClipboard);
+document.getElementById('btn-delete').addEventListener('click', deleteSelected);
+
+function closeAllDropdowns() {
+  document.getElementById('file-menu').classList.remove('open');
+  document.getElementById('edit-menu').classList.remove('open');
+  document.getElementById('examples-menu').classList.remove('open');
+}
+
 document.getElementById('btn-new').addEventListener('click', () => {
   if (state.nodes.length > 0 || state.edges.length > 0) {
     if (!confirm('Clear the current diagram?')) return;
@@ -2042,18 +2133,21 @@ function loadExample(key) {
 
 document.getElementById('btn-examples').addEventListener('click', e => {
   e.stopPropagation();
-  document.getElementById('examples-menu').classList.toggle('open');
+  const menu = document.getElementById('examples-menu');
+  const wasOpen = menu.classList.contains('open');
+  closeAllDropdowns();
+  if (!wasOpen) menu.classList.add('open');
 });
 
 document.getElementById('examples-menu').addEventListener('click', e => {
   const item = e.target.closest('.tb-dropdown-item');
   if (!item) return;
-  document.getElementById('examples-menu').classList.remove('open');
+  closeAllDropdowns();
   loadExample(item.dataset.example);
 });
 
 document.addEventListener('click', () => {
-  document.getElementById('examples-menu').classList.remove('open');
+  closeAllDropdowns();
 });
 
 function exportSVG() {

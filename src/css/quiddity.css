@@ -207,7 +207,7 @@
     .ai-spinner {
       display: inline-block;
       width: 12px; height: 12px;
-      border: 2px solid #ddd;
+      border: 2px solid #ddd8d0;
       border-top-color: #d97706;
       border-radius: 50%;
       animation: aiSpin 0.7s linear infinite;
