@@ -144,7 +144,7 @@ const MAX_UNDO = 50;
 let isDirty = false;
 
 let selectedIds = new Set();
-let clipboard = { nodes: [], edges: [] };
+let clipboard = { nodes: [], edges: [], pasteCount: 0 };
 let viewport = { x: 0, y: 0, scale: 1 };
 
 // Interaction state
@@ -944,6 +944,7 @@ function copySelected() {
   if (selectedIds.size === 0) return;
   clipboard.nodes = [];
   clipboard.edges = [];
+  clipboard.pasteCount = 0;
   for (const id of selectedIds) {
     const node = state.nodes.find(n => n.id === id);
     if (node) clipboard.nodes.push(JSON.parse(JSON.stringify(node)));
@@ -983,8 +984,14 @@ function pasteClipboard() {
     newEdge.toId = idMap[edge.toId];
     if (newEdge.fromId && newEdge.toId) state.edges.push(newEdge);
   }
-  // Update clipboard positions so repeated pastes cascade
-  clipboard.nodes.forEach(n => { n.x += 20; n.y += 20; });
+  // Update clipboard positions so repeated pastes cascade; reset after 5 pastes
+  clipboard.pasteCount = (clipboard.pasteCount || 0) + 1;
+  if (clipboard.pasteCount <= 5) {
+    clipboard.nodes.forEach(n => { n.x += 20; n.y += 20; });
+  } else {
+    clipboard.pasteCount = 1;
+    clipboard.nodes.forEach(n => { n.x -= 80; n.y -= 80; }); // reset toward origin
+  }
   selectedIds.clear();
   newIds.forEach(id => selectedIds.add(id));
   renderAll();
@@ -2249,8 +2256,8 @@ IDEF5 symbol types you may use:
   Nodes: kind, individual, relation-first, relation-second, relation-alt, process,
          referent, junction-xor, junction-or, junction-and, state-weak, state-strong,
          transition-instant, connect-fwd, connect-bwd, connect-plain, container, key
-  Edges: subtype, composition, characteristic, relation, referent, transition,
-         connect, constraint, containment, association, equivalence
+  Edges: subkind-of, instance-of, part-of, first-order, second-order,
+         state-weak, state-strong, connect-plain, connect-fwd, connect-bwd, relation-alt
 
 Respond ONLY with valid JSON — no prose, no markdown fences, just raw JSON:
 {
@@ -2259,7 +2266,7 @@ Respond ONLY with valid JSON — no prose, no markdown fences, just raw JSON:
     { "id": "n1", "type": "kind", "label": "Patient" }
   ],
   "edges": [
-    { "id": "e1", "from": "n1", "to": "n2", "type": "subtype", "label": "" }
+    { "id": "e1", "from": "n1", "to": "n2", "type": "subkind-of", "label": "" }
   ]
 }
 
@@ -2490,9 +2497,26 @@ function validateAIPayload(payload) {
       throw new Error('AI returned malformed nodes. Try again.');
     }
   }
+  const VALID_EDGE_TYPES = new Set([
+    'subkind-of', 'instance-of', 'part-of', 'first-order', 'second-order',
+    'state-weak', 'state-strong', 'connect-plain', 'connect-fwd', 'connect-bwd', 'relation-alt',
+  ]);
+  const VALID_NODE_TYPES = new Set([
+    'kind', 'individual', 'relation-first', 'relation-second', 'relation-alt', 'process',
+    'referent', 'junction-xor', 'junction-or', 'junction-and', 'state-weak', 'state-strong',
+    'transition-instant', 'connect-fwd', 'connect-bwd', 'connect-plain', 'container', 'key',
+  ]);
+  for (const n of payload.nodes) {
+    if (!VALID_NODE_TYPES.has(n.type)) {
+      throw new Error(`AI returned unknown node type "${n.type}". Try again.`);
+    }
+  }
   for (const e of payload.edges) {
     if (!e.id || !e.from || !e.to || !e.type) {
       throw new Error('AI returned malformed edges. Try again.');
+    }
+    if (!VALID_EDGE_TYPES.has(e.type)) {
+      throw new Error(`AI returned unknown edge type "${e.type}". Try again.`);
     }
   }
   // Edge references: warn + omit bad ones rather than rejecting entire payload
