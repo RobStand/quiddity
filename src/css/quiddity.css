@@ -99,6 +99,9 @@
     #canvas-hint p { color: #9b8c7a; font-size: 14px; margin: 0; }
     #canvas-hint p + p { margin-top: 4px; font-size: 12px; opacity: 0.85; }
     #canvas-hint.hidden { display: none; }
+    .hint-link { pointer-events: all; background: none; border: none; padding: 0; font: inherit; font-size: inherit; color: #d97706; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+    .hint-link:hover { color: #b45309; }
+    .tb-dropdown-submenu.open .tb-dropdown-submenu-menu { display: block; }
     .tb-icon { display: block; flex-shrink: 0; }
 
     /* ===== FOCUS STYLES ===== */

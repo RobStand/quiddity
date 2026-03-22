@@ -1903,6 +1903,7 @@ function closeAllDropdowns() {
   document.getElementById('file-menu').classList.remove('open');
   document.getElementById('edit-menu').classList.remove('open');
   document.getElementById('help-menu').classList.remove('open');
+  document.querySelector('.tb-dropdown-submenu').classList.remove('open');
 }
 
 document.getElementById('btn-new').addEventListener('click', () => {
@@ -2177,6 +2178,13 @@ document.getElementById('btn-help-menu').addEventListener('click', e => {
   const wasOpen = menu.classList.contains('open');
   closeAllDropdowns();
   if (!wasOpen) menu.classList.add('open');
+});
+
+document.getElementById('hint-examples-link').addEventListener('click', e => {
+  e.stopPropagation();
+  closeAllDropdowns();
+  document.getElementById('help-menu').classList.add('open');
+  document.querySelector('.tb-dropdown-submenu').classList.add('open');
 });
 
 document.getElementById('examples-menu').addEventListener('click', e => {
