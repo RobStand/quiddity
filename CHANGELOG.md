@@ -36,7 +36,7 @@
 - Examples submenu moved under Help as a CSS hover flyout
 - New `src/docs/using-quiddity.html` — covers toolbar menus, canvas navigation, adding nodes, connection workflows (including "select Kind first" shortcut), editing, clipboard, context menu, AI assistant, file operations, auto-save, examples, and keyboard shortcuts
 - New `src/docs/idef5-reference.html` — covers what is IDEF5, ontology fundamentals, all 17 symbol types with SVG previews, all 12 edge types, and 4 modelling patterns
-- Shared `src/css/docs.css` for both documentation pages (moved from `src/docs/docs.css` for consistency)
+- Shared `src/css/docs.css` for both documentation pages
 
 #### Library System Example
 

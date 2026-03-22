@@ -11,9 +11,11 @@ There are two ways you can access Quiddity:
 - Try the [hosted version](https://standefer.com/quiddity/) in desktop browsers and iOS
 - Clone the repo and load up index.html in your browser
 
+The `✦ AI` button opens an AI assistant powered by Claude — describe what you want to model in plain English and it builds the diagram directly on the canvas. Bring your own Anthropic API key; it's stored in your browser and never sent to a server.
+
 Documentation for how to use Quiddity is in the Help menu on the toolbar.
 
-There are some example ontologies in the Examples menu.
+There are some example ontologies in the Examples submenu under Help.
 
 ## Quid est?
 

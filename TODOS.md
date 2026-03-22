@@ -18,7 +18,7 @@ Items considered and explicitly deferred. Each has enough context to pick up in 
 
 **Context:** Start with the 5 critical paths: (1) key setup flow, (2) happy path prompt→graph, (3) undo reverts full AI turn, (4) localStorage persistence survives refresh, (5) extension adds nodes to existing graph. See the test plan at `~/.gstack/projects/RobStand-quiddity/robert-main-test-plan-*.md` for the full 26-path diagram. Use `python3 -m http.server` as the dev server.
 
-**Depends on:** AI panel MVP shipped.
+**Depends on:** AI panel MVP shipped. ✓ Dependency met (shipped 2026-03-21).
 
 ---
 
@@ -34,7 +34,7 @@ Items considered and explicitly deferred. Each has enough context to pick up in 
 
 **Context:** Start with narration direction only: add an "Explain" button that sends the current graph to the AI and shows the response in the panel. This is ~50 lines and gives users a taste of the bidir vision. The edit direction (text→graph delta) requires a diff strategy — options: (a) full re-generation with reconciliation, (b) structured delta format, (c) AI returns only changed nodes/edges.
 
-**Depends on:** AI panel MVP shipped.
+**Depends on:** AI panel MVP shipped. ✓ Dependency met (shipped 2026-03-21).
 
 ---
 
@@ -50,7 +50,7 @@ Items considered and explicitly deferred. Each has enough context to pick up in 
 
 **Context:** Simplest approach: cap context at 50 nodes/50 edges, prioritizing nodes closest to the viewport center. Include a note in the prompt: "Note: context truncated to 50 nodes due to size. Additional context available if needed." If the graph has >50 nodes, show a warning badge on the AI panel.
 
-**Depends on:** AI panel MVP shipped. Only meaningful when users build large diagrams.
+**Depends on:** AI panel MVP shipped. ✓ Dependency met (shipped 2026-03-21). Only meaningful when users build large diagrams.
 
 ---
 
@@ -66,4 +66,4 @@ Items considered and explicitly deferred. Each has enough context to pick up in 
 
 **Context:** Add a provider dropdown in the AI panel key section: Anthropic (default) / OpenAI / Custom URL. Keep a `AI_PROVIDERS` map: `{ anthropic: { endpoint, authHeader }, openai: { endpoint, authHeader } }`. Start with Anthropic + OpenAI, then custom URL. The `anthropic-dangerous-direct-browser-access` header only applies to Anthropic — guard it per-provider.
 
-**Depends on:** AI panel MVP shipped.
+**Depends on:** AI panel MVP shipped. ✓ Dependency met (shipped 2026-03-21).
