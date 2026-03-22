@@ -42,11 +42,12 @@ Do not deviate without explicit user approval.
 
 Key rules at a glance:
 
-- Toolbar bg: `#1a1e2e` (ink blue-black) — not charcoal gray
-- Accent: `#3b82f6` — the sole interactive/selection color; do not introduce a second
+- Toolbar bg: `#1c1917` (warm black) — not charcoal gray, not blue-black
+- Accent: `#d97706` (amber) — the sole interactive/selection color; do not use blue
 - Font: Geist Sans + Geist Mono (loaded from Google Fonts)
 - No animations on canvas interactions, ever
 - Do not alter IDEF5 symbol shapes — they are defined by the specification
+- All 17 IDEF5 symbol types must remain available in the toolbox
 
 In QA or design-review mode, flag any code that doesn't match DESIGN.md.
 
