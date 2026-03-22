@@ -16,19 +16,27 @@
   <div id="toolbar">
     <span class="tb-label">Quiddity</span>
     <div class="tb-sep"></div>
-    <button class="tb-btn" id="btn-new" title="New diagram" aria-label="New diagram"><svg class="tb-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h7l3 3v9H3V2z"/><path d="M10 2v3h3"/></svg> New</button>
-    <button class="tb-btn" id="btn-save" title="Save JSON" aria-label="Save diagram as JSON"><svg class="tb-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 2v4h6V2"/><rect x="4.5" y="9" width="7" height="4.5" rx="0.5"/></svg> Save</button>
-    <button class="tb-btn" id="btn-load" title="Load JSON" aria-label="Load diagram from JSON"><svg class="tb-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5h4l1.5 2H13v7H2v-9z"/></svg> Load</button>
-    <button class="tb-btn" id="btn-export-svg" title="Export SVG" aria-label="Export diagram as SVG"><svg class="tb-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2H3v11h10V9"/><path d="M10 2h4v4"/><path d="M13 2L8 7"/></svg> SVG</button>
-    <div class="tb-sep"></div>
-    <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)" aria-label="Undo">&#8592; Undo</button>
-    <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)" aria-label="Redo">&#8594; Redo</button>
-    <div class="tb-sep"></div>
-    <button class="tb-btn" id="btn-zoom-in" title="Zoom In">+</button>
-    <span class="zoom-display" id="zoom-display">100%</span>
-    <button class="tb-btn" id="btn-zoom-out" title="Zoom Out">&#8722;</button>
-    <button class="tb-btn" id="btn-zoom-fit" title="Fit to window">Fit</button>
-    <div class="tb-sep"></div>
+    <div class="tb-dropdown" id="file-dropdown">
+      <button class="tb-btn" id="btn-file" title="File menu" aria-haspopup="true">&#10022; File &#9660;</button>
+      <div class="tb-dropdown-menu" id="file-menu">
+        <button class="tb-dropdown-item" id="btn-new">New</button>
+        <div class="tb-dropdown-sep"></div>
+        <button class="tb-dropdown-item" id="btn-save">Save JSON</button>
+        <button class="tb-dropdown-item" id="btn-load">Load JSON</button>
+        <div class="tb-dropdown-sep"></div>
+        <button class="tb-dropdown-item" id="btn-export-svg">Export to SVG</button>
+      </div>
+    </div>
+    <div class="tb-dropdown" id="edit-dropdown">
+      <button class="tb-btn" id="btn-edit" title="Edit menu" aria-haspopup="true">Edit &#9660;</button>
+      <div class="tb-dropdown-menu" id="edit-menu">
+        <button class="tb-dropdown-item" id="btn-cut"><span>Cut</span><span class="tb-shortcut">Ctrl+X</span></button>
+        <button class="tb-dropdown-item" id="btn-copy"><span>Copy</span><span class="tb-shortcut">Ctrl+C</span></button>
+        <button class="tb-dropdown-item" id="btn-paste"><span>Paste</span><span class="tb-shortcut">Ctrl+V</span></button>
+        <div class="tb-dropdown-sep"></div>
+        <button class="tb-dropdown-item tb-dropdown-item-danger" id="btn-delete"><span>Delete</span><span class="tb-shortcut">Del</span></button>
+      </div>
+    </div>
     <div class="tb-dropdown" id="examples-dropdown">
       <button class="tb-btn" id="btn-examples">Examples &#9660;</button>
       <div class="tb-dropdown-menu" id="examples-menu">
@@ -41,9 +49,17 @@
     </div>
     <input type="file" id="file-input" accept=".json" style="display:none">
     <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)" aria-label="Undo">&#8592; Undo</button>
+    <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)" aria-label="Redo">&#8594; Redo</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-zoom-in" title="Zoom In">+</button>
+    <span class="zoom-display" id="zoom-display">100%</span>
+    <button class="tb-btn" id="btn-zoom-out" title="Zoom Out">&#8722;</button>
+    <button class="tb-btn" id="btn-zoom-fit" title="Fit to window">&#9633; Fit</button>
+    <div class="tb-spacer"></div>
     <a class="tb-btn" href="help.html" target="_blank" title="Open help documentation">? Help</a>
     <div class="tb-sep"></div>
-    <button class="tb-btn" id="btn-ai" title="Open AI assistant" aria-label="Open AI assistant">&#10022; AI</button>
+    <button class="tb-btn tb-btn-accent" id="btn-ai" title="Open AI assistant" aria-label="Open AI assistant">&#10022; AI</button>
   </div>
 
   <!-- MAIN -->
