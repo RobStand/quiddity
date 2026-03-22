@@ -16,10 +16,47 @@
   <div id="toolbar">
     <span class="tb-label">Quiddity</span>
     <div class="tb-sep"></div>
-    <button class="tb-btn" id="btn-new" title="New diagram" aria-label="New diagram"><svg class="tb-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h7l3 3v9H3V2z"/><path d="M10 2v3h3"/></svg> New</button>
-    <button class="tb-btn" id="btn-save" title="Save JSON" aria-label="Save diagram as JSON"><svg class="tb-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 2v4h6V2"/><rect x="4.5" y="9" width="7" height="4.5" rx="0.5"/></svg> Save</button>
-    <button class="tb-btn" id="btn-load" title="Load JSON" aria-label="Load diagram from JSON"><svg class="tb-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5h4l1.5 2H13v7H2v-9z"/></svg> Load</button>
-    <button class="tb-btn" id="btn-export-svg" title="Export SVG" aria-label="Export diagram as SVG"><svg class="tb-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2H3v11h10V9"/><path d="M10 2h4v4"/><path d="M13 2L8 7"/></svg> SVG</button>
+    <div class="tb-dropdown" id="file-dropdown">
+      <button class="tb-btn" id="btn-file" title="File menu" aria-haspopup="true">File &#9660;</button>
+      <div class="tb-dropdown-menu" id="file-menu">
+        <button class="tb-dropdown-item" id="btn-new">New</button>
+        <div class="tb-dropdown-sep"></div>
+        <button class="tb-dropdown-item" id="btn-save">Save JSON</button>
+        <button class="tb-dropdown-item" id="btn-load">Load JSON</button>
+        <div class="tb-dropdown-sep"></div>
+        <button class="tb-dropdown-item" id="btn-export-svg">Export to SVG</button>
+      </div>
+    </div>
+    <div class="tb-dropdown" id="edit-dropdown">
+      <button class="tb-btn" id="btn-edit" title="Edit menu" aria-haspopup="true">Edit &#9660;</button>
+      <div class="tb-dropdown-menu" id="edit-menu">
+        <button class="tb-dropdown-item" id="btn-cut"><span>Cut</span><span class="tb-shortcut">Ctrl+X</span></button>
+        <button class="tb-dropdown-item" id="btn-copy"><span>Copy</span><span class="tb-shortcut">Ctrl+C</span></button>
+        <button class="tb-dropdown-item" id="btn-paste"><span>Paste</span><span class="tb-shortcut">Ctrl+V</span></button>
+        <div class="tb-dropdown-sep"></div>
+        <button class="tb-dropdown-item tb-dropdown-item-danger" id="btn-delete"><span>Delete</span><span class="tb-shortcut">Del</span></button>
+      </div>
+    </div>
+    <div class="tb-dropdown" id="help-dropdown">
+      <button class="tb-btn" id="btn-help-menu" title="Help menu" aria-haspopup="true">Help &#9660;</button>
+      <div class="tb-dropdown-menu" id="help-menu">
+        <a class="tb-dropdown-item" id="btn-help" href="docs/using-quiddity.html" target="_blank">Using Quiddity</a>
+        <a class="tb-dropdown-item" href="docs/idef5-reference.html" target="_blank">IDEF5 Reference</a>
+        <div class="tb-dropdown-sep"></div>
+        <div class="tb-dropdown-submenu">
+          <div class="tb-dropdown-item tb-dropdown-item-has-sub">Examples <span class="tb-submenu-arrow">&#9654;</span></div>
+          <div class="tb-dropdown-submenu-menu" id="examples-menu">
+            <button class="tb-dropdown-item" data-example="ballpoint-pen">Ballpoint Pen Components</button>
+            <button class="tb-dropdown-item" data-example="water-transitions">Water Phase Transitions</button>
+            <button class="tb-dropdown-item" data-example="vehicle-classification">Vehicle Classification</button>
+            <button class="tb-dropdown-item" data-example="fastener-classification">Fastener Classification</button>
+            <button class="tb-dropdown-item" data-example="agent-ontology">Agent Ontology</button>
+            <button class="tb-dropdown-item" data-example="library-system">Library System</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="file-input" accept=".json" style="display:none">
     <div class="tb-sep"></div>
     <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)" aria-label="Undo">&#8592; Undo</button>
     <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)" aria-label="Redo">&#8594; Redo</button>
@@ -27,23 +64,9 @@
     <button class="tb-btn" id="btn-zoom-in" title="Zoom In">+</button>
     <span class="zoom-display" id="zoom-display">100%</span>
     <button class="tb-btn" id="btn-zoom-out" title="Zoom Out">&#8722;</button>
-    <button class="tb-btn" id="btn-zoom-fit" title="Fit to window">Fit</button>
-    <div class="tb-sep"></div>
-    <div class="tb-dropdown" id="examples-dropdown">
-      <button class="tb-btn" id="btn-examples">Examples &#9660;</button>
-      <div class="tb-dropdown-menu" id="examples-menu">
-        <button class="tb-dropdown-item" data-example="ballpoint-pen">Ballpoint Pen Components</button>
-        <button class="tb-dropdown-item" data-example="water-transitions">Water Phase Transitions</button>
-        <button class="tb-dropdown-item" data-example="vehicle-classification">Vehicle Classification</button>
-        <button class="tb-dropdown-item" data-example="fastener-classification">Fastener Classification</button>
-        <button class="tb-dropdown-item" data-example="agent-ontology">Agent Ontology</button>
-      </div>
-    </div>
-    <input type="file" id="file-input" accept=".json" style="display:none">
-    <div class="tb-sep"></div>
-    <a class="tb-btn" href="help.html" target="_blank" title="Open help documentation">? Help</a>
-    <div class="tb-sep"></div>
-    <button class="tb-btn" id="btn-ai" title="Open AI assistant" aria-label="Open AI assistant">&#10022; AI</button>
+    <button class="tb-btn" id="btn-zoom-fit" title="Fit to window">&#9633; Fit</button>
+    <div class="tb-spacer"></div>
+    <button class="tb-btn tb-btn-accent" id="btn-ai" title="Open AI assistant" aria-label="Open AI assistant">&#10022; AI</button>
   </div>
 
   <!-- MAIN -->
@@ -75,7 +98,7 @@
         </svg>
         <span class="toolbox-item-label">1st-Order Rel.</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="relation-second" tabindex="0" title="2nd-order relation — connection tool: press Enter or click, then click source node, then target node">
+      <div class="toolbox-item" draggable="true" data-type="relation-second" tabindex="0" title="2nd-order relation — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <text x="18" y="14" text-anchor="middle" font-size="6" fill="#333">2nd-Ord</text>
           <line x1="8" y1="24" x2="33" y2="24" stroke="#333" stroke-width="1.5"/>
@@ -83,7 +106,7 @@
         </svg>
         <span class="toolbox-item-label">2nd-Order Rel.</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="relation-alt" tabindex="0" title="Alt. 2-place relation — connection tool: press Enter or click, then click source node, then target node">
+      <div class="toolbox-item" draggable="true" data-type="relation-alt" tabindex="0" title="Alt. 2-place relation — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <text x="18" y="14" text-anchor="middle" font-size="6" fill="#333">Alt 2-Pl</text>
           <line x1="3" y1="24" x2="28" y2="24" stroke="#333" stroke-width="1.5"/>
@@ -140,31 +163,22 @@
         <span class="toolbox-item-label">Junction (AND)</span>
       </div>
 
-      <div class="toolbox-section">Grouping</div>
-      <div class="toolbox-item" draggable="true" data-type="container" tabindex="0" title="A dashed rectangle for visually grouping related symbols — drag to canvas or press Enter to place">
-        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <rect x="3" y="3" width="30" height="30" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="4,2"/>
-          <text x="7" y="12" font-size="6" fill="#555" font-style="italic">Grp</text>
-        </svg>
-        <span class="toolbox-item-label">Container</span>
-      </div>
-
       <div class="toolbox-section">Connecting Symbols</div>
-      <div class="toolbox-item" draggable="true" data-type="connect-fwd" tabindex="0" title="Forward connection — connection tool: press Enter or click, then click source node, then target node">
+      <div class="toolbox-item" draggable="true" data-type="connect-fwd" tabindex="0" title="Forward connection — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
           <polyline points="13,13 19,18 13,23" fill="none" stroke="#333" stroke-width="1.5"/>
         </svg>
         <span class="toolbox-item-label">Connect (Forward)</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="connect-bwd" tabindex="0" title="Backward connection — connection tool: press Enter or click, then click source node, then target node">
+      <div class="toolbox-item" draggable="true" data-type="connect-bwd" tabindex="0" title="Backward connection — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
           <polyline points="23,13 17,18 23,23" fill="none" stroke="#333" stroke-width="1.5"/>
         </svg>
         <span class="toolbox-item-label">Connect (Backward)</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="connect-plain" tabindex="0" title="Plain connection — connection tool: press Enter or click, then click source node, then target node">
+      <div class="toolbox-item" draggable="true" data-type="connect-plain" tabindex="0" title="Plain connection — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
         </svg>
@@ -172,7 +186,7 @@
       </div>
 
       <div class="toolbox-section">State Transitions</div>
-      <div class="toolbox-item" draggable="true" data-type="state-weak" tabindex="0" title="Weak state transition — connection tool: press Enter or click, then click source node, then target node">
+      <div class="toolbox-item" draggable="true" data-type="state-weak" tabindex="0" title="Weak state transition — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <line x1="4" y1="18" x2="32" y2="18" stroke="#333" stroke-width="1.5"/>
           <polygon points="32,14 36,18 32,22" fill="#333"/>
@@ -180,7 +194,7 @@
         </svg>
         <span class="toolbox-item-label">State Trans. (Weak)</span>
       </div>
-      <div class="toolbox-item" draggable="true" data-type="state-strong" tabindex="0" title="Strong state transition — connection tool: press Enter or click, then click source node, then target node">
+      <div class="toolbox-item" draggable="true" data-type="state-strong" tabindex="0" title="Strong state transition — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <line x1="4" y1="18" x2="26" y2="18" stroke="#333" stroke-width="1.5"/>
           <polygon points="20,14 26,18 20,22" fill="#333"/>
@@ -195,7 +209,14 @@
         </svg>
         <span class="toolbox-item-label">Instant. Transition</span>
       </div>
-      <div class="toolbox-section">Key</div>
+      <div class="toolbox-section">Organization</div>
+      <div class="toolbox-item" draggable="true" data-type="container" tabindex="0" title="A dashed rectangle for visually grouping related symbols — drag to canvas or press Enter to place">
+        <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
+          <rect x="3" y="3" width="30" height="30" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <text x="7" y="12" font-size="6" fill="#555" font-style="italic">Grp</text>
+        </svg>
+        <span class="toolbox-item-label">Container</span>
+      </div>
       <div class="toolbox-item" draggable="true" data-type="key" tabindex="0" title="A legend/key for the diagram — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
           <rect x="3" y="5" width="30" height="26" fill="white" stroke="#333" stroke-width="1.5"/>
@@ -251,12 +272,11 @@
             <polygon points="10 0, 0 3.5, 10 7" fill="#555"/>
           </marker>
           <pattern id="dot-grid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-            <circle cx="10" cy="10" r="0.8" fill="#bbb"/>
+            <circle cx="10" cy="10" r="1.5" fill="#c0ae90"/>
           </pattern>
-          <rect id="grid-bg" width="4000" height="4000" x="-2000" y="-2000" fill="url(#dot-grid)"/>
         </defs>
         <g id="grid-layer">
-          <use href="#grid-bg"/>
+          <rect width="6000" height="6000" x="-3000" y="-3000" fill="url(#dot-grid)"/>
         </g>
         <g id="edges-layer"></g>
         <g id="nodes-layer"></g>

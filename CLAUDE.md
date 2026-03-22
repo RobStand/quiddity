@@ -12,12 +12,13 @@ Open `src/index.html` directly in a browser. No build step, no server required.
 
 ## Architecture
 
-The app is structured as three files:
+The app is structured as a handful of files:
 
-- **[src/js/quiddity.js](src/js/quiddity.js)** — All application logic (~2,100 lines). Organized into sections: constants/config, geometry helpers, SVG rendering, state management, event handling, and export. The `init()` function is called on `DOMContentLoaded`.
+- **[src/js/quiddity.js](src/js/quiddity.js)** — All application logic (~2,700 lines). Organized into sections: constants/config, geometry helpers, SVG rendering, state management, event handling, and export. The `init()` function is called on `DOMContentLoaded`.
 - **[src/index.html](src/index.html)** — UI shell: toolbar, toolbox (symbol palette), SVG canvas, and properties panel. Contains SVG marker/gradient defs. References only `quiddity.js`.
-- **[src/css/quiddity.css](src/css/quiddity.css)** — Application styles. **[src/css/help.css](src/css/help.css)** — Help page styles.
-- **[src/help.html](src/help.html)** — Standalone user documentation page.
+- **[src/css/quiddity.css](src/css/quiddity.css)** — Application styles. **[src/css/docs.css](src/css/docs.css)** — Documentation page styles.
+- **[src/docs/using-quiddity.html](src/docs/using-quiddity.html)** — Application usage guide (toolbar, canvas, AI assistant, keyboard shortcuts).
+- **[src/docs/idef5-reference.html](src/docs/idef5-reference.html)** — IDEF5 notation reference (all 17 symbol types, 12 edge types, modelling patterns).
 
 ## Data Model
 
@@ -42,11 +43,12 @@ Do not deviate without explicit user approval.
 
 Key rules at a glance:
 
-- Toolbar bg: `#1a1e2e` (ink blue-black) — not charcoal gray
-- Accent: `#3b82f6` — the sole interactive/selection color; do not introduce a second
+- Toolbar bg: `#1c1917` (warm black) — not charcoal gray, not blue-black
+- Accent: `#d97706` (amber) — the sole interactive/selection color; do not use blue
 - Font: Geist Sans + Geist Mono (loaded from Google Fonts)
 - No animations on canvas interactions, ever
 - Do not alter IDEF5 symbol shapes — they are defined by the specification
+- All 17 IDEF5 symbol types must remain available in the toolbox
 
 In QA or design-review mode, flag any code that doesn't match DESIGN.md.
 

@@ -76,7 +76,7 @@ const TOOLBOX_EDGE_TYPES = {
 
 const NODE_COLORS = [
   { label: 'Default',    value: '' },
-  { label: 'Red',        value: '#e53e3e' },
+  { label: 'Red',        value: '#dc2626' },
   { label: 'Orange',     value: '#dd6b20' },
   { label: 'Yellow',     value: '#d69e2e' },
   { label: 'Green',      value: '#38a169' },
@@ -144,6 +144,7 @@ const MAX_UNDO = 50;
 let isDirty = false;
 
 let selectedIds = new Set();
+let clipboard = { nodes: [], edges: [], pasteCount: 0 };
 let viewport = { x: 0, y: 0, scale: 1 };
 
 // Interaction state
@@ -401,14 +402,14 @@ function createNodeSVG(node) {
   g.setAttribute('data-id', node.id);
 
   const isSelected = selectedIds.has(node.id);
-  const strokeColor = isSelected ? '#3b82f6' : '#333';
+  const strokeColor = isSelected ? '#d97706' : '#1c1917';
   const strokeW = isSelected ? 2.5 : 1.5;
 
   switch (node.type) {
     case 'kind':
     case 'individual': {
       const r = node.r || DEFAULTS.kindRadius;
-      const borderColor = isSelected ? '#3b82f6' : '#333';
+      const borderColor = isSelected ? '#d97706' : '#1c1917';
       const fillColor = node.color ? node.color + '80' : 'white'; // 80 = 50% opacity in hex
       const circle = svgEl('circle', { cx: node.x, cy: node.y, r, fill: fillColor, stroke: borderColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' });
       g.appendChild(circle);
@@ -439,7 +440,7 @@ function createNodeSVG(node) {
       const w = node.w || DEFAULTS.relationW, h = node.h || DEFAULTS.relationH;
       const ax1 = node.x - w / 2, ax2 = node.x + w / 2, ay = node.y + 6;
       // Invisible hit-area rect
-      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? '#3b82f6' : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
       // Filled right-pointing triangle: base on left, tip at right connecting to line
       g.appendChild(svgEl('polygon', { points: `${ax1},${ay - 5} ${ax1 + 10},${ay} ${ax1},${ay + 5}`, fill: strokeColor }));
       // Arrow line starts from triangle tip
@@ -452,7 +453,7 @@ function createNodeSVG(node) {
       const w = node.w || DEFAULTS.relationAltW, h = node.h || DEFAULTS.relationAltH;
       const ax1 = node.x - w / 2, ax2 = node.x + w / 2, ay = node.y + 6;
       // Invisible hit-area rect
-      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? '#3b82f6' : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
       // Arrow line
       g.appendChild(svgEl('line', { x1: ax1, y1: ay, x2: ax2 - 8, y2: ay, stroke: strokeColor, 'stroke-width': 1.5 }));
       // Arrowhead at RIGHT (front) end — pointing right
@@ -501,7 +502,7 @@ function createNodeSVG(node) {
       const r = DEFAULTS.junctionR;
       g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
       const sym = node.type === 'junction-xor' ? 'X' : node.type === 'junction-or' ? 'O' : '&';
-      g.appendChild(svgText(node.x, node.y + 5, sym, { 'text-anchor': 'middle', 'font-size': 14, fill: '#333', 'font-weight': 'bold', 'font-family': 'Times New Roman, Times, serif' }));
+      g.appendChild(svgText(node.x, node.y + 5, sym, { 'text-anchor': 'middle', 'font-size': 14, fill: '#1c1917', 'font-weight': 'bold', 'font-family': 'Times New Roman, Times, serif' }));
       break;
     }
     case 'state-weak':
@@ -509,7 +510,7 @@ function createNodeSVG(node) {
       if (node.junction) {
         // Render as a small open circle (split junction marker, as in IDEF5 Fig. 4-37)
         const r = 5;
-        g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r: r + 8, fill: 'transparent', class: 'node-shape shape-outline', stroke: isSelected ? '#3b82f6' : 'none', 'stroke-width': 1 }));
+        g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r: r + 8, fill: 'transparent', class: 'node-shape shape-outline', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1 }));
         if (node.instantaneous) g.appendChild(instantaneousCircle(node.x, node.y, strokeColor));
         else g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
         break;
@@ -518,7 +519,7 @@ function createNodeSVG(node) {
       // Draw as an arrow element on canvas (not a connector, but a standalone node-symbol)
       const arrowY = node.y;
       const x1 = node.x - w/2, x2 = node.x + w/2;
-      const hitRect = svgEl('rect', { x: x1 - 2, y: arrowY - 15, width: w + 4, height: 30, fill: 'transparent', stroke: isSelected ? '#3b82f6' : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' });
+      const hitRect = svgEl('rect', { x: x1 - 2, y: arrowY - 15, width: w + 4, height: 30, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' });
       g.appendChild(hitRect);
       g.appendChild(svgEl('line', { x1, y1: arrowY, x2: x2 - (node.type === 'state-strong' ? 8 : 0), y2: arrowY, stroke: strokeColor, 'stroke-width': 2 }));
       // arrowhead(s) at right end
@@ -539,7 +540,7 @@ function createNodeSVG(node) {
       const s = DEFAULTS.transitionSize;
       const pts = `${node.x},${node.y - s/2} ${node.x + s/2},${node.y + s/2} ${node.x - s/2},${node.y + s/2}`;
       g.appendChild(svgEl('polygon', { points: pts, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
-      g.appendChild(svgText(node.x, node.y + 6, 'Δ', { 'text-anchor': 'middle', 'font-size': 16, fill: '#333' }));
+      g.appendChild(svgText(node.x, node.y + 6, 'Δ', { 'text-anchor': 'middle', 'font-size': 16, fill: '#1c1917' }));
       if (node.label) g.appendChild(svgText(node.x, node.y + s/2 + 14, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: '#444' }));
       break;
     }
@@ -550,7 +551,7 @@ function createNodeSVG(node) {
       const ay = node.y;
       const x1 = node.x - w/2, x2 = node.x + w/2;
       // Hit area (invisible, selection border only)
-      g.appendChild(svgEl('rect', { x: x1 - 2, y: ay - 10, width: w + 4, height: 20, fill: 'transparent', stroke: isSelected ? '#3b82f6' : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: x1 - 2, y: ay - 10, width: w + 4, height: 20, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' }));
       // Solid line spanning full width
       g.appendChild(svgEl('line', { x1, y1: ay, x2, y2: ay, stroke: strokeColor, 'stroke-width': 1.5 }));
       // Open chevron at center
@@ -573,7 +574,7 @@ function createNodeSVG(node) {
       // Header background + label
       g.appendChild(svgEl('rect', { x: bx, y: by, width: kw, height: DEFAULTS.keyHeaderH, fill: '#f4f4f4', stroke: 'none' }));
       g.appendChild(svgEl('line', { x1: bx, y1: by + DEFAULTS.keyHeaderH, x2: bx + kw, y2: by + DEFAULTS.keyHeaderH, stroke: strokeColor, 'stroke-width': 1 }));
-      g.appendChild(svgText(bx + kw/2, by + DEFAULTS.keyHeaderH * 0.65, node.label || 'Key', { 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#333' }));
+      g.appendChild(svgText(bx + kw/2, by + DEFAULTS.keyHeaderH * 0.65, node.label || 'Key', { 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#1c1917' }));
       // Entries
       entries.forEach((entry, i) => {
         const rowY = by + DEFAULTS.keyHeaderH + DEFAULTS.keyPad + i * DEFAULTS.keyEntryH;
@@ -626,7 +627,7 @@ function createNodeSVG(node) {
             g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: color }));
         }
         // Label
-        g.appendChild(svgText(bx + symW + pad, my + 4, entry.label || '', { 'text-anchor': 'start', 'font-size': 10, fill: '#333' }));
+        g.appendChild(svgText(bx + symW + pad, my + 4, entry.label || '', { 'text-anchor': 'start', 'font-size': 10, fill: '#1c1917' }));
         // Separator line (except last)
         if (i < entries.length - 1) {
           g.appendChild(svgEl('line', { x1: bx + pad, y1: rowY + DEFAULTS.keyEntryH, x2: bx + kw - pad, y2: rowY + DEFAULTS.keyEntryH, stroke: '#ddd', 'stroke-width': 0.5 }));
@@ -648,7 +649,7 @@ function createNodeSVG(node) {
           [mx, by], [mx, by + h], [bx, my], [bx + w, my],           // edges
         ];
         for (const [hx, hy] of handles) {
-          g.appendChild(svgEl('rect', { x: hx - hs, y: hy - hs, width: hs * 2, height: hs * 2, fill: 'white', stroke: '#3b82f6', 'stroke-width': 1.5 }));
+          g.appendChild(svgEl('rect', { x: hx - hs, y: hy - hs, width: hs * 2, height: hs * 2, fill: 'white', stroke: '#d97706', 'stroke-width': 1.5 }));
         }
       }
       break;
@@ -678,7 +679,7 @@ function createEdgeSVG(edge) {
   g.setAttribute('class', 'edge-group');
   g.setAttribute('data-id', edge.id);
 
-  const strokeColor = isSelected ? '#3b82f6' : '#555';
+  const strokeColor = isSelected ? '#d97706' : '#555';
   const arrowMarker = isSelected ? 'url(#arrowhead-blue)' : 'url(#arrowhead)';
 
   switch (edge.type) {
@@ -690,7 +691,7 @@ function createEdgeSVG(edge) {
       const lbl = edge.label || 'R';
       const lw = Math.max(50, lbl.length * 8 + 16);
       g.appendChild(svgEl('rect', { x: midX - lw/2, y: midY - 11, width: lw, height: 22, rx: 11, fill: 'white', stroke: strokeColor, 'stroke-width': 1 }));
-      g.appendChild(svgText(midX, midY + 4, lbl, { 'text-anchor': 'middle', 'font-size': 11, fill: '#333' }));
+      g.appendChild(svgText(midX, midY + 4, lbl, { 'text-anchor': 'middle', 'font-size': 11, fill: '#1c1917' }));
       break;
     }
     case 'second-order': {
@@ -939,6 +940,65 @@ function deleteSelected() {
   updateProperties();
 }
 
+function copySelected() {
+  if (selectedIds.size === 0) return;
+  clipboard.nodes = [];
+  clipboard.edges = [];
+  clipboard.pasteCount = 0;
+  for (const id of selectedIds) {
+    const node = state.nodes.find(n => n.id === id);
+    if (node) clipboard.nodes.push(JSON.parse(JSON.stringify(node)));
+  }
+  for (const edge of state.edges) {
+    if (selectedIds.has(edge.fromId) && selectedIds.has(edge.toId)) {
+      clipboard.edges.push(JSON.parse(JSON.stringify(edge)));
+    }
+  }
+}
+
+function cutSelected() {
+  if (selectedIds.size === 0) return;
+  copySelected();
+  deleteSelected();
+}
+
+function pasteClipboard() {
+  if (clipboard.nodes.length === 0) return;
+  saveUndo();
+  const idMap = {};
+  const newIds = new Set();
+  for (const node of clipboard.nodes) {
+    const newNode = JSON.parse(JSON.stringify(node));
+    const oldId = newNode.id;
+    newNode.id = 'n' + nextId();
+    newNode.x += 20;
+    newNode.y += 20;
+    idMap[oldId] = newNode.id;
+    state.nodes.push(newNode);
+    newIds.add(newNode.id);
+  }
+  for (const edge of clipboard.edges) {
+    const newEdge = JSON.parse(JSON.stringify(edge));
+    newEdge.id = 'e' + nextId();
+    newEdge.fromId = idMap[edge.fromId];
+    newEdge.toId = idMap[edge.toId];
+    if (newEdge.fromId && newEdge.toId) state.edges.push(newEdge);
+  }
+  // Update clipboard positions so repeated pastes cascade; reset after 5 pastes
+  clipboard.pasteCount = (clipboard.pasteCount || 0) + 1;
+  if (clipboard.pasteCount <= 5) {
+    clipboard.nodes.forEach(n => { n.x += 20; n.y += 20; });
+  } else {
+    clipboard.pasteCount = 1;
+    clipboard.nodes.forEach(n => { n.x -= 80; n.y -= 80; }); // reset toward origin
+  }
+  selectedIds.clear();
+  newIds.forEach(id => selectedIds.add(id));
+  renderAll();
+  updateProperties();
+  persistLocal();
+}
+
 function duplicateSelected() {
   if (selectedIds.size === 0) return;
   saveUndo();
@@ -1022,7 +1082,7 @@ function renderNodeProps(panel, node) {
   if (node.type === 'kind' || node.type === 'individual') {
     const dc = document.createElement('div');
     dc.className = 'prop-group';
-    dc.innerHTML = '<label class="prop-label">Border Color</label>';
+    dc.innerHTML = '<label class="prop-label">Color</label>';
     const grid = document.createElement('div');
     grid.className = 'color-picker';
     NODE_COLORS.forEach(c => {
@@ -1195,7 +1255,7 @@ function startInlineEdit(nodeId) {
   const inp = document.createElement('textarea');
   inp.value = node.label || '';
   inp.style.cssText = [
-    'width:100%', 'height:100%', 'border:1.5px solid #3b82f6', 'border-radius:3px',
+    'width:100%', 'height:100%', 'border:1.5px solid #d97706', 'border-radius:3px',
     'text-align:center', 'font-size:12px', 'background:white', 'padding:3px 4px',
     'box-sizing:border-box', 'resize:none', 'overflow:hidden', 'line-height:1.35',
     'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
@@ -1245,10 +1305,16 @@ document.querySelectorAll('.toolbox-item').forEach(item => {
   const edgeType = TOOLBOX_EDGE_TYPES[item.dataset.type];
   if (edgeType) {
     item.addEventListener('click', () => {
-      cancelToolboxConnect();                     // clear any prior mode
-      toolboxConnectStart = { edgeType, fromId: null };
+      cancelToolboxConnect();
+      // If a single Kind/Individual is already selected, use it as the source
+      let fromId = null;
+      if (selectedIds.size === 1) {
+        const sel = state.nodes.find(n => n.id === [...selectedIds][0]);
+        if (sel && (sel.type === 'kind' || sel.type === 'individual')) fromId = sel.id;
+      }
+      toolboxConnectStart = { edgeType, fromId };
       canvasContainer.style.cursor = 'crosshair';
-      showToolboxConnectHint(true);               // "Click the source node"
+      showToolboxConnectHint(!fromId);
     });
   }
 });
@@ -1790,9 +1856,13 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { cancelToolboxConnect(); hideContextMenu(); }
   if (e.key === ' ') { spaceDown = true; canvasContainer.style.cursor = toolboxConnectStart ? 'crosshair' : 'grab'; e.preventDefault(); }
   if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
-  if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
-  if (e.ctrlKey && (e.key === 'y' || e.key === 'Z')) { e.preventDefault(); redo(); }
-  if (e.ctrlKey && e.key === 'd') { e.preventDefault(); duplicateSelected(); }
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key === 'z') { e.preventDefault(); undo(); }
+  if (mod && (e.key === 'y' || e.key === 'Z')) { e.preventDefault(); redo(); }
+  if (mod && e.key === 'd') { e.preventDefault(); duplicateSelected(); }
+  if (mod && e.key === 'c') { e.preventDefault(); copySelected(); }
+  if (mod && e.key === 'x') { e.preventDefault(); cutSelected(); }
+  if (mod && e.key === 'v') { e.preventDefault(); pasteClipboard(); }
 });
 document.addEventListener('keyup', e => {
   if (e.key === ' ') { spaceDown = false; canvasContainer.style.cursor = 'default'; }
@@ -1801,6 +1871,40 @@ document.addEventListener('keyup', e => {
 // ============================================================
 // TOOLBAR ACTIONS
 // ============================================================
+
+// ===== FILE DROPDOWN =====
+document.getElementById('btn-file').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('file-menu');
+  const wasOpen = menu.classList.contains('open');
+  closeAllDropdowns();
+  if (!wasOpen) menu.classList.add('open');
+});
+
+// ===== EDIT DROPDOWN =====
+document.getElementById('btn-edit').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('edit-menu');
+  const wasOpen = menu.classList.contains('open');
+  closeAllDropdowns();
+  if (!wasOpen) menu.classList.add('open');
+});
+document.getElementById('edit-menu').addEventListener('click', e => {
+  const item = e.target.closest('.tb-dropdown-item');
+  if (!item) return;
+  document.getElementById('edit-menu').classList.remove('open');
+});
+document.getElementById('btn-cut').addEventListener('click', cutSelected);
+document.getElementById('btn-copy').addEventListener('click', copySelected);
+document.getElementById('btn-paste').addEventListener('click', pasteClipboard);
+document.getElementById('btn-delete').addEventListener('click', deleteSelected);
+
+function closeAllDropdowns() {
+  document.getElementById('file-menu').classList.remove('open');
+  document.getElementById('edit-menu').classList.remove('open');
+  document.getElementById('help-menu').classList.remove('open');
+}
+
 document.getElementById('btn-new').addEventListener('click', () => {
   if (state.nodes.length > 0 || state.edges.length > 0) {
     if (!confirm('Clear the current diagram?')) return;
@@ -1912,15 +2016,15 @@ const EXAMPLES = {
       { id: 2, type: 'kind', x: 120, y: 220, label: 'Lower Body' },
       { id: 3, type: 'kind', x: 300, y: 220, label: 'Cartridge' },
       { id: 4, type: 'kind', x: 480, y: 220, label: 'Upper Body' },
-      { id: 5, type: 'kind', x: 180, y: 360, label: 'Spring' },
-      { id: 6, type: 'kind', x: 360, y: 360, label: 'Ink Supply' },
-      { id: 7, type: 'kind', x: 540, y: 360, label: 'Ball Tip' },
+      { id: 5, type: 'kind', x: 60,  y: 360, label: 'Spring' },
+      { id: 6, type: 'kind', x: 300, y: 360, label: 'Ink Supply' },
+      { id: 7, type: 'kind', x: 480, y: 360, label: 'Ball Tip' },
     ],
     edges: [
       { id: 101, type: 'part-of', fromId: 2, toId: 1, label: '' },
       { id: 102, type: 'part-of', fromId: 3, toId: 1, label: '' },
       { id: 103, type: 'part-of', fromId: 4, toId: 1, label: '' },
-      { id: 104, type: 'part-of', fromId: 5, toId: 3, label: '' },
+      { id: 104, type: 'part-of', fromId: 5, toId: 2, label: '' },
       { id: 105, type: 'part-of', fromId: 6, toId: 3, label: '' },
       { id: 106, type: 'part-of', fromId: 7, toId: 3, label: '' },
     ],
@@ -1929,85 +2033,89 @@ const EXAMPLES = {
   'water-transitions': {
     label: 'Water Phase Transitions',
     nodes: [
-      { id: 1, type: 'kind',          x: 120, y: 200, label: 'Water: Liquid' },
-      { id: 2, type: 'kind',          x: 480, y: 200, label: 'Water: Gaseous' },
-      { id: 3, type: 'state-strong',  x: 300, y: 200, label: '', junction: true },
-      { id: 4, type: 'process',       x: 300, y: 80,  label: 'Vaporize Water' },
+      { id: 1, type: 'kind',       x: 80,  y: 230, label: 'Ice' },
+      { id: 2, type: 'kind',       x: 360, y: 230, label: 'Liquid Water' },
+      { id: 3, type: 'kind',       x: 640, y: 230, label: 'Steam' },
+      { id: 4, type: 'state-weak', x: 220, y: 230, label: '', junction: true },
+      { id: 5, type: 'state-weak', x: 500, y: 230, label: '', junction: true },
+      { id: 6, type: 'process',    x: 220, y: 80,  label: 'Melt Ice' },
+      { id: 7, type: 'process',    x: 500, y: 80,  label: 'Boil Water' },
     ],
     edges: [
-      { id: 101, type: 'connect-plain', fromId: 1, toId: 3, label: '' },
-      { id: 102, type: 'state-strong',  fromId: 3, toId: 2, label: '' },
-      { id: 103, type: 'connect-plain', fromId: 4, toId: 3, label: '' },
-      { id: 104, type: 'connect-plain', fromId: 5, toId: 6, label: '' },
-      { id: 105, type: 'state-weak',    fromId: 6, toId: 2, label: '' },
+      { id: 101, type: 'connect-plain', fromId: 1, toId: 4, label: '' },
+      { id: 102, type: 'state-weak',    fromId: 4, toId: 2, label: '' },
+      { id: 103, type: 'connect-plain', fromId: 6, toId: 4, label: '' },
+      { id: 104, type: 'connect-plain', fromId: 2, toId: 5, label: '' },
+      { id: 105, type: 'state-weak',    fromId: 5, toId: 3, label: '' },
+      { id: 106, type: 'connect-plain', fromId: 7, toId: 5, label: '' },
     ],
     nextId: 200,
   },
   'vehicle-classification': {
     label: 'Vehicle Classification',
     nodes: [
-      { id: 1, type: 'kind', x: 300, y: 60,  label: 'Vehicle' },
-      { id: 2, type: 'kind', x: 160, y: 180, label: 'Land Vehicle' },
-      { id: 3, type: 'kind', x: 440, y: 180, label: 'Water Vehicle' },
-      { id: 4, type: 'kind', x: 80,  y: 320, label: 'Car' },
-      { id: 5, type: 'kind', x: 240, y: 320, label: 'Truck' },
-      { id: 6, type: 'kind', x: 380, y: 320, label: 'Boat' },
-      { id: 7, type: 'kind', x: 520, y: 320, label: 'Ship' },
-      { id: 8, type: 'kind', x: 160, y: 460, label: 'Bicycle' },
-      { id: 9, type: 'kind', x: 300, y: 460, label: 'Motorcycle' },
+      { id: 1, type: 'kind', x: 480, y: 60,  label: 'Vehicle' },
+      { id: 2, type: 'kind', x: 270, y: 200, label: 'Land Vehicle' },
+      { id: 3, type: 'kind', x: 690, y: 200, label: 'Water Vehicle' },
+      { id: 4, type: 'kind', x: 60,  y: 360, label: 'Car' },
+      { id: 5, type: 'kind', x: 200, y: 360, label: 'Truck' },
+      { id: 6, type: 'kind', x: 340, y: 360, label: 'Bicycle' },
+      { id: 7, type: 'kind', x: 480, y: 360, label: 'Motorcycle' },
+      { id: 8, type: 'kind', x: 620, y: 360, label: 'Boat' },
+      { id: 9, type: 'kind', x: 760, y: 360, label: 'Ship' },
     ],
     edges: [
       { id: 101, type: 'subkind-of', fromId: 2, toId: 1, label: '' },
       { id: 102, type: 'subkind-of', fromId: 3, toId: 1, label: '' },
       { id: 103, type: 'subkind-of', fromId: 4, toId: 2, label: '' },
       { id: 104, type: 'subkind-of', fromId: 5, toId: 2, label: '' },
-      { id: 105, type: 'subkind-of', fromId: 6, toId: 3, label: '' },
-      { id: 106, type: 'subkind-of', fromId: 7, toId: 3, label: '' },
-      { id: 107, type: 'subkind-of', fromId: 8, toId: 2, label: '' },
-      { id: 108, type: 'subkind-of', fromId: 9, toId: 2, label: '' },
+      { id: 105, type: 'subkind-of', fromId: 6, toId: 2, label: '' },
+      { id: 106, type: 'subkind-of', fromId: 7, toId: 2, label: '' },
+      { id: 107, type: 'subkind-of', fromId: 8, toId: 3, label: '' },
+      { id: 108, type: 'subkind-of', fromId: 9, toId: 3, label: '' },
     ],
     nextId: 200,
   },
   'agent-ontology': {
     label: 'Agent Classification',
     nodes: [
-      { id: 1,  type: 'kind',           x: 400, y: 260, label: 'Agent' },
-      { id: 2,  type: 'kind',           x: 220, y: 420, label: 'Autonomous Agent' },
-      { id: 3,  type: 'kind',           x: 580, y: 420, label: 'Reactive Agent' },
-      { id: 4,  type: 'kind',           x: 100, y: 580, label: 'Software Agent' },
-      { id: 5,  type: 'kind',           x: 340, y: 580, label: 'Human Agent' },
-      { id: 6,  type: 'kind',           x: 100, y: 740, label: 'AI Agent' },
-      { id: 7,  type: 'individual',     x: 320, y: 740, label: 'Copilot' },
-      { id: 8,  type: 'kind',           x: 220, y: 100, label: 'Perception' },
-      { id: 9,  type: 'kind',           x: 580, y: 100, label: 'Action' },
-      { id: 10, type: 'kind',           x: 700, y: 260, label: 'Environment' },
+      { id: 1,  type: 'kind',       x: 300, y: 180, label: 'Agent' },
+      { id: 2,  type: 'kind',       x: 580, y: 60,  label: 'Environment' },
+      { id: 3,  type: 'kind',       x: 580, y: 180, label: 'Perception' },
+      { id: 4,  type: 'kind',       x: 580, y: 340, label: 'Action' },
+      { id: 5,  type: 'kind',       x: 120, y: 340, label: 'Autonomous Agent' },
+      { id: 6,  type: 'kind',       x: 460, y: 340, label: 'Reactive Agent' },
+      { id: 7,  type: 'kind',       x: 60,  y: 500, label: 'Software Agent' },
+      { id: 8,  type: 'kind',       x: 240, y: 500, label: 'Human Agent' },
+      { id: 9,  type: 'kind',       x: 60,  y: 660, label: 'AI Agent' },
+      { id: 10, type: 'individual', x: 240, y: 660, label: 'Ada Lovelace' },
     ],
     edges: [
-      { id: 101, type: 'subkind-of',  fromId: 2,  toId: 1,  label: '' },
-      { id: 102, type: 'subkind-of',  fromId: 3,  toId: 1,  label: '' },
-      { id: 103, type: 'subkind-of',  fromId: 4,  toId: 2,  label: '' },
-      { id: 104, type: 'subkind-of',  fromId: 5,  toId: 2,  label: '' },
-      { id: 105, type: 'subkind-of',  fromId: 6,  toId: 4,  label: '' },
-      { id: 106, type: 'part-of',     fromId: 8,  toId: 1,  label: '' },
-      { id: 107, type: 'part-of',     fromId: 9,  toId: 1,  label: '' },
-      { id: 108, type: 'relation-alt', fromId: 1,  toId: 10, label: 'operates in' },
-      { id: 109, type: 'instance-of', fromId: 7,  toId: 6,  label: '' },
+      { id: 101, type: 'subkind-of',  fromId: 5,  toId: 1,  label: '' },
+      { id: 102, type: 'subkind-of',  fromId: 6,  toId: 1,  label: '' },
+      { id: 103, type: 'subkind-of',  fromId: 7,  toId: 5,  label: '' },
+      { id: 104, type: 'subkind-of',  fromId: 8,  toId: 5,  label: '' },
+      { id: 105, type: 'subkind-of',  fromId: 9,  toId: 7,  label: '' },
+      { id: 106, type: 'part-of',     fromId: 3,  toId: 1,  label: '' },
+      { id: 107, type: 'part-of',     fromId: 4,  toId: 1,  label: '' },
+      { id: 108, type: 'relation-alt', fromId: 1,  toId: 2,  label: 'operates in' },
+      { id: 109, type: 'instance-of', fromId: 10, toId: 8,  label: '' },
     ],
     nextId: 200,
   },
   'fastener-classification': {
     label: 'Fastener Classification',
     nodes: [
-      { id: 1,  type: 'kind', x: 300, y: 60,  label: 'Fastener' },
-      { id: 2,  type: 'kind', x: 160, y: 190, label: 'Threaded Fastener' },
-      { id: 3,  type: 'kind', x: 440, y: 190, label: 'Non-Threaded Fastener' },
-      { id: 4,  type: 'kind', x: 80,  y: 330, label: 'Bolt' },
-      { id: 5,  type: 'kind', x: 200, y: 330, label: 'Screw' },
-      { id: 6,  type: 'kind', x: 320, y: 330, label: 'Nail' },
-      { id: 7,  type: 'kind', x: 440, y: 330, label: 'Rivet' },
-      { id: 8,  type: 'kind', x: 560, y: 330, label: 'Staple' },
-      { id: 9,  type: 'kind', x: 80,  y: 460, label: 'Hex Bolt' },
-      { id: 10, type: 'kind', x: 200, y: 460, label: 'Carriage Bolt' },
+      { id: 1,  type: 'kind', x: 380, y: 60,  label: 'Fastener' },
+      { id: 2,  type: 'kind', x: 160, y: 200, label: 'Threaded Fastener' },
+      { id: 3,  type: 'kind', x: 560, y: 200, label: 'Non-Threaded Fastener' },
+      { id: 4,  type: 'kind', x: 80,  y: 340, label: 'Bolt' },
+      { id: 5,  type: 'kind', x: 220, y: 340, label: 'Screw' },
+      { id: 6,  type: 'kind', x: 440, y: 340, label: 'Nail' },
+      { id: 7,  type: 'kind', x: 580, y: 340, label: 'Rivet' },
+      { id: 8,  type: 'kind', x: 720, y: 340, label: 'Staple' },
+      { id: 9,  type: 'kind', x: 60,  y: 480, label: 'Hex Bolt' },
+      { id: 10, type: 'kind', x: 200, y: 480, label: 'Carriage Bolt' },
     ],
     edges: [
       { id: 101, type: 'subkind-of', fromId: 2,  toId: 1, label: '' },
@@ -2019,6 +2127,29 @@ const EXAMPLES = {
       { id: 107, type: 'subkind-of', fromId: 8,  toId: 3, label: '' },
       { id: 108, type: 'subkind-of', fromId: 9,  toId: 4, label: '' },
       { id: 109, type: 'subkind-of', fromId: 10, toId: 4, label: '' },
+    ],
+    nextId: 200,
+  },
+  'library-system': {
+    label: 'Library System',
+    nodes: [
+      { id: 1, type: 'kind',           x: 120, y: 120, label: 'Library' },
+      { id: 2, type: 'kind',           x: 120, y: 300, label: 'Member' },
+      { id: 3, type: 'kind',           x: 560, y: 120, label: 'Book' },
+      { id: 4, type: 'relation-first', x: 340, y: 120, label: 'holds' },
+      { id: 5, type: 'relation-first', x: 340, y: 300, label: 'borrows' },
+      { id: 6, type: 'kind',           x: 460, y: 300, label: 'Fiction' },
+      { id: 7, type: 'kind',           x: 660, y: 300, label: 'Non-Fiction' },
+      { id: 8, type: 'individual',     x: 120, y: 460, label: 'Alice' },
+    ],
+    edges: [
+      { id: 101, type: 'first-order', fromId: 4, toId: 1, label: '' },
+      { id: 102, type: 'first-order', fromId: 4, toId: 3, label: '' },
+      { id: 103, type: 'first-order', fromId: 5, toId: 2, label: '' },
+      { id: 104, type: 'first-order', fromId: 5, toId: 3, label: '' },
+      { id: 105, type: 'subkind-of',  fromId: 6, toId: 3, label: '' },
+      { id: 106, type: 'subkind-of',  fromId: 7, toId: 3, label: '' },
+      { id: 107, type: 'instance-of', fromId: 8, toId: 2, label: '' },
     ],
     nextId: 200,
   },
@@ -2040,20 +2171,23 @@ function loadExample(key) {
   fitToWindow();
 }
 
-document.getElementById('btn-examples').addEventListener('click', e => {
+document.getElementById('btn-help-menu').addEventListener('click', e => {
   e.stopPropagation();
-  document.getElementById('examples-menu').classList.toggle('open');
+  const menu = document.getElementById('help-menu');
+  const wasOpen = menu.classList.contains('open');
+  closeAllDropdowns();
+  if (!wasOpen) menu.classList.add('open');
 });
 
 document.getElementById('examples-menu').addEventListener('click', e => {
-  const item = e.target.closest('.tb-dropdown-item');
+  const item = e.target.closest('[data-example]');
   if (!item) return;
-  document.getElementById('examples-menu').classList.remove('open');
+  closeAllDropdowns();
   loadExample(item.dataset.example);
 });
 
 document.addEventListener('click', () => {
-  document.getElementById('examples-menu').classList.remove('open');
+  closeAllDropdowns();
 });
 
 function exportSVG() {
@@ -2122,8 +2256,8 @@ IDEF5 symbol types you may use:
   Nodes: kind, individual, relation-first, relation-second, relation-alt, process,
          referent, junction-xor, junction-or, junction-and, state-weak, state-strong,
          transition-instant, connect-fwd, connect-bwd, connect-plain, container, key
-  Edges: subtype, composition, characteristic, relation, referent, transition,
-         connect, constraint, containment, association, equivalence
+  Edges: subkind-of, instance-of, part-of, first-order, second-order,
+         state-weak, state-strong, connect-plain, connect-fwd, connect-bwd, relation-alt
 
 Respond ONLY with valid JSON — no prose, no markdown fences, just raw JSON:
 {
@@ -2132,7 +2266,7 @@ Respond ONLY with valid JSON — no prose, no markdown fences, just raw JSON:
     { "id": "n1", "type": "kind", "label": "Patient" }
   ],
   "edges": [
-    { "id": "e1", "from": "n1", "to": "n2", "type": "subtype", "label": "" }
+    { "id": "e1", "from": "n1", "to": "n2", "type": "subkind-of", "label": "" }
   ]
 }
 
@@ -2363,9 +2497,26 @@ function validateAIPayload(payload) {
       throw new Error('AI returned malformed nodes. Try again.');
     }
   }
+  const VALID_EDGE_TYPES = new Set([
+    'subkind-of', 'instance-of', 'part-of', 'first-order', 'second-order',
+    'state-weak', 'state-strong', 'connect-plain', 'connect-fwd', 'connect-bwd', 'relation-alt',
+  ]);
+  const VALID_NODE_TYPES = new Set([
+    'kind', 'individual', 'relation-first', 'relation-second', 'relation-alt', 'process',
+    'referent', 'junction-xor', 'junction-or', 'junction-and', 'state-weak', 'state-strong',
+    'transition-instant', 'connect-fwd', 'connect-bwd', 'connect-plain', 'container', 'key',
+  ]);
+  for (const n of payload.nodes) {
+    if (!VALID_NODE_TYPES.has(n.type)) {
+      throw new Error(`AI returned unknown node type "${n.type}". Try again.`);
+    }
+  }
   for (const e of payload.edges) {
     if (!e.id || !e.from || !e.to || !e.type) {
       throw new Error('AI returned malformed edges. Try again.');
+    }
+    if (!VALID_EDGE_TYPES.has(e.type)) {
+      throw new Error(`AI returned unknown edge type "${e.type}". Try again.`);
     }
   }
   // Edge references: warn + omit bad ones rather than rejecting entire payload

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Using Quiddity</title>
+  <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body>
+<div class="layout">
+
+  <nav>
+    <div class="nav-header">
+      <div class="nav-title">Quiddity</div>
+      <div class="nav-subtitle">Documentation</div>
+    </div>
+    <div class="nav-switch">
+      <a href="using-quiddity.html" class="active">Using Quiddity</a>
+      <a href="idef5-reference.html">IDEF5 Reference</a>
+    </div>
+
+    <div class="nav-section">Getting Started</div>
+    <a class="nav-link" href="#overview">What is Quiddity?</a>
+    <a class="nav-link" href="#interface">Interface overview</a>
+    <a class="nav-link" href="#quickstart">Quick start</a>
+
+    <div class="nav-section">The Toolbar</div>
+    <a class="nav-link" href="#file-menu">File menu</a>
+    <a class="nav-link" href="#edit-menu">Edit menu</a>
+    <a class="nav-link" href="#undo-redo">Undo &amp; redo</a>
+    <a class="nav-link" href="#zoom">Zoom &amp; fit</a>
+
+    <div class="nav-section">Working on the Canvas</div>
+    <a class="nav-link" href="#navigate">Navigating</a>
+    <a class="nav-link" href="#adding-nodes">Adding nodes</a>
+    <a class="nav-link" href="#connecting">Drawing connections</a>
+    <a class="nav-link" href="#editing">Editing elements</a>
+    <a class="nav-link" href="#selecting">Selecting &amp; moving</a>
+    <a class="nav-link" href="#clipboard">Cut, copy &amp; paste</a>
+    <a class="nav-link" href="#context-menu">Context menu</a>
+
+    <div class="nav-section">AI Assistant</div>
+    <a class="nav-link" href="#ai-panel">Generating diagrams with AI</a>
+
+    <div class="nav-section">Files &amp; Data</div>
+    <a class="nav-link" href="#save-load">Save, load &amp; export</a>
+    <a class="nav-link" href="#autosave">Auto-save</a>
+    <a class="nav-link" href="#examples">Built-in examples</a>
+
+    <div class="nav-section">Reference</div>
+    <a class="nav-link" href="#keyboard">Keyboard shortcuts</a>
+    <a class="nav-link" href="#touch">iPad &amp; iPhone</a>
+  </nav>
+
+  <main>
+    <h1>Using Quiddity</h1>
+    <p class="subtitle">A guide to the Quiddity application</p>
+
+    <div class="page-intro">
+      This document explains how to use Quiddity: its interface, tools, and workflows. For documentation on the IDEF5 notation itself — what each symbol means and how to read and write IDEF5 diagrams — see <a href="idef5-reference.html">IDEF5 Reference</a>.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="overview">What is Quiddity?</h2>
+
+    <p>Quiddity is a browser-based visual modelling tool for creating <strong>IDEF5 ontology schematics</strong>: formal diagrams that describe the kinds of things that exist in a domain, the relationships between them, and how they change over time.</p>
+
+    <p>Quiddity runs entirely in your browser as a single HTML file. No installation, no server, no account, no dependencies. Open the file and start drawing.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="interface">Interface overview</h2>
+
+    <p>The Quiddity window is divided into four areas:</p>
+
+    <table>
+      <tr>
+        <th>Area</th>
+        <th>Location</th>
+        <th>Purpose</th>
+      </tr>
+      <tr>
+        <td><strong>Toolbar</strong></td>
+        <td>Top strip</td>
+        <td>File operations, editing commands, undo/redo, zoom, help, and the AI assistant</td>
+      </tr>
+      <tr>
+        <td><strong>Toolbox</strong></td>
+        <td>Left panel</td>
+        <td>The palette of all 17 IDEF5 symbols. Drag onto the canvas to place them, or click connection tools to enter connection mode.</td>
+      </tr>
+      <tr>
+        <td><strong>Canvas</strong></td>
+        <td>Centre</td>
+        <td>The drawing surface. Pan, zoom, and interact with your diagram here.</td>
+      </tr>
+      <tr>
+        <td><strong>Properties panel</strong></td>
+        <td>Right panel</td>
+        <td>Shows editable fields for the selected element: label, notes, color, and type-specific options. Collapses on smaller screens via the toggle button on the canvas edge.</td>
+      </tr>
+    </table>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="quickstart">Quick start</h2>
+
+    <p>The fastest way to explore Quiddity is with one of the built-in examples:</p>
+
+    <ol class="steps">
+      <li>Click <strong>Help ▾</strong> in the toolbar, hover over <strong>Examples</strong>, and choose <em>Ballpoint Pen Components</em>.</li>
+      <li>Explore the diagram. Hover over symbols in the toolbox — tooltips describe each one.</li>
+      <li>Click any element to select it. Its editable properties appear in the right panel.</li>
+      <li>Double-click a node to edit its label directly on the canvas.</li>
+      <li>When you are ready to start your own model, open <strong>File ▾ → New</strong>.</li>
+    </ol>
+
+    <div class="callout tip">
+      Try <em>Water Phase Transitions</em> for state transition diagrams and <em>Vehicle Classification</em> for subkind hierarchies. Each example shows a different facet of IDEF5.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="file-menu">File menu</h2>
+
+    <p>The <strong>✦ File ▾</strong> menu at the left of the toolbar contains all file operations:</p>
+
+    <table>
+      <tr><th>Item</th><th>Action</th></tr>
+      <tr>
+        <td><strong>New</strong></td>
+        <td>Clear the canvas and start a fresh diagram. You will be asked to confirm if there is existing content on the canvas.</td>
+      </tr>
+      <tr>
+        <td><strong>Save JSON</strong></td>
+        <td>Download the diagram as a <code>.json</code> file that captures everything: nodes, edges, labels, positions, and sizing. This file can be loaded back into Quiddity at any time on any computer.</td>
+      </tr>
+      <tr>
+        <td><strong>Load JSON</strong></td>
+        <td>Open a previously saved <code>.json</code> file. The current diagram is replaced.</td>
+      </tr>
+      <tr>
+        <td><strong>Export to SVG</strong></td>
+        <td>Download the current diagram as a scalable vector image (<code>.svg</code>). SVG files can be opened in any browser, edited in Inkscape or Illustrator, and embedded in Word, PowerPoint, and web pages.</td>
+      </tr>
+    </table>
+
+    <div class="callout warning">
+      <strong>Caution:</strong> Quiddity auto-saves to browser local storage on every change, but this is not a substitute for an explicit save. Browser storage can be cleared. Use <strong>Save JSON</strong> to keep permanent copies of important diagrams.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="edit-menu">Edit menu</h2>
+
+    <p>The <strong>Edit ▾</strong> menu provides clipboard and delete operations. All items act on the current selection.</p>
+
+    <table>
+      <tr><th>Item</th><th>Shortcut</th><th>Action</th></tr>
+      <tr>
+        <td><strong>Cut</strong></td>
+        <td><kbd>⌘</kbd>&thinsp;<kbd>X</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>X</kbd></td>
+        <td>Copy the selected elements to the clipboard, then delete them from the canvas.</td>
+      </tr>
+      <tr>
+        <td><strong>Copy</strong></td>
+        <td><kbd>⌘</kbd>&thinsp;<kbd>C</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>C</kbd></td>
+        <td>Copy the selected elements. Edges connecting two selected nodes are copied along with them.</td>
+      </tr>
+      <tr>
+        <td><strong>Paste</strong></td>
+        <td><kbd>⌘</kbd>&thinsp;<kbd>V</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>V</kbd></td>
+        <td>Place a copy of the clipboard contents onto the canvas, offset by 20px from the original. Pasting again cascades another 20px, so repeated pastes never stack on top of each other.</td>
+      </tr>
+      <tr>
+        <td><strong>Delete</strong></td>
+        <td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td>
+        <td>Remove the selected elements. Any edges connected to deleted nodes are also removed.</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      The clipboard is internal to Quiddity — it is not the system clipboard. You cannot paste content copied from other applications, and Quiddity content cannot be pasted elsewhere.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="undo-redo">Undo &amp; redo</h2>
+
+    <p>Quiddity maintains an undo history of up to 50 steps.</p>
+
+    <table>
+      <tr>
+        <td><strong>← Undo</strong> button, or <kbd>⌘</kbd>&thinsp;<kbd>Z</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>Z</kbd></td>
+        <td>Undo the last change</td>
+      </tr>
+      <tr>
+        <td><strong>→ Redo</strong> button, or <kbd>⌘</kbd>&thinsp;<kbd>Y</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>Y</kbd></td>
+        <td>Re-apply the last undone change</td>
+      </tr>
+    </table>
+
+    <p>Every mutating operation — adding, moving, deleting, resizing, labelling, and AI generation — is individually undoable.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="zoom">Zoom &amp; fit</h2>
+
+    <table>
+      <tr><th>Control</th><th>Action</th></tr>
+      <tr><td><strong>+</strong> button</td><td>Zoom in by 20%</td></tr>
+      <tr><td><strong>−</strong> button</td><td>Zoom out by ~17%</td></tr>
+      <tr><td>Percentage readout</td><td>Shows the current zoom level (read-only)</td></tr>
+      <tr><td><strong>□ Fit</strong> button</td><td>Zoom and pan to fit all nodes in the window</td></tr>
+      <tr><td>Mouse wheel / trackpad scroll</td><td>Zoom in and out, centred on the cursor position</td></tr>
+    </table>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="navigate">Navigating the canvas</h2>
+
+    <h3>Pan</h3>
+    <p>Hold <kbd>Space</kbd> and drag anywhere on the canvas to pan. You can also drag on any empty area of the canvas without holding Space.</p>
+
+    <h3>Zoom</h3>
+    <p>Scroll the mouse wheel to zoom, centred on your cursor. Use the toolbar <strong>+</strong> / <strong>−</strong> buttons for step zooms. Click <strong>□ Fit</strong> to zoom the entire diagram into view.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="adding-nodes">Adding nodes</h2>
+
+    <p>Every IDEF5 symbol begins in the <strong>toolbox</strong> on the left. Hover any item to read a description of it.</p>
+
+    <h3>Drag to place</h3>
+    <ol class="steps">
+      <li>Find the symbol you want in the toolbox.</li>
+      <li>Drag it onto the canvas and release at the desired position.</li>
+      <li>The node snaps to the nearest 10-pixel grid position.</li>
+    </ol>
+
+    <h3>Keyboard placement</h3>
+    <p>Focus a toolbox item using <kbd>Tab</kbd>, then press <kbd>Enter</kbd> to place the symbol at the centre of the canvas. Useful when you do not want to leave the keyboard.</p>
+
+    <div class="callout">
+      <strong>Note:</strong> Several toolbox items are <em>connection tools</em>, not placeable nodes. Clicking or dragging them enters connection mode rather than placing a node. These are: 2nd-Order Relation, Alt. 2-Place Relation, State Trans. (Weak), State Trans. (Strong), and all three Connect symbols (Forward, Backward, Plain).
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="connecting">Drawing connections</h2>
+
+    <h3>Quick connect from a selected node</h3>
+    <p>The fastest way to connect two nodes:</p>
+    <ol class="steps">
+      <li>Click a <strong>Kind</strong> or <strong>Individual</strong> node to select it.</li>
+      <li>Click a connection tool in the toolbox (e.g. <em>Connect (Forward)</em>). Because a source is already selected, Quiddity skips the source-picking step.</li>
+      <li>Click the <strong>target</strong> node to complete the connection.</li>
+    </ol>
+
+    <h3>Two-click workflow</h3>
+    <p>When no source is pre-selected:</p>
+    <ol class="steps">
+      <li>Click a connection tool in the toolbox. A hint bar appears at the bottom of the screen.</li>
+      <li>Click the <strong>source</strong> node on the canvas.</li>
+      <li>Click the <strong>target</strong> node. The edge is created and connection mode ends.</li>
+    </ol>
+
+    <h3>Drag-to-source shortcut</h3>
+    <p>Drag a connection tool from the toolbox and <em>drop it directly onto a node</em>. Quiddity enters connection mode with that node pre-selected as the source. Then click the target node.</p>
+
+    <h3>Cancelling</h3>
+    <p>Press <kbd>Esc</kbd> at any point during connection mode to cancel the operation without creating an edge.</p>
+
+    <h3>First-order relations</h3>
+    <p>First-order relation rectangles are placed as nodes, then connected to kinds or individuals using edge connections drawn from node to node (select a kind, use a connection tool, click the relation rectangle, and repeat in reverse). See <a href="idef5-reference.html#relations">IDEF5 Reference — Relations</a> for details on how to structure these.</p>
+
+    <h3>State transition splitting</h3>
+    <div class="callout tip">
+      While in connection mode, clicking on the <strong>midpoint circle</strong> of an existing state transition edge automatically splits it: a standalone state transition node is inserted at that position and the connection is attached to it.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="editing">Editing elements</h2>
+
+    <h3>Inline label editing</h3>
+    <p><strong>Double-click</strong> any node to open a text editor directly on the canvas. Type your label. Press <kbd>Enter</kbd> or click anywhere else to confirm. Press <kbd>Esc</kbd> to discard changes.</p>
+
+    <h3>Properties panel</h3>
+    <p>Click any element to select it. The right panel shows all editable fields:</p>
+
+    <table>
+      <tr><th>Field</th><th>Applies to</th><th>Description</th></tr>
+      <tr>
+        <td>Label</td>
+        <td>Most nodes</td>
+        <td>The text displayed on the node. Edits appear live on the canvas.</td>
+      </tr>
+      <tr>
+        <td>Notes</td>
+        <td>All nodes</td>
+        <td>Free-text field for definitions, references, or modelling decisions. Saved with the diagram but not displayed on the canvas.</td>
+      </tr>
+      <tr>
+        <td>Color</td>
+        <td>Kind, Individual</td>
+        <td>Choose a border color from the swatch grid. The default swatch (✕) removes any applied color.</td>
+      </tr>
+      <tr>
+        <td>Individual toggle</td>
+        <td>Kind, Individual</td>
+        <td>Check "Individual (has instance dot)" to convert a Kind to an Individual, or uncheck to revert.</td>
+      </tr>
+      <tr>
+        <td>Edge type</td>
+        <td>Edges</td>
+        <td>Change the semantic type of an existing edge (e.g. switch from Subkind-of to Instance-of).</td>
+      </tr>
+      <tr>
+        <td>Reference ID, Method Name</td>
+        <td>Referent</td>
+        <td>The two header fields of a referent classification node.</td>
+      </tr>
+      <tr>
+        <td>Entries</td>
+        <td>Key</td>
+        <td>Add or remove legend entries. Select a symbol type and type a label, then click Add. The key on the canvas updates live.</td>
+      </tr>
+    </table>
+
+    <h3>Resizing</h3>
+    <p>Select a resizable node — relation rectangle, process, referent, or container. Amber corner handles appear. Drag any handle to resize. The node snaps to the 10px grid.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="selecting">Selecting &amp; moving</h2>
+
+    <h3>Single selection</h3>
+    <p>Click any node or edge. It highlights in amber and its properties appear on the right.</p>
+
+    <h3>Multi-selection</h3>
+    <ul>
+      <li>Hold <kbd>Shift</kbd> and click additional elements to add them to the selection.</li>
+      <li>Click-drag on empty canvas space to draw a rubber-band rectangle. All nodes whose centres fall within the rectangle are selected on release.</li>
+    </ul>
+
+    <h3>Moving</h3>
+    <p>Drag any selected node. If multiple nodes are selected, the whole group moves together. All movement snaps to the 10px grid.</p>
+
+    <h3>Deselect</h3>
+    <p>Click on any empty area of the canvas to deselect everything.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="clipboard">Cut, copy &amp; paste</h2>
+
+    <p>Quiddity maintains its own internal clipboard. The clipboard survives navigation and undo operations within a session but is cleared when the page is closed.</p>
+
+    <h3>Copying nodes</h3>
+    <p>Select one or more nodes. Use <strong>Edit → Copy</strong> or <kbd>⌘</kbd>&thinsp;<kbd>C</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>C</kbd>. Any edges that connect exclusively between the selected nodes are copied along with them — edges to unselected nodes are not included.</p>
+
+    <h3>Pasting</h3>
+    <p>Use <strong>Edit → Paste</strong> or <kbd>⌘</kbd>&thinsp;<kbd>V</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>V</kbd>. The pasted elements land 20px below-right of the originals and become the new selection. Pasting again moves another 20px, cascading repeated pastes so they do not pile up.</p>
+
+    <h3>Cutting</h3>
+    <p>Cut copies then immediately deletes the selection. The deleted elements can be pasted back or undone with <kbd>⌘</kbd>&thinsp;<kbd>Z</kbd>.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="context-menu">Context menu</h2>
+
+    <p>Right-click any node or edge to open the context menu:</p>
+
+    <table>
+      <tr><th>Action</th><th>Description</th></tr>
+      <tr>
+        <td><strong>Delete</strong></td>
+        <td>Remove the element. Edges connected to a deleted node are also removed.</td>
+      </tr>
+      <tr>
+        <td><strong>Duplicate</strong></td>
+        <td>Create an offset copy of the selected node(s). Shortcut: <kbd>⌘</kbd>&thinsp;<kbd>D</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>D</kbd>.</td>
+      </tr>
+      <tr>
+        <td><strong>Bring to Front</strong></td>
+        <td>Move the element on top of all overlapping elements in the drawing order.</td>
+      </tr>
+      <tr>
+        <td><strong>Send to Back</strong></td>
+        <td>Move the element behind all overlapping elements.</td>
+      </tr>
+    </table>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="ai-panel">Generating diagrams with AI</h2>
+
+    <p>The <strong>✦ AI</strong> button in the top-right opens the AI assistant panel. The assistant uses the Anthropic Claude API to generate and modify IDEF5 diagrams from natural language descriptions.</p>
+
+    <h3>Setup</h3>
+    <ol class="steps">
+      <li>Click <strong>✦ AI</strong> to open the panel.</li>
+      <li>Paste your Anthropic API key into the key field. The key is stored in your browser's local storage only — it is never sent anywhere except directly to the Anthropic API from your browser.</li>
+      <li>The key field is replaced by a masked display once saved. Click × to clear the key.</li>
+    </ol>
+
+    <h3>Generating a diagram</h3>
+    <ol class="steps">
+      <li>Type a description of the ontology you want to model in the message field. Be specific about the domain: name the kinds, describe key relationships, and mention any subkind hierarchies or state changes that matter.</li>
+      <li>Press <kbd>Ctrl</kbd>&thinsp;<kbd>Enter</kbd> or click <strong>Send</strong>.</li>
+      <li>A spinner appears on the canvas while the AI generates. Nodes and edges appear on the canvas when the response is received.</li>
+    </ol>
+
+    <h3>Iterating</h3>
+    <p>The assistant maintains a full conversation history. You can continue refining the diagram with follow-up messages: "Add a subkind of Vehicle called ElectricVehicle", "Connect the Process node to the State transition", "Add a Key explaining the symbols used."</p>
+
+    <div class="callout">
+      Each AI generation step is undoable. Press <kbd>⌘</kbd>&thinsp;<kbd>Z</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>Z</kbd> to revert to the state before the last generation.
+    </div>
+
+    <div class="callout warning">
+      The AI assistant requires an internet connection and a valid Anthropic API key. API usage is billed to your Anthropic account.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="save-load">Save, load &amp; export</h2>
+
+    <h3>JSON format</h3>
+    <p>The native format is a <code>.json</code> file containing the full diagram state. This is the only format that preserves all information for re-editing. Save JSON files early and often.</p>
+
+    <h3>SVG export</h3>
+    <p>Export to SVG for sharing, publishing, or further editing in a vector graphics application. The exported SVG clips to the bounding box of all nodes with 30px padding. Canvas background and grid are not included — the exported file has a transparent background suitable for embedding in documents.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="autosave">Auto-save</h2>
+
+    <p>Quiddity saves the diagram to your browser's <strong>local storage</strong> on every change. When you reopen the same file in the same browser, your last session is restored automatically.</p>
+
+    <p>Auto-save is <em>not</em> a backup. Local storage is tied to a specific browser on a specific machine. It can be cleared by the browser or by clearing site data. Always use <strong>File → Save JSON</strong> for important work.</p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="examples">Built-in examples</h2>
+
+    <p>Access examples via <strong>Help ▾ → Examples</strong>. Loading an example replaces the current diagram — save first if needed.</p>
+
+    <table>
+      <tr><th>Example</th><th>What it demonstrates</th></tr>
+      <tr>
+        <td>Ballpoint Pen Components</td>
+        <td>Part-of relationships and first-order relations. A good first diagram to explore.</td>
+      </tr>
+      <tr>
+        <td>Water Phase Transitions</td>
+        <td>State transition nodes (weak and strong) showing how kinds change state under conditions.</td>
+      </tr>
+      <tr>
+        <td>Vehicle Classification</td>
+        <td>Subkind-of hierarchies: taxonomic modelling of a kind family.</td>
+      </tr>
+      <tr>
+        <td>Fastener Classification</td>
+        <td>A larger classification hierarchy combining subkind-of and part-of.</td>
+      </tr>
+      <tr>
+        <td>Agent Ontology</td>
+        <td>A knowledge representation ontology for agentic AI systems.</td>
+      </tr>
+    </table>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="keyboard">Keyboard shortcuts</h2>
+
+    <table>
+      <tr><th>Shortcut</th><th>Action</th></tr>
+      <tr><td><kbd>⌘</kbd>&thinsp;<kbd>Z</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>Z</kbd></td><td>Undo (up to 50 steps)</td></tr>
+      <tr><td><kbd>⌘</kbd>&thinsp;<kbd>Y</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>Y</kbd></td><td>Redo</td></tr>
+      <tr><td><kbd>⌘</kbd>&thinsp;<kbd>C</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>C</kbd></td><td>Copy selected elements</td></tr>
+      <tr><td><kbd>⌘</kbd>&thinsp;<kbd>X</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>X</kbd></td><td>Cut selected elements</td></tr>
+      <tr><td><kbd>⌘</kbd>&thinsp;<kbd>V</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>V</kbd></td><td>Paste clipboard</td></tr>
+      <tr><td><kbd>⌘</kbd>&thinsp;<kbd>D</kbd> / <kbd>Ctrl</kbd>&thinsp;<kbd>D</kbd></td><td>Duplicate selected element(s)</td></tr>
+      <tr><td><kbd>Delete</kbd> or <kbd>Backspace</kbd></td><td>Delete selected element(s)</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Cancel active connection tool / close context menu</td></tr>
+      <tr><td><kbd>Space</kbd> + drag</td><td>Pan the canvas</td></tr>
+      <tr><td>Mouse wheel</td><td>Zoom in / out (centred on cursor)</td></tr>
+      <tr><td><kbd>Enter</kbd> on focused toolbox item</td><td>Place symbol at canvas centre</td></tr>
+      <tr><td><kbd>Ctrl</kbd>&thinsp;<kbd>Enter</kbd> in AI panel</td><td>Send AI message</td></tr>
+    </table>
+
+    <div class="callout">
+      On macOS, all <kbd>Ctrl</kbd> shortcuts also work as <kbd>⌘</kbd> (Command) shortcuts.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h2 id="touch">iPad &amp; iPhone</h2>
+
+    <p>Quiddity works on iOS and iPadOS in Safari. Touch gestures replace mouse interactions.</p>
+
+    <h3>Canvas navigation</h3>
+    <table>
+      <tr><th>Action</th><th>Gesture</th></tr>
+      <tr><td>Pan</td><td>Drag with one finger on empty canvas space</td></tr>
+      <tr><td>Zoom</td><td>Pinch with two fingers, or tap the <strong>+</strong> / <strong>−</strong> toolbar buttons</td></tr>
+      <tr><td>Fit to window</td><td>Tap <strong>□ Fit</strong> in the toolbar</td></tr>
+    </table>
+
+    <h3>Adding and connecting nodes</h3>
+    <p>Touch and hold a symbol in the toolbox, then drag it onto the canvas. To draw a connection, drag a connection tool from the toolbox and drop it onto the source node, then tap the target.</p>
+
+    <h3>Editing labels</h3>
+    <p>Double-tap any node to open the inline label editor. The on-screen keyboard appears. Tap outside to confirm.</p>
+
+    <h3>Limitations on touch</h3>
+    <ul>
+      <li>The context menu requires a right-click. It is not available without a mouse or trackpad.</li>
+      <li>Rubber-band multi-selection requires click-drag and is not available on touch-only devices.</li>
+      <li>Keyboard shortcuts (<kbd>⌘</kbd>&thinsp;<kbd>Z</kbd>, <kbd>Delete</kbd>, etc.) require a hardware keyboard.</li>
+    </ul>
+
+    <div class="callout tip">
+      For the best iPad experience, add Quiddity to your Home Screen via Safari's Share button. This opens it full-screen without the browser chrome.
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
