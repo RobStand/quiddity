@@ -96,8 +96,8 @@
 
     /* ===== CANVAS HINT ===== */
     #canvas-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; text-align: center; user-select: none; }
-    #canvas-hint p { color: #b5a898; font-size: 13px; margin: 0; }
-    #canvas-hint p + p { margin-top: 4px; font-size: 11px; opacity: 0.7; }
+    #canvas-hint p { color: #9b8c7a; font-size: 14px; margin: 0; }
+    #canvas-hint p + p { margin-top: 4px; font-size: 12px; opacity: 0.85; }
     #canvas-hint.hidden { display: none; }
     .tb-icon { display: block; flex-shrink: 0; }
 
