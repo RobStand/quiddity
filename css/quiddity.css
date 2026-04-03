@@ -113,7 +113,7 @@
     .welcome-btn-link { background: none; border: none; padding: 0; font: inherit; font-size: 12px; color: #9b8c7a; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
     .welcome-btn-link:hover { color: #d97706; }
     .welcome-btn-link:focus-visible { outline: 2px solid #d97706; outline-offset: 2px; }
-    .welcome-docs-link { display: inline-block; margin-top: 14px; font-size: 11px; color: #9b8c7a; text-decoration: none; }
+    .welcome-docs-link { display: inline-block; margin-top: 14px; font-size: 12px; color: #9b8c7a; text-decoration: none; }
     .welcome-docs-link:hover { color: #d97706; text-decoration: underline; text-underline-offset: 2px; }
     .tb-dropdown-submenu.open .tb-dropdown-submenu-menu { display: block; }
     .tb-icon { display: block; flex-shrink: 0; }
