@@ -94,13 +94,25 @@
 
     /* ===== OVERLAY DROPDOWN ===== */
 
-    /* ===== CANVAS HINT ===== */
-    #canvas-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; text-align: center; user-select: none; }
-    #canvas-hint p { color: #9b8c7a; font-size: 14px; margin: 0; }
-    #canvas-hint p + p { margin-top: 4px; font-size: 12px; opacity: 0.85; }
-    #canvas-hint.hidden { display: none; }
-    .hint-link { pointer-events: all; background: none; border: none; padding: 0; font: inherit; font-size: inherit; color: #d97706; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
-    .hint-link:hover { color: #b45309; }
+    /* ===== WELCOME SCREEN ===== */
+    #welcome-screen { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 5; pointer-events: none; }
+    #welcome-screen.hidden { display: none; }
+    .welcome-inner { pointer-events: all; max-width: 420px; text-align: center; padding: 32px 36px; }
+    .welcome-title { font-size: 22px; font-weight: 600; color: #1c1917; margin: 0; letter-spacing: -0.3px; }
+    .welcome-subtitle { font-size: 13px; color: #9b8c7a; margin: 4px 0 0; font-weight: 400; }
+    .welcome-divider { width: 32px; height: 2px; background: #d97706; margin: 16px auto; border-radius: 1px; }
+    .welcome-body { font-size: 12px; color: #6b5e4e; line-height: 1.6; margin: 0 0 10px; text-align: left; }
+    .welcome-body strong { color: #1c1917; font-weight: 600; }
+    .welcome-actions { margin: 18px 0 20px; display: flex; flex-direction: column; gap: 8px; }
+    .welcome-action { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #3d3530; text-align: left; }
+    .welcome-action-icon { flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #d97706; }
+    .welcome-footer { display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .welcome-btn { padding: 6px 18px; background: #d97706; color: white; border: none; border-radius: 4px; font-size: 12px; font-family: inherit; cursor: pointer; }
+    .welcome-btn:hover { background: #b45309; }
+    .welcome-btn:focus-visible { outline: 2px solid #d97706; outline-offset: 2px; }
+    .welcome-btn-link { background: none; border: none; padding: 0; font: inherit; font-size: 12px; color: #9b8c7a; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+    .welcome-btn-link:hover { color: #d97706; }
+    .welcome-btn-link:focus-visible { outline: 2px solid #d97706; outline-offset: 2px; }
     .tb-dropdown-submenu.open .tb-dropdown-submenu-menu { display: block; }
     .tb-icon { display: block; flex-shrink: 0; }
 

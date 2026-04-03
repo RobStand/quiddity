@@ -236,9 +236,32 @@
       <div id="ai-canvas-spinner" aria-live="assertive" aria-atomic="true" style="display:none">
         <span class="ai-spinner"></span> Generating…
       </div>
-      <div id="canvas-hint" aria-hidden="true">
-        <p>Drag symbols from the left panel to start</p>
-        <p>or load an <button id="hint-examples-link" class="hint-link">example</button> from the toolbar</p>
+      <div id="welcome-screen" aria-hidden="true">
+        <div class="welcome-inner">
+          <h1 class="welcome-title">Quiddity</h1>
+          <p class="welcome-subtitle">Knowledge Engineering with IDEF5</p>
+          <div class="welcome-divider"></div>
+          <p class="welcome-body">Quiddity is a browser-based tool for building <strong>ontologies</strong> — formal models of what exists in a domain, how things relate, and why those distinctions matter.</p>
+          <p class="welcome-body">It uses <strong>IDEF5</strong>, a visual language designed specifically for ontology modeling. IDEF5 gives you precise symbols for kinds, individuals, relations, processes, states, and transitions — so you can capture the deep structure of any domain, from engineering systems to AI knowledge graphs.</p>
+          <div class="welcome-actions">
+            <div class="welcome-action">
+              <span class="welcome-action-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/></svg></span>
+              <span>Drag symbols from the toolbox onto the canvas</span>
+            </div>
+            <div class="welcome-action">
+              <span class="welcome-action-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><line x1="3" y1="8" x2="13" y2="8" stroke="currentColor" stroke-width="1.5"/><polygon points="13,5 16,8 13,11" fill="currentColor"/></svg></span>
+              <span>Connect them with edges to define relationships</span>
+            </div>
+            <div class="welcome-action">
+              <span class="welcome-action-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/><line x1="5" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="1"/><line x1="5" y1="9" x2="9" y2="9" stroke="currentColor" stroke-width="1"/></svg></span>
+              <span>Double-click any element to name it</span>
+            </div>
+          </div>
+          <div class="welcome-footer">
+            <button id="welcome-start-btn" class="welcome-btn">Get Started</button>
+            <button id="welcome-example-btn" class="welcome-btn-link">or load an example</button>
+          </div>
+        </div>
       </div>
       <button id="props-toggle" title="Toggle properties panel" aria-label="Toggle properties panel">&#9664;</button>
       <svg id="canvas" xmlns="http://www.w3.org/2000/svg">

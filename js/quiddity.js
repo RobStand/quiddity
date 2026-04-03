@@ -361,10 +361,10 @@ function renderAll() {
 }
 
 function updateCanvasHint() {
-  const hint = document.getElementById('canvas-hint');
-  if (!hint) return;
-  if (state.nodes.length === 0) hint.classList.remove('hidden');
-  else hint.classList.add('hidden');
+  const el = document.getElementById('welcome-screen');
+  if (!el) return;
+  if (state.nodes.length === 0) el.classList.remove('hidden');
+  else el.classList.add('hidden');
 }
 
 function renderNodes() {
@@ -2180,7 +2180,11 @@ document.getElementById('btn-help-menu').addEventListener('click', e => {
   if (!wasOpen) menu.classList.add('open');
 });
 
-document.getElementById('hint-examples-link').addEventListener('click', e => {
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  document.getElementById('welcome-screen').classList.add('hidden');
+});
+
+document.getElementById('welcome-example-btn').addEventListener('click', e => {
   e.stopPropagation();
   closeAllDropdowns();
   document.getElementById('help-menu').classList.add('open');
