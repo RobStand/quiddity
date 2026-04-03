@@ -2089,7 +2089,6 @@ const EXAMPLES = {
       { id: 7,  type: 'kind',       x: 60,  y: 500, label: 'Software Agent' },
       { id: 8,  type: 'kind',       x: 240, y: 500, label: 'Human Agent' },
       { id: 9,  type: 'kind',       x: 60,  y: 660, label: 'AI Agent' },
-      { id: 10, type: 'individual', x: 240, y: 660, label: 'Ada Lovelace' },
     ],
     edges: [
       { id: 101, type: 'subkind-of',  fromId: 5,  toId: 1,  label: '' },
@@ -2100,7 +2099,6 @@ const EXAMPLES = {
       { id: 106, type: 'part-of',     fromId: 3,  toId: 1,  label: '' },
       { id: 107, type: 'part-of',     fromId: 4,  toId: 1,  label: '' },
       { id: 108, type: 'relation-alt', fromId: 1,  toId: 2,  label: 'operates in' },
-      { id: 109, type: 'instance-of', fromId: 10, toId: 8,  label: '' },
     ],
     nextId: 200,
   },
