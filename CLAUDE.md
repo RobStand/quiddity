@@ -8,17 +8,17 @@ Quiddity is a browser-based knowledge engineering tool for creating and modeling
 
 ## Running the App
 
-Open `src/index.html` directly in a browser. No build step, no server required.
+Open `index.html` directly in a browser. No build step, no server required.
 
 ## Architecture
 
 The app is structured as a handful of files:
 
-- **[src/js/quiddity.js](src/js/quiddity.js)** — All application logic (~2,700 lines). Organized into sections: constants/config, geometry helpers, SVG rendering, state management, event handling, and export. The `init()` function is called on `DOMContentLoaded`.
-- **[src/index.html](src/index.html)** — UI shell: toolbar, toolbox (symbol palette), SVG canvas, and properties panel. Contains SVG marker/gradient defs. References only `quiddity.js`.
-- **[src/css/quiddity.css](src/css/quiddity.css)** — Application styles. **[src/css/docs.css](src/css/docs.css)** — Documentation page styles.
-- **[src/docs/using-quiddity.html](src/docs/using-quiddity.html)** — Application usage guide (toolbar, canvas, AI assistant, keyboard shortcuts).
-- **[src/docs/idef5-reference.html](src/docs/idef5-reference.html)** — IDEF5 notation reference (all 17 symbol types, 12 edge types, modelling patterns).
+- **[js/quiddity.js](js/quiddity.js)** — All application logic (~2,700 lines). Organized into sections: constants/config, geometry helpers, SVG rendering, state management, event handling, and export. The `init()` function is called on `DOMContentLoaded`.
+- **[index.html](index.html)** — UI shell: toolbar, toolbox (symbol palette), SVG canvas, and properties panel. Contains SVG marker/gradient defs. References only `quiddity.js`.
+- **[css/quiddity.css](css/quiddity.css)** — Application styles. **[css/docs.css](css/docs.css)** — Documentation page styles.
+- **[docs/using-quiddity.html](docs/using-quiddity.html)** — Application usage guide (toolbar, canvas, AI assistant, keyboard shortcuts).
+- **[docs/idef5-reference.html](docs/idef5-reference.html)** — IDEF5 notation reference (all 17 symbol types, 12 edge types, modelling patterns).
 
 ## Data Model
 
