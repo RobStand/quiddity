@@ -1,3 +1,7 @@
 .claude/
 .vscode/
 .gstack/
+tests/node_modules/
+tests/playwright-report/
+tests/test-results/
+tests/.playwright-cache/

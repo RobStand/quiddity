@@ -147,10 +147,25 @@ let selectedIds = new Set();
 let clipboard = { nodes: [], edges: [], pasteCount: 0 };
 let viewport = { x: 0, y: 0, scale: 1 };
 
+// Expose key state on window for end-to-end tests (Playwright). The app does not
+// rely on these globals; they exist solely so test code can assert on internal
+// state without scraping the DOM. Safe in production — read-only by convention.
+window.state = state;
+window.viewport = viewport;
+window.undoStack = undoStack;
+window.selectedIds = selectedIds;
+
 // Interaction state
 let dragState = null;           // { type: 'node'|'canvas'|'rubberband', ... }
 let editingNodeId = null;
 let toolboxConnectStart = null; // { edgeType, fromId } — fromId null = still picking source
+
+// Expose connection-mode state for tests (mutable read/write proxy onto the local let).
+Object.defineProperty(window, 'toolboxConnectStart', {
+  configurable: true,
+  get() { return toolboxConnectStart; },
+  set(v) { toolboxConnectStart = v; },
+});
 
 function saveUndo() {
   const snapshot = JSON.stringify({ nodes: state.nodes, edges: state.edges, nextId: state.nextId });
@@ -351,6 +366,7 @@ function applyViewport() {
   uiLayer.setAttribute('transform', t);
   gridLayer.setAttribute('transform', t);
   document.getElementById('zoom-display').textContent = Math.round(viewport.scale * 100) + '%';
+  if (typeof hideQuickEdgePalette === 'function') hideQuickEdgePalette();
 }
 
 function renderAll() {
@@ -1432,6 +1448,188 @@ function cancelToolboxConnect() {
   hideToolboxConnectHint();
 }
 
+// ============================================================
+// QUICK-CONNECT EDGE PALETTE (hover popup on nodes)
+// ============================================================
+const QUICK_EDGE_TYPES = [
+  { type: 'subkind-of',    label: '↑ subkind',  title: 'Subkind-of: source is a kind of target' },
+  { type: 'instance-of',   label: '⇡ instance', title: 'Instance-of: source is an instance of target' },
+  { type: 'part-of',       label: '◇ part',     title: 'Part-of: source is part of target' },
+  { type: 'first-order',   label: '→ 1st-ord',  title: 'First-order relation' },
+  { type: 'second-order',  label: '▷ 2nd-ord',  title: 'Second-order relation' },
+  { type: 'relation-alt',  label: '⤳ alt',      title: 'Alternative 2-place relation' },
+  { type: 'state-weak',    label: '⊸ weak',     title: 'Weak state transition' },
+  { type: 'state-strong',  label: '⇒ strong',   title: 'Strong state transition' },
+  { type: 'connect-plain', label: '─ plain',    title: 'Plain connector' },
+  { type: 'connect-fwd',   label: '▶ fwd',      title: 'Forward connector' },
+  { type: 'connect-bwd',   label: '◀ bwd',      title: 'Backward connector' },
+];
+
+// Node types that should NOT show the quick-edge palette (organizational / edge-as-node).
+const QUICK_EDGE_EXCLUDE_TYPES = new Set([
+  'container', 'key', 'transition-instant',
+  'connect-fwd', 'connect-bwd', 'connect-plain',
+]);
+
+const QUICK_EDGE_SHOW_DELAY_MS = 350;
+const QUICK_EDGE_HIDE_DELAY_MS = 200;
+
+let quickEdgeNodeId = null;          // node currently shown
+let quickEdgeShowTimer = null;
+let quickEdgeHideTimer = null;
+let quickEdgePointerInPalette = false;
+let quickEdgePaletteEl = null;
+
+function getQuickEdgePaletteEl() {
+  if (!quickEdgePaletteEl) {
+    quickEdgePaletteEl = document.getElementById('quick-edge-palette');
+    if (quickEdgePaletteEl) {
+      quickEdgePaletteEl.addEventListener('mouseenter', () => {
+        quickEdgePointerInPalette = true;
+        if (quickEdgeHideTimer) { clearTimeout(quickEdgeHideTimer); quickEdgeHideTimer = null; }
+      });
+      quickEdgePaletteEl.addEventListener('mouseleave', () => {
+        quickEdgePointerInPalette = false;
+        scheduleHideQuickEdgePalette();
+      });
+    }
+  }
+  return quickEdgePaletteEl;
+}
+
+function quickEdgeShouldSuppress() {
+  // Don't show during drag, connection mode, label edit, AI panel open, or rubberband
+  if (dragState) return true;
+  if (toolboxConnectStart) return true;
+  if (editingNodeId) return true;
+  const aiPanel = document.getElementById('ai-panel');
+  if (aiPanel && aiPanel.classList.contains('open')) return true;
+  return false;
+}
+
+function scheduleShowQuickEdgePalette(node) {
+  if (!node || QUICK_EDGE_EXCLUDE_TYPES.has(node.type)) {
+    scheduleHideQuickEdgePalette();
+    return;
+  }
+  if (quickEdgeShouldSuppress()) return;
+  if (quickEdgeNodeId === node.id) {
+    // Already showing for this node — cancel any pending hide
+    if (quickEdgeHideTimer) { clearTimeout(quickEdgeHideTimer); quickEdgeHideTimer = null; }
+    return;
+  }
+  if (quickEdgeShowTimer) clearTimeout(quickEdgeShowTimer);
+  quickEdgeShowTimer = setTimeout(() => {
+    quickEdgeShowTimer = null;
+    if (quickEdgeShouldSuppress()) return;
+    showQuickEdgePalette(node);
+  }, QUICK_EDGE_SHOW_DELAY_MS);
+}
+
+function scheduleHideQuickEdgePalette() {
+  if (quickEdgeShowTimer) { clearTimeout(quickEdgeShowTimer); quickEdgeShowTimer = null; }
+  if (quickEdgePointerInPalette) return;
+  if (quickEdgeHideTimer) clearTimeout(quickEdgeHideTimer);
+  quickEdgeHideTimer = setTimeout(() => {
+    quickEdgeHideTimer = null;
+    if (quickEdgePointerInPalette) return;
+    hideQuickEdgePalette();
+  }, QUICK_EDGE_HIDE_DELAY_MS);
+}
+
+function hideQuickEdgePalette() {
+  if (quickEdgeShowTimer) { clearTimeout(quickEdgeShowTimer); quickEdgeShowTimer = null; }
+  if (quickEdgeHideTimer) { clearTimeout(quickEdgeHideTimer); quickEdgeHideTimer = null; }
+  quickEdgeNodeId = null;
+  quickEdgePointerInPalette = false;
+  const el = getQuickEdgePaletteEl();
+  if (el) el.hidden = true;
+}
+
+function showQuickEdgePalette(node) {
+  const el = getQuickEdgePaletteEl();
+  if (!el) return;
+  quickEdgeNodeId = node.id;
+
+  // Build buttons (cheap; rebuild each time keeps it simple and avoids stale fromId).
+  el.innerHTML = '';
+  for (const def of QUICK_EDGE_TYPES) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'qe-btn';
+    btn.dataset.edgeType = def.type;
+    btn.textContent = def.label;
+    btn.title = def.title;
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      ev.preventDefault();
+      startQuickEdgeConnection(node.id, def.type);
+    });
+    el.appendChild(btn);
+  }
+
+  // Position relative to the canvas container, just outside the node's right edge.
+  const containerRect = canvasContainer.getBoundingClientRect();
+  const groupEl = document.querySelector(`#nodes-layer [data-id="${node.id}"]`);
+  let leftPx, topPx;
+  if (groupEl && typeof groupEl.getBoundingClientRect === 'function') {
+    const r = groupEl.getBoundingClientRect();
+    leftPx = r.right - containerRect.left + 8;
+    topPx = r.top - containerRect.top;
+  } else {
+    const bb = getBBox(node);
+    leftPx = (bb.x + bb.w) * viewport.scale + viewport.x + 8;
+    topPx = bb.y * viewport.scale + viewport.y;
+  }
+
+  // Show first to measure, then clamp inside the container.
+  el.hidden = false;
+  el.style.left = '0px';
+  el.style.top = '0px';
+  const pw = el.offsetWidth, ph = el.offsetHeight;
+  const maxLeft = containerRect.width - pw - 4;
+  const maxTop = containerRect.height - ph - 4;
+  // If it would overflow on the right, place it on the left side of the node.
+  if (leftPx > maxLeft && groupEl) {
+    const r = groupEl.getBoundingClientRect();
+    leftPx = r.left - containerRect.left - pw - 8;
+  }
+  leftPx = Math.max(4, Math.min(leftPx, maxLeft));
+  topPx = Math.max(4, Math.min(topPx, maxTop));
+  el.style.left = leftPx + 'px';
+  el.style.top = topPx + 'px';
+}
+
+function startQuickEdgeConnection(fromId, edgeType) {
+  hideQuickEdgePalette();
+  cancelToolboxConnect();
+  toolboxConnectStart = { edgeType, fromId };
+  canvasContainer.style.cursor = 'crosshair';
+  showToolboxConnectHint(false);
+}
+
+// Hover detection: track pointer over canvas and show/hide palette.
+canvas.addEventListener('pointermove', (e) => {
+  // Ignore synthetic events from touch and only handle mouse-like input.
+  if (e.pointerType && e.pointerType !== 'mouse') return;
+  if (quickEdgeShouldSuppress()) { hideQuickEdgePalette(); return; }
+  const wp = clientToWorld(e.clientX, e.clientY);
+  const node = hitTestNode(wp.x, wp.y);
+  if (node) {
+    scheduleShowQuickEdgePalette(node);
+  } else {
+    scheduleHideQuickEdgePalette();
+  }
+});
+canvas.addEventListener('pointerleave', () => scheduleHideQuickEdgePalette());
+
+// Expose for tests.
+window.showQuickEdgePalette = showQuickEdgePalette;
+window.hideQuickEdgePalette = hideQuickEdgePalette;
+window.QUICK_EDGE_TYPES = QUICK_EDGE_TYPES;
+window.applyViewport = applyViewport;
+window.renderAll = renderAll;
+
 // ---- Pointer events on SVG ----
 canvas.addEventListener('pointerdown', onCanvasPointerDown);
 canvas.addEventListener('pointermove', onCanvasPointerMove);
@@ -1853,7 +2051,7 @@ document.addEventListener('keydown', e => {
   const tag = document.activeElement && document.activeElement.tagName.toLowerCase();
   const isTyping = tag === 'input' || tag === 'textarea' || !!editingNodeId;
   if (isTyping) return;
-  if (e.key === 'Escape') { cancelToolboxConnect(); hideContextMenu(); }
+  if (e.key === 'Escape') { cancelToolboxConnect(); hideContextMenu(); hideQuickEdgePalette(); }
   if (e.key === ' ') { spaceDown = true; canvasContainer.style.cursor = toolboxConnectStart ? 'crosshair' : 'grab'; e.preventDefault(); }
   if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
   const mod = e.ctrlKey || e.metaKey;
@@ -2255,11 +2453,65 @@ function exportSVG() {
 // AI PANEL
 // ============================================================
 
-const AI_MODEL       = 'claude-sonnet-4-6';
-const AI_ENDPOINT    = 'https://api.anthropic.com/v1/messages';
 const AI_MAX_TOKENS  = 4096;
 const AI_TIMEOUT_MS  = 45000;
 const AI_HISTORY_MAX = 20;  // messages (10 turns)
+const AI_CONTEXT_NODE_LIMIT = 50;
+const AI_CONTEXT_EDGE_LIMIT = 50;
+
+// Provider abstraction. Each provider knows how to authenticate, build a request body,
+// and parse a response. To add a new provider, add an entry here and an <option> in index.html.
+const AI_PROVIDERS = {
+  anthropic: {
+    label: 'Anthropic',
+    endpoint: 'https://api.anthropic.com/v1/messages',
+    defaultModel: 'claude-sonnet-4-6',
+    keyPlaceholder: 'sk-ant-…',
+    keyLabel: 'Anthropic API key',
+    buildHeaders: (key) => ({
+      'content-type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    }),
+    buildBody: (model, system, messages) => ({
+      model, max_tokens: AI_MAX_TOKENS, system, messages,
+    }),
+    parseResponse: (data) => data.content?.[0]?.text ?? '',
+  },
+  openai: {
+    label: 'OpenAI',
+    endpoint: 'https://api.openai.com/v1/chat/completions',
+    defaultModel: 'gpt-4o-mini',
+    keyPlaceholder: 'sk-…',
+    keyLabel: 'OpenAI API key',
+    buildHeaders: (key) => ({
+      'content-type': 'application/json',
+      'authorization': 'Bearer ' + key,
+    }),
+    buildBody: (model, system, messages) => ({
+      model, max_tokens: AI_MAX_TOKENS,
+      messages: [{ role: 'system', content: system }, ...messages],
+    }),
+    parseResponse: (data) => data.choices?.[0]?.message?.content ?? '',
+  },
+  custom: {
+    label: 'Custom (OpenAI-compatible)',
+    endpoint: '',     // user-provided
+    defaultModel: '', // user-provided
+    keyPlaceholder: 'API key (leave blank for local LLMs)',
+    keyLabel: 'API key (optional)',
+    buildHeaders: (key) => key
+      ? { 'content-type': 'application/json', 'authorization': 'Bearer ' + key }
+      : { 'content-type': 'application/json' },
+    buildBody: (model, system, messages) => ({
+      model, max_tokens: AI_MAX_TOKENS,
+      messages: [{ role: 'system', content: system }, ...messages],
+    }),
+    parseResponse: (data) => data.choices?.[0]?.message?.content ?? '',
+  },
+};
+
 const AI_SYSTEM_PROMPT = `You are a knowledge engineering assistant for Quiddity, a browser-based IDEF5 ontology editor.
 
 IDEF5 symbol types you may use:
@@ -2289,17 +2541,107 @@ Rules:
 - For extensions: you will receive existing node and edge context. Reference existing node IDs
   in edge from/to fields to connect new nodes to existing ones.`;
 
+const AI_EXPLAIN_SYSTEM_PROMPT = `You are a knowledge engineering assistant for Quiddity, a browser-based IDEF5 ontology editor.
+
+The user will share an IDEF5 ontology graph as JSON (nodes and edges). Explain what the model represents in clear, plain English prose.
+
+Guidelines:
+- Open with a single-sentence summary of the domain being modeled.
+- Then briefly describe the main concepts (kinds), how they relate, and any noteworthy structures (containers, processes, state transitions, junctions).
+- Refer to elements by their labels — never by their IDs or internal type names.
+- Keep it concise: 2–4 short paragraphs at most.
+- Plain prose only. Do not respond with JSON, lists, code, or markdown headings.`;
+
+const AI_DELTA_SYSTEM_PROMPT = `You are a knowledge engineering assistant for Quiddity, a browser-based IDEF5 ontology editor.
+
+The user will share three things:
+  1. The current IDEF5 graph as JSON (nodes have stable IDs).
+  2. The previous plain-English explanation of that graph.
+  3. The user's edited version of that explanation.
+
+Your job: produce a minimal JSON delta that mutates the graph so a fresh explanation would match the edited prose.
+
+IDEF5 symbol types you may use:
+  Nodes: kind, individual, relation-first, relation-second, relation-alt, process,
+         referent, junction-xor, junction-or, junction-and, state-weak, state-strong,
+         transition-instant, connect-fwd, connect-bwd, connect-plain, container, key
+  Edges: subkind-of, instance-of, part-of, first-order, second-order,
+         state-weak, state-strong, connect-plain, connect-fwd, connect-bwd, relation-alt
+
+Respond ONLY with valid JSON — no prose, no markdown fences, just raw JSON:
+{
+  "description": "one-sentence summary of what changed",
+  "add_nodes":    [ { "id": "n1", "type": "kind", "label": "NewThing" } ],
+  "add_edges":    [ { "id": "e1", "from": "<existing-id-or-new-id>", "to": "<existing-id-or-new-id>", "type": "subkind-of", "label": "" } ],
+  "update_nodes": [ { "id": "<existing-id>", "label": "Renamed", "type": "kind" } ],
+  "remove_node_ids": [ "<existing-id>" ],
+  "remove_edge_ids": [ "<existing-id>" ]
+}
+
+Rules:
+- Preserve existing node IDs verbatim in update_nodes / remove_node_ids / add_edges. NEVER invent new IDs for nodes that already exist.
+- For add_nodes, use short new identifiers like "n1", "n2"; the client remaps them to globally unique IDs and removes any that collide with the existing graph.
+- For add_edges, the "from" and "to" fields may reference either existing node IDs OR newly-added node IDs from this same response.
+- update_nodes may change "label" and/or "type"; do NOT include x, y, w, h, color.
+- Every section is optional — omit a key (or pass an empty array) if there is nothing of that kind to do.
+- If the edited explanation is semantically identical to the original, return all empty arrays.
+- Generate no more than 20 added nodes per response.`;
+
 // AI state variables
 let aiConversationHistory = [];
 let aiPanelOpen = false;
 let isFirstAIGeneration = true;
 let aiNewNodeIds = new Set();
 let aiGenerationId = 0;
+// Per-Explain-message context, used by the Edit affordance to compute deltas.
+// Keyed by the .ai-msg DOM element so entries are GC'd when the thread is cleared.
+const aiExplainContexts = new WeakMap();
 
 // ---- utility: mask an API key for display ----
 function maskApiKey(key) {
   if (!key || key.length < 10) return key;
   return key.slice(0, 7) + '\u2022'.repeat(8);
+}
+
+// ---- provider/key/endpoint/model helpers ----
+// Storage: quiddity-ai-provider, quiddity-ai-key-{provider},
+//          quiddity-ai-endpoint-custom, quiddity-ai-model-custom.
+// Legacy quiddity-ai-key (Anthropic-only) is migrated on first read.
+function migrateLegacyAIKey() {
+  const legacy = localStorage.getItem('quiddity-ai-key');
+  if (legacy && !localStorage.getItem('quiddity-ai-key-anthropic')) {
+    localStorage.setItem('quiddity-ai-key-anthropic', legacy);
+  }
+  if (legacy) localStorage.removeItem('quiddity-ai-key');
+}
+function getActiveProviderId() {
+  migrateLegacyAIKey();
+  const id = localStorage.getItem('quiddity-ai-provider') || 'anthropic';
+  return AI_PROVIDERS[id] ? id : 'anthropic';
+}
+function getActiveProvider() { return AI_PROVIDERS[getActiveProviderId()]; }
+function getAIKey() { return localStorage.getItem('quiddity-ai-key-' + getActiveProviderId()) || ''; }
+function getAIEndpoint() {
+  const id = getActiveProviderId();
+  if (id === 'custom') return (localStorage.getItem('quiddity-ai-endpoint-custom') || '').trim();
+  return AI_PROVIDERS[id].endpoint;
+}
+function getAIModel() {
+  const id = getActiveProviderId();
+  if (id === 'custom') return (localStorage.getItem('quiddity-ai-model-custom') || '').trim();
+  return AI_PROVIDERS[id].defaultModel;
+}
+// Returns an error string if the provider is not ready to make a request, or '' if ready.
+function aiProviderReadinessError() {
+  const id = getActiveProviderId();
+  const provider = AI_PROVIDERS[id];
+  if (id === 'custom') {
+    if (!getAIEndpoint()) return 'Set a custom endpoint URL above.';
+    if (!getAIModel()) return 'Set a custom model name above.';
+    return '';
+  }
+  if (!getAIKey()) return `Enter your ${provider.label} API key above to get started.`;
+  return '';
 }
 
 // ---- show/hide panel ----
@@ -2309,6 +2651,7 @@ function openAIPanel() {
   document.getElementById('btn-ai').classList.add('ai-active');
   syncAIKeySection();
   syncAITextareaPlaceholder();
+  updateAIContextBadge();
   if (document.getElementById('ai-messages').children.length === 0) {
     appendAIMessage('ai', 'Describe a domain and I\'ll build an IDEF5 knowledge graph on the canvas. Try: <em>Model how a hospital manages patients.</em>');
   }
@@ -2321,7 +2664,25 @@ function closeAIPanel() {
 }
 
 function syncAIKeySection() {
-  const key = localStorage.getItem('quiddity-ai-key') || '';
+  const providerId = getActiveProviderId();
+  const provider = AI_PROVIDERS[providerId];
+  const key = getAIKey();
+
+  const select = document.getElementById('ai-provider-select');
+  if (select && select.value !== providerId) select.value = providerId;
+
+  // Custom-only inputs
+  const customRow = document.getElementById('ai-custom-row');
+  if (customRow) customRow.style.display = providerId === 'custom' ? 'flex' : 'none';
+  if (providerId === 'custom') {
+    document.getElementById('ai-endpoint-input').value = localStorage.getItem('quiddity-ai-endpoint-custom') || '';
+    document.getElementById('ai-model-input').value = localStorage.getItem('quiddity-ai-model-custom') || '';
+  }
+
+  // Key label / placeholder follow the provider
+  document.getElementById('ai-key-input').placeholder = provider.keyPlaceholder;
+  document.getElementById('ai-key-label-text').textContent = provider.keyLabel + ':';
+
   const inputRow  = document.getElementById('ai-key-input-row');
   const storedRow = document.getElementById('ai-key-stored-row');
   const maskEl    = document.getElementById('ai-key-mask');
@@ -2336,11 +2697,22 @@ function syncAIKeySection() {
 }
 
 function syncAITextareaPlaceholder() {
-  const key = localStorage.getItem('quiddity-ai-key') || '';
   const ta = document.getElementById('ai-textarea');
-  ta.placeholder = key
-    ? 'Add concepts, refine, or ask questions\u2026'
-    : 'Paste your Anthropic API key above to get started.';
+  const err = aiProviderReadinessError();
+  ta.placeholder = err || 'Add concepts, refine, or ask questions\u2026';
+}
+
+// Show a warning chip in the AI panel footer when the graph is large enough
+// that the context sent to the LLM will be truncated.
+function updateAIContextBadge() {
+  const badge = document.getElementById('ai-context-warning');
+  if (!badge) return;
+  if (state.nodes.length > AI_CONTEXT_NODE_LIMIT || state.edges.length > AI_CONTEXT_EDGE_LIMIT) {
+    badge.textContent = `\u26A0 Large graph: AI context truncated to ${AI_CONTEXT_NODE_LIMIT} nodes nearest the viewport center.`;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 // ---- append a message bubble to the thread ----
@@ -2388,23 +2760,62 @@ function setAILoading(loading) {
   }
 }
 
-// ---- callClaudeAPI ----
-async function callClaudeAPI(userMessage) {
-  const key = localStorage.getItem('quiddity-ai-key') || '';
-  if (!key) {
-    appendAIMessage('ai', '<span class="ai-error">Enter your Anthropic API key above to get started.</span>');
+// ---- buildAIContext: serialize nodes/edges for the model, truncating large graphs ----
+// Prioritizes nodes nearest the viewport center so the AI sees what the user is currently
+// looking at. Edges are filtered to those whose endpoints survived truncation.
+function buildAIContext() {
+  const allNodes = state.nodes.map(n => ({ id: n.id, type: n.type, label: n.label }));
+  const allEdges = state.edges.map(e => ({ id: e.id, from: e.fromId, to: e.toId, type: e.type, label: e.label }));
+  if (allNodes.length <= AI_CONTEXT_NODE_LIMIT && allEdges.length <= AI_CONTEXT_EDGE_LIMIT) {
+    return { nodes: allNodes, edges: allEdges, truncated: false,
+             totalNodes: allNodes.length, totalEdges: allEdges.length };
+  }
+  const rect = canvasContainer.getBoundingClientRect();
+  const cx = (rect.width  / 2 - viewport.x) / viewport.scale;
+  const cy = (rect.height / 2 - viewport.y) / viewport.scale;
+  const sortedNodes = [...state.nodes].sort((a, b) => {
+    const da = (a.x - cx) ** 2 + (a.y - cy) ** 2;
+    const db = (b.x - cx) ** 2 + (b.y - cy) ** 2;
+    return da - db;
+  }).slice(0, AI_CONTEXT_NODE_LIMIT);
+  const keptIds = new Set(sortedNodes.map(n => n.id));
+  const keptEdges = state.edges
+    .filter(e => keptIds.has(e.fromId) && keptIds.has(e.toId))
+    .slice(0, AI_CONTEXT_EDGE_LIMIT);
+  return {
+    nodes: sortedNodes.map(n => ({ id: n.id, type: n.type, label: n.label })),
+    edges: keptEdges.map(e => ({ id: e.id, from: e.fromId, to: e.toId, type: e.type, label: e.label })),
+    truncated: true,
+    totalNodes: state.nodes.length,
+    totalEdges: state.edges.length,
+  };
+}
+
+// ---- callAIAPI: send a user request to the active provider and merge the response ----
+async function callAIAPI(userMessage) {
+  const readinessErr = aiProviderReadinessError();
+  if (readinessErr) {
+    appendAIMessage('ai', `<span class="ai-error">${escapeHtml(readinessErr)}</span>`);
     return;
   }
 
+  const provider = getActiveProvider();
+  const endpoint = getAIEndpoint();
+  const model    = getAIModel();
+  const key      = getAIKey();
   const myId = ++aiGenerationId;
 
-  // Build context message (not stored in history)
+  // Build (possibly truncated) context message — not stored in conversation history
+  const ctx = buildAIContext();
+  const truncationNote = ctx.truncated
+    ? `\n\nNote: graph context truncated to ${ctx.nodes.length} of ${ctx.totalNodes} nodes (and ${ctx.edges.length} of ${ctx.totalEdges} edges) nearest the viewport center, due to graph size. Additional context available if needed.`
+    : '';
   const contextMessage = {
     role: 'user',
     content: `Current graph state:\n${JSON.stringify({
-      existing_nodes: state.nodes.map(n => ({ id: n.id, type: n.type, label: n.label })),
-      existing_edges: state.edges.map(e => ({ id: e.id, from: e.fromId, to: e.toId, type: e.type, label: e.label }))
-    }, null, 2)}\n\nUser request: ${userMessage}`
+      existing_nodes: ctx.nodes,
+      existing_edges: ctx.edges,
+    }, null, 2)}${truncationNote}\n\nUser request: ${userMessage}`
   };
   const messages = [...aiConversationHistory, contextMessage];
 
@@ -2419,21 +2830,11 @@ async function callClaudeAPI(userMessage) {
 
   let rawText = '';
   try {
-    const resp = await fetch(AI_ENDPOINT, {
+    const resp = await fetch(endpoint, {
       method: 'POST',
       signal: controller.signal,
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: AI_MODEL,
-        max_tokens: AI_MAX_TOKENS,
-        system: AI_SYSTEM_PROMPT,
-        messages,
-      }),
+      headers: provider.buildHeaders(key),
+      body: JSON.stringify(provider.buildBody(model, AI_SYSTEM_PROMPT, messages)),
     });
     clearTimeout(timer);
 
@@ -2444,7 +2845,7 @@ async function callClaudeAPI(userMessage) {
     if (!resp.ok) throw Object.assign(new Error(`API error ${resp.status}. Try again.`), { aiError: true });
 
     const data = await resp.json();
-    rawText = data.content?.[0]?.text ?? '';
+    rawText = provider.parseResponse(data) ?? '';
 
     // Strip markdown fences if present
     rawText = rawText.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim();
@@ -2474,8 +2875,12 @@ async function callClaudeAPI(userMessage) {
     } else if (err instanceof SyntaxError) {
       msg = 'AI returned an unexpected response. Try rephrasing your prompt.';
       console.warn('[AI] Non-JSON response:', rawText);
-    } else {
+    } else if (err instanceof TypeError) {
       msg = 'Network error. Check your connection.';
+    } else {
+      // Validation errors thrown from validateAIPayload / mergeAIGraph carry
+      // the actionable message we want to surface to the user.
+      msg = err.message || 'Something went wrong. Try again.';
     }
     thinkingBody.innerHTML = `<span class="ai-error">\u26A0 ${escapeHtml(msg)}</span>`;
     thinkingBody.classList.remove('ai-thinking');
@@ -2483,6 +2888,433 @@ async function callClaudeAPI(userMessage) {
   } finally {
     if (myId === aiGenerationId) setAILoading(false);
   }
+}
+
+// ---- explainGraph: ask the AI to narrate the current diagram in plain English ----
+// Read-only: never mutates state.nodes/state.edges and does not append to aiConversationHistory.
+async function explainGraph() {
+  if (state.nodes.length === 0) {
+    appendAIMessage('ai', '<span class="ai-error">There\'s nothing on the canvas to explain yet.</span>');
+    return;
+  }
+  const readinessErr = aiProviderReadinessError();
+  if (readinessErr) {
+    appendAIMessage('ai', `<span class="ai-error">${escapeHtml(readinessErr)}</span>`);
+    return;
+  }
+
+  const provider = getActiveProvider();
+  const endpoint = getAIEndpoint();
+  const model    = getAIModel();
+  const key      = getAIKey();
+  const myId = ++aiGenerationId;
+
+  const ctx = buildAIContext();
+  const truncationNote = ctx.truncated
+    ? `\n\nNote: showing ${ctx.nodes.length} of ${ctx.totalNodes} nodes nearest the viewport center.`
+    : '';
+  const contextMessage = {
+    role: 'user',
+    content: `Explain this IDEF5 ontology in plain English:\n\n${JSON.stringify({
+      nodes: ctx.nodes,
+      edges: ctx.edges,
+    }, null, 2)}${truncationNote}`
+  };
+
+  appendAIMessage('user', '<em>Explain the current diagram</em>');
+  const thinkingBody = appendAIMessage('ai', '<span class="ai-thinking">Thinking\u2026</span>');
+  setAILoading(true);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+
+  try {
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: provider.buildHeaders(key),
+      body: JSON.stringify(provider.buildBody(model, AI_EXPLAIN_SYSTEM_PROMPT, [contextMessage])),
+    });
+    clearTimeout(timer);
+    if (myId !== aiGenerationId) return;
+
+    if (resp.status === 401) throw Object.assign(new Error('API key rejected. Check your key and try again.'), { aiError: true });
+    if (resp.status === 429) throw Object.assign(new Error('Rate limited \u2014 wait a moment and try again.'), { aiError: true });
+    if (!resp.ok) throw Object.assign(new Error(`API error ${resp.status}. Try again.`), { aiError: true });
+
+    const data = await resp.json();
+    const text = (provider.parseResponse(data) ?? '').trim();
+    if (!text) throw Object.assign(new Error('AI returned an empty response. Try again.'), { aiError: true });
+
+    // Render as paragraphs (split on blank lines, preserve single line breaks as <br>)
+    const html = text.split(/\n{2,}/)
+      .map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
+      .join('');
+    thinkingBody.closest('.ai-msg').remove();
+    // Snapshot the graph as it was sent to the model — this is what any future
+    // delta will be diffed against, regardless of how the graph evolves later.
+    const graphSnapshot = {
+      nodes: state.nodes.map(n => ({ id: n.id, type: n.type, label: n.label })),
+      edges: state.edges.map(e => ({ id: e.id, from: e.fromId, to: e.toId, type: e.type, label: e.label || '' })),
+    };
+    appendExplainMessage(text, html, graphSnapshot);
+  } catch (err) {
+    clearTimeout(timer);
+    if (myId !== aiGenerationId) return;
+    let msg;
+    if (err.name === 'AbortError') msg = 'Request timed out. Try again.';
+    else if (err.aiError) msg = err.message;
+    else msg = 'Network error. Check your connection.';
+    thinkingBody.innerHTML = `<span class="ai-error">\u26A0 ${escapeHtml(msg)}</span>`;
+    thinkingBody.classList.remove('ai-thinking');
+  } finally {
+    if (myId === aiGenerationId) setAILoading(false);
+  }
+}
+
+// ---- appendExplainMessage: like appendAIMessage('ai', html) but adds an Edit button
+// that lets the user revise the prose and have the AI emit a graph delta. ----
+function appendExplainMessage(originalText, renderedHtml, graphSnapshot) {
+  const thread = document.getElementById('ai-messages');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ai ai-msg-explain';
+  const roleLabel = document.createElement('div');
+  roleLabel.className = 'ai-msg-role';
+  roleLabel.textContent = 'AI';
+  const body = document.createElement('div');
+  body.className = 'ai-msg-body';
+  body.innerHTML = renderedHtml;
+  const actions = document.createElement('div');
+  actions.className = 'ai-msg-actions';
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.className = 'ai-edit-btn';
+  editBtn.textContent = '\u270E Edit explanation';
+  editBtn.title = 'Edit this explanation; the AI will update the graph to match';
+  editBtn.addEventListener('click', () => beginEditExplanation(div));
+  actions.appendChild(editBtn);
+  div.appendChild(roleLabel);
+  div.appendChild(body);
+  div.appendChild(actions);
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+  aiExplainContexts.set(div, { originalText, graphSnapshot });
+  return div;
+}
+
+// ---- beginEditExplanation: swap the prose body for a contenteditable region
+// with Save / Cancel controls. ----
+function beginEditExplanation(messageEl) {
+  const ctx = aiExplainContexts.get(messageEl);
+  if (!ctx) return;
+  const body = messageEl.querySelector('.ai-msg-body');
+  const actions = messageEl.querySelector('.ai-msg-actions');
+  if (!body || !actions) return;
+
+  const editor = document.createElement('div');
+  editor.className = 'ai-msg-editor';
+  editor.contentEditable = 'true';
+  editor.spellcheck = true;
+  editor.textContent = ctx.originalText;
+  body.replaceWith(editor);
+
+  actions.innerHTML = '';
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.className = 'ai-edit-save-btn';
+  saveBtn.textContent = 'Save';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'ai-edit-cancel-btn';
+  cancelBtn.textContent = 'Cancel';
+
+  cancelBtn.addEventListener('click', () => cancelEditExplanation(messageEl));
+  saveBtn.addEventListener('click', () => saveEditExplanation(messageEl));
+  actions.appendChild(saveBtn);
+  actions.appendChild(cancelBtn);
+
+  editor.focus();
+  // Place caret at end.
+  const range = document.createRange();
+  range.selectNodeContents(editor);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function cancelEditExplanation(messageEl) {
+  const ctx = aiExplainContexts.get(messageEl);
+  if (!ctx) { messageEl.remove(); return; }
+  const editor = messageEl.querySelector('.ai-msg-editor');
+  const actions = messageEl.querySelector('.ai-msg-actions');
+  if (!editor || !actions) return;
+  const body = document.createElement('div');
+  body.className = 'ai-msg-body';
+  body.innerHTML = ctx.originalText.split(/\n{2,}/)
+    .map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
+    .join('');
+  editor.replaceWith(body);
+  actions.innerHTML = '';
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.className = 'ai-edit-btn';
+  editBtn.textContent = '\u270E Edit explanation';
+  editBtn.addEventListener('click', () => beginEditExplanation(messageEl));
+  actions.appendChild(editBtn);
+}
+
+async function saveEditExplanation(messageEl) {
+  const ctx = aiExplainContexts.get(messageEl);
+  if (!ctx) return;
+  const editor = messageEl.querySelector('.ai-msg-editor');
+  if (!editor) return;
+  const editedText = editor.innerText.trim();
+  if (!editedText) {
+    appendAIMessage('ai', '<span class="ai-error">Edited explanation is empty.</span>');
+    return;
+  }
+  if (editedText === ctx.originalText.trim()) {
+    cancelEditExplanation(messageEl);
+    return;
+  }
+  await applyExplanationEdit(messageEl, ctx.originalText, editedText, ctx.graphSnapshot);
+}
+
+// ---- applyExplanationEdit: ask the AI for a delta and apply it to the graph ----
+async function applyExplanationEdit(messageEl, originalText, editedText, graphSnapshot) {
+  const readinessErr = aiProviderReadinessError();
+  if (readinessErr) {
+    appendAIMessage('ai', `<span class="ai-error">${escapeHtml(readinessErr)}</span>`);
+    return;
+  }
+
+  const provider = getActiveProvider();
+  const endpoint = getAIEndpoint();
+  const model    = getAIModel();
+  const key      = getAIKey();
+  const myId = ++aiGenerationId;
+
+  // Disable Save/Cancel while the request is in flight.
+  const actions = messageEl.querySelector('.ai-msg-actions');
+  if (actions) actions.querySelectorAll('button').forEach(b => { b.disabled = true; });
+
+  const contextMessage = {
+    role: 'user',
+    content: `Original graph:\n${JSON.stringify(graphSnapshot, null, 2)}\n\n` +
+             `Original explanation:\n${originalText}\n\n` +
+             `Edited explanation:\n${editedText}\n\n` +
+             `Return a JSON delta as specified.`,
+  };
+
+  const thinkingBody = appendAIMessage('ai', '<span class="ai-thinking">Updating graph from edits\u2026</span>');
+  setAILoading(true);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+
+  let rawText = '';
+  try {
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: provider.buildHeaders(key),
+      body: JSON.stringify(provider.buildBody(model, AI_DELTA_SYSTEM_PROMPT, [contextMessage])),
+    });
+    clearTimeout(timer);
+    if (myId !== aiGenerationId) return;
+
+    if (resp.status === 401) throw Object.assign(new Error('API key rejected. Check your key and try again.'), { aiError: true });
+    if (resp.status === 429) throw Object.assign(new Error('Rate limited \u2014 wait a moment and try again.'), { aiError: true });
+    if (!resp.ok) throw Object.assign(new Error(`API error ${resp.status}. Try again.`), { aiError: true });
+
+    const data = await resp.json();
+    rawText = (provider.parseResponse(data) ?? '').trim();
+    rawText = rawText.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim();
+    const delta = JSON.parse(rawText);
+    const summary = applyAIDelta(delta);
+
+    // Replace thinking message with a confirm chip and the AI's description.
+    thinkingBody.closest('.ai-msg').remove();
+    const chipParts = [];
+    if (summary.added)   chipParts.push(`+${summary.added} added`);
+    if (summary.updated) chipParts.push(`~${summary.updated} updated`);
+    if (summary.removed) chipParts.push(`\u2212${summary.removed} removed`);
+    const chip = chipParts.length ? `\u2713 ${chipParts.join(' \u00B7 ')}` : '\u2713 No changes needed';
+    appendAIMessage('ai', escapeHtml(delta.description || 'Graph updated.'), chip);
+
+    // Re-render the original Explain message as static (one-shot edit).
+    aiExplainContexts.delete(messageEl);
+    const body = document.createElement('div');
+    body.className = 'ai-msg-body';
+    body.innerHTML = editedText.split(/\n{2,}/)
+      .map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
+      .join('');
+    const editor = messageEl.querySelector('.ai-msg-editor');
+    if (editor) editor.replaceWith(body);
+    if (actions) actions.remove();
+
+  } catch (err) {
+    clearTimeout(timer);
+    if (myId !== aiGenerationId) return;
+    let msg;
+    if (err.name === 'AbortError') msg = 'Request timed out. Try again.';
+    else if (err.aiError) msg = err.message;
+    else if (err instanceof SyntaxError) {
+      msg = 'AI returned an unexpected response. Try rephrasing your edit.';
+      console.warn('[AI] Non-JSON delta response:', rawText);
+    } else if (err instanceof TypeError) msg = 'Network error. Check your connection.';
+    else msg = err.message || 'Something went wrong. Try again.';
+    thinkingBody.innerHTML = `<span class="ai-error">\u26A0 ${escapeHtml(msg)}</span>`;
+    thinkingBody.classList.remove('ai-thinking');
+    // Re-enable Save/Cancel so the user can retry.
+    if (actions) actions.querySelectorAll('button').forEach(b => { b.disabled = false; });
+  } finally {
+    if (myId === aiGenerationId) setAILoading(false);
+  }
+}
+
+// ---- validateAIDelta + applyAIDelta ----
+const VALID_NODE_TYPES = new Set([
+  'kind', 'individual', 'relation-first', 'relation-second', 'relation-alt', 'process',
+  'referent', 'junction-xor', 'junction-or', 'junction-and', 'state-weak', 'state-strong',
+  'transition-instant', 'connect-fwd', 'connect-bwd', 'connect-plain', 'container', 'key',
+]);
+const VALID_EDGE_TYPES = new Set([
+  'subkind-of', 'instance-of', 'part-of', 'first-order', 'second-order',
+  'state-weak', 'state-strong', 'connect-plain', 'connect-fwd', 'connect-bwd', 'relation-alt',
+]);
+
+function validateAIDelta(delta) {
+  if (!delta || typeof delta !== 'object' || Array.isArray(delta)) {
+    throw new Error('AI returned an unexpected response. Try rephrasing your edit.');
+  }
+  const sections = ['add_nodes', 'add_edges', 'update_nodes', 'remove_node_ids', 'remove_edge_ids'];
+  for (const k of sections) {
+    if (delta[k] != null && !Array.isArray(delta[k])) {
+      throw new Error(`AI delta has malformed "${k}" — expected an array.`);
+    }
+  }
+  const existingNodeIds = new Set(state.nodes.map(n => n.id));
+  const existingEdgeIds = new Set(state.edges.map(e => e.id));
+
+  for (const n of (delta.add_nodes || [])) {
+    if (!n || !n.id || !n.type || !n.label) {
+      throw new Error('AI delta has malformed nodes in add_nodes.');
+    }
+    if (!VALID_NODE_TYPES.has(n.type)) {
+      throw new Error(`AI delta has unknown node type "${n.type}" in add_nodes.`);
+    }
+  }
+  for (const u of (delta.update_nodes || [])) {
+    if (!u || !u.id) throw new Error('AI delta update_nodes entry is missing an id.');
+    if (!existingNodeIds.has(u.id)) {
+      throw new Error(`AI delta references unknown node id "${u.id}" in update_nodes.`);
+    }
+    if (u.type != null && !VALID_NODE_TYPES.has(u.type)) {
+      throw new Error(`AI delta has unknown node type "${u.type}" in update_nodes.`);
+    }
+  }
+  for (const id of (delta.remove_node_ids || [])) {
+    if (!existingNodeIds.has(id)) {
+      throw new Error(`AI delta references unknown node id "${id}" in remove_node_ids.`);
+    }
+  }
+  for (const id of (delta.remove_edge_ids || [])) {
+    if (!existingEdgeIds.has(id)) {
+      throw new Error(`AI delta references unknown edge id "${id}" in remove_edge_ids.`);
+    }
+  }
+  for (const e of (delta.add_edges || [])) {
+    if (!e || !e.from || !e.to || !e.type) {
+      throw new Error('AI delta has malformed edges in add_edges.');
+    }
+    if (!VALID_EDGE_TYPES.has(e.type)) {
+      throw new Error(`AI delta has unknown edge type "${e.type}" in add_edges.`);
+    }
+  }
+}
+
+function applyAIDelta(delta) {
+  validateAIDelta(delta);
+
+  const adds   = delta.add_nodes      || [];
+  const addEs  = delta.add_edges      || [];
+  const ups    = delta.update_nodes   || [];
+  const remNs  = new Set(delta.remove_node_ids || []);
+  const remEs  = new Set(delta.remove_edge_ids || []);
+
+  const willChange = adds.length || addEs.length || ups.length || remNs.size || remEs.size;
+  if (!willChange) return { added: 0, updated: 0, removed: 0 };
+
+  saveUndo();
+
+  // Removals: drop edges first (explicit + implicit-by-node-removal).
+  if (remEs.size) {
+    state.edges = state.edges.filter(e => !remEs.has(e.id));
+  }
+  if (remNs.size) {
+    state.nodes = state.nodes.filter(n => !remNs.has(n.id));
+    state.edges = state.edges.filter(e => !remNs.has(e.fromId) && !remNs.has(e.toId));
+  }
+
+  // Updates: in-place mutation preserves x/y/w/h/color.
+  if (ups.length) {
+    const byId = new Map(state.nodes.map(n => [n.id, n]));
+    for (const u of ups) {
+      const n = byId.get(u.id);
+      if (!n) continue; // already-removed nodes are silently skipped
+      if (u.label != null) n.label = u.label;
+      if (u.type  != null) n.type  = u.type;
+    }
+  }
+
+  // Additions: new IDs via the same prefix scheme as mergeAIGraph.
+  const turnPrefix = 'd-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+  const idMap = {};
+  aiNewNodeIds = new Set();
+
+  if (adds.length) {
+    const layout = computeAILayout(adds.length);
+    for (let i = 0; i < adds.length; i++) {
+      const node = adds[i];
+      const newId = turnPrefix + '-' + node.id;
+      idMap[node.id] = newId;
+      aiNewNodeIds.add(newId);
+      state.nodes.push({ id: newId, type: node.type, label: node.label,
+                         x: layout[i].x, y: layout[i].y });
+    }
+  }
+
+  // Edge additions: from/to may reference existing IDs (verbatim) or newly-added ones (idMap).
+  if (addEs.length) {
+    const validIds = new Set(state.nodes.map(n => n.id));
+    for (const edge of addEs) {
+      const resolvedFrom = idMap[edge.from] ?? edge.from;
+      const resolvedTo   = idMap[edge.to]   ?? edge.to;
+      if (!validIds.has(resolvedFrom) || !validIds.has(resolvedTo)) {
+        console.warn('[AI] Delta edge references unknown node, will be omitted:', edge);
+        continue;
+      }
+      state.edges.push({
+        id: turnPrefix + '-e-' + Math.random().toString(36).slice(2, 10),
+        fromId: resolvedFrom,
+        toId:   resolvedTo,
+        type: edge.type,
+        label: edge.label ?? '',
+      });
+    }
+  }
+
+  renderAll();
+  persistLocal();
+  updateAIContextBadge();
+
+  if (aiNewNodeIds.size) {
+    setTimeout(() => { aiNewNodeIds = new Set(); renderAll(); }, 2000);
+  }
+
+  return { added: adds.length, updated: ups.length, removed: remNs.size + remEs.size };
 }
 
 // ---- escapeHtml helper ----
@@ -2507,15 +3339,6 @@ function validateAIPayload(payload) {
       throw new Error('AI returned malformed nodes. Try again.');
     }
   }
-  const VALID_EDGE_TYPES = new Set([
-    'subkind-of', 'instance-of', 'part-of', 'first-order', 'second-order',
-    'state-weak', 'state-strong', 'connect-plain', 'connect-fwd', 'connect-bwd', 'relation-alt',
-  ]);
-  const VALID_NODE_TYPES = new Set([
-    'kind', 'individual', 'relation-first', 'relation-second', 'relation-alt', 'process',
-    'referent', 'junction-xor', 'junction-or', 'junction-and', 'state-weak', 'state-strong',
-    'transition-instant', 'connect-fwd', 'connect-bwd', 'connect-plain', 'container', 'key',
-  ]);
   for (const n of payload.nodes) {
     if (!VALID_NODE_TYPES.has(n.type)) {
       throw new Error(`AI returned unknown node type "${n.type}". Try again.`);
@@ -2612,6 +3435,7 @@ function mergeAIGraph(payload) {
 
   renderAll();
   persistLocal();
+  updateAIContextBadge();
 
   if (isFirstAIGeneration) {
     fitToWindow();
@@ -2635,6 +3459,23 @@ document.getElementById('ai-panel').addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeAIPanel(); document.getElementById('btn-ai').focus(); }
 });
 
+// ---- Provider selector ----
+document.getElementById('ai-provider-select').addEventListener('change', e => {
+  localStorage.setItem('quiddity-ai-provider', e.target.value);
+  syncAIKeySection();
+  syncAITextareaPlaceholder();
+});
+
+// ---- Custom endpoint / model inputs (only visible when provider = custom) ----
+document.getElementById('ai-endpoint-input').addEventListener('input', e => {
+  localStorage.setItem('quiddity-ai-endpoint-custom', e.target.value.trim());
+  syncAITextareaPlaceholder();
+});
+document.getElementById('ai-model-input').addEventListener('input', e => {
+  localStorage.setItem('quiddity-ai-model-custom', e.target.value.trim());
+  syncAITextareaPlaceholder();
+});
+
 // ---- API key input: save on Enter or blur ----
 document.getElementById('ai-key-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); saveAIKey(); }
@@ -2644,7 +3485,7 @@ function saveAIKey() {
   const input = document.getElementById('ai-key-input');
   const key = input.value.trim();
   if (key) {
-    localStorage.setItem('quiddity-ai-key', key);
+    localStorage.setItem('quiddity-ai-key-' + getActiveProviderId(), key);
     input.value = '';
     syncAIKeySection();
     syncAITextareaPlaceholder();
@@ -2653,13 +3494,16 @@ function saveAIKey() {
 
 // ---- API key clear button ----
 document.getElementById('ai-key-clear').addEventListener('click', () => {
-  localStorage.removeItem('quiddity-ai-key');
+  localStorage.removeItem('quiddity-ai-key-' + getActiveProviderId());
   syncAIKeySection();
   syncAITextareaPlaceholder();
 });
 
 // ---- Send button ----
 document.getElementById('ai-send-btn').addEventListener('click', handleAISend);
+
+// ---- Explain button: ask the AI to narrate the current graph (read-only) ----
+document.getElementById('ai-explain-btn').addEventListener('click', explainGraph);
 
 // ---- Ctrl+Enter in textarea ----
 document.getElementById('ai-textarea').addEventListener('keydown', e => {
@@ -2673,7 +3517,7 @@ function handleAISend() {
   const ta = document.getElementById('ai-textarea');
   const msg = ta.value.trim();
   if (!msg) return;
-  callClaudeAPI(msg);
+  callAIAPI(msg);
 }
 
 // ============================================================

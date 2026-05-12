@@ -1,5 +1,44 @@
 # Changelog
 
+## 2026-05-12
+
+### Added
+
+#### Hover-driven edge creation (quick-connect palette)
+
+- Hovering any node (except `container`, `key`, `transition-instant`, and connector-as-node types) now surfaces a small floating edge palette after a 350 ms delay, just outside the node. Click any of its 11 buttons to enter connection mode pre-seeded with that node as the source — then click the target node to draw the edge.
+- The palette exposes all 11 IDEF5 edge types — including `subkind-of`, `instance-of`, `part-of`, and `first-order`, which previously had no toolbox tool and required editing the edge type by hand in the property panel after drawing.
+- Reuses the existing two-phase `toolboxConnectStart` flow, so one `Ctrl/Cmd+Z` still undoes the resulting edge as a single operation, and the standard hint banner walks the user through phase 2.
+- Palette auto-hides on Escape, drag, viewport pan/zoom, label edit, or when another connection is already in progress, with a 200 ms grace period so users can mouse from the node onto the buttons.
+- Themed against `DESIGN.md` (warm-black `#1c1917` background, amber `#d97706` hover, no animations).
+
+#### AI Assistant: bidirectional editing — text → graph delta
+
+- **Edit explanation** affordance on every Explain message: click `✎ Edit explanation`, revise the prose in place, and click Save. The AI returns a JSON delta against the snapshot of the graph that produced the original explanation and Quiddity applies it (`add_nodes` / `add_edges` / `update_nodes` / `remove_node_ids` / `remove_edge_ids`).
+- Existing node IDs are preserved across updates so positions, sizes, and downstream edges stay intact. Removing a node also removes any edges that referenced it.
+- One-shot per Explain: after a delta applies, the message becomes static (showing the edited prose) and the Edit affordance disappears. Re-run Explain to narrate the updated graph.
+- The delta apply is a single undoable operation (one `Ctrl/Cmd+Z` reverts the entire turn).
+- Saving an unchanged edit is a no-op (no API call). Empty edits and validation failures (unknown node ID, unknown node/edge type) surface as inline error chips and never mutate the graph.
+- New `AI_DELTA_SYSTEM_PROMPT`, `applyAIDelta()`, and `validateAIDelta()` in `js/quiddity.js`. `VALID_NODE_TYPES` / `VALID_EDGE_TYPES` hoisted to module scope and shared between `validateAIPayload` and `validateAIDelta`.
+
+#### Playwright end-to-end test suite
+
+- New `tests/` directory with Playwright tests covering 26 critical AI-panel paths across 12 spec files: key setup, prompt → graph, undo reverts a full AI turn, localStorage persistence across reload, graph extension on a second turn, full error matrix (401 / 429 / 500 / malformed JSON / empty graph / unknown node type / textarea retained on error), mid-flight cancellation via "New diagram", multi-provider routing (Anthropic / OpenAI / Custom — incl. per-provider key isolation, persistence across reload, and validation that custom mode blocks send when endpoint or model is missing), context-truncation warning chip and request-payload capping, Explain button (empty-canvas guard, prose rendering, conversation-history isolation), legacy `quiddity-ai-key` migration, and small UX guarantees (empty-prompt no-op, blur-saves-key, message thread preserved across panel close/reopen, Send/textarea disabled in flight).
+- All AI tests mock the Anthropic and OpenAI endpoints via `page.route()` — they are deterministic, run offline, and never hit a real LLM.
+- Playwright lives in `tests/package.json` so the application root remains zero-dependency. `python3 -m http.server` is launched automatically by the test runner.
+- See `tests/README.md` for setup and conventions.
+
+### Fixed
+
+- **AI panel: validation errors now surface their actual message.** Previously, `validateAIPayload` errors (empty graph, unknown node type, malformed nodes) fell through to the generic "Network error. Check your connection." chip. The catch block in `callAIAPI` now distinguishes `TypeError` (network) from other thrown `Error`s and shows the validation error message verbatim.
+
+#### AI Assistant: multi-provider support, Explain, and large-graph handling
+
+- **Multi-endpoint support**: provider dropdown in the AI panel selects between **Anthropic**, **OpenAI**, and **Custom (OpenAI-compatible)**. Custom mode reveals endpoint URL and model name inputs, enabling local LLMs (Ollama, LM Studio, etc.) and other OpenAI-compatible APIs.
+- API keys are stored per provider (`quiddity-ai-key-{provider}`); a previously stored Anthropic key is migrated automatically on first load.
+- **Explain button** in the AI panel footer asks the AI to describe the current diagram in plain English. Read-only — does not modify the canvas or conversation history. (First step toward bidirectional graph ↔ natural-language editing.)
+- **Large-graph context truncation**: when a graph exceeds 50 nodes or 50 edges, only the 50 nodes nearest the viewport center (and their edges) are sent to the model. A warning chip appears in the AI panel footer when truncation is active. Reduces API cost on big diagrams.
+
 ## 2026-03-21
 
 ### Added

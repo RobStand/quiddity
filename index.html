@@ -324,6 +324,7 @@
         <g id="nodes-layer"></g>
         <g id="ui-layer"></g>
       </svg>
+      <div id="quick-edge-palette" hidden role="toolbar" aria-label="Quick connect"></div>
     </div>
 
     <!-- PROPERTIES -->
@@ -341,10 +342,24 @@
       </div>
       <!-- Key section: two states toggled by JS -->
       <div id="ai-key-section">
+        <!-- Provider selector -->
+        <div id="ai-provider-row">
+          <label class="ai-key-label" for="ai-provider-select">Provider:</label>
+          <select id="ai-provider-select" class="ai-provider-select" aria-label="AI provider">
+            <option value="anthropic">Anthropic</option>
+            <option value="openai">OpenAI</option>
+            <option value="custom">Custom (OpenAI-compatible)</option>
+          </select>
+        </div>
+        <!-- Custom-only inputs (hidden unless provider = custom) -->
+        <div id="ai-custom-row" style="display:none">
+          <input type="text" id="ai-endpoint-input" class="ai-key-input" placeholder="https://host/v1/chat/completions" autocomplete="off" spellcheck="false" aria-label="Custom endpoint URL">
+          <input type="text" id="ai-model-input" class="ai-key-input" placeholder="model name (e.g. llama3, gpt-4o)" autocomplete="off" spellcheck="false" aria-label="Custom model name">
+        </div>
         <!-- No-key state (default) -->
         <div id="ai-key-input-row">
-          <label class="ai-key-label" for="ai-key-input">&#128273; Anthropic API key:</label>
-          <input type="password" id="ai-key-input" class="ai-key-input" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" aria-label="Anthropic API key">
+          <label class="ai-key-label" for="ai-key-input">&#128273; <span id="ai-key-label-text">Anthropic API key:</span></label>
+          <input type="password" id="ai-key-input" class="ai-key-input" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" aria-label="API key">
           <div class="ai-key-hint">Key stored in your browser only — never sent to a server.</div>
         </div>
         <!-- Stored-key state (hidden until key saved) -->
@@ -357,8 +372,10 @@
       <div id="ai-messages" role="log" aria-live="polite" aria-label="AI conversation"></div>
       <!-- Input footer -->
       <div id="ai-panel-footer">
+        <div id="ai-context-warning" class="ai-context-warning" style="display:none" role="status"></div>
         <textarea id="ai-textarea" class="ai-textarea" rows="3" aria-label="Message to AI" placeholder="Paste your Anthropic API key above to get started."></textarea>
         <div class="ai-footer-row">
+          <button id="ai-explain-btn" class="ai-explain-btn" type="button" aria-label="Explain current diagram in plain English" title="Ask the AI to describe the current diagram in plain English">&#10022; Explain</button>
           <span class="ai-footer-hint">Ctrl+Enter to send &middot; Ctrl+Z to undo last turn</span>
           <button id="ai-send-btn" class="ai-send-btn" aria-label="Send message">Send</button>
         </div>
