@@ -2760,7 +2760,11 @@ function appendAIMessage(role, html, chip) {
     div.appendChild(chipEl);
   }
   thread.appendChild(div);
-  thread.scrollTop = thread.scrollHeight;
+  // Only auto-scroll to bottom when there's prior history. For the very first
+  // message in the thread, keep scroll at top so the user sees the start of it.
+  if (thread.children.length > 1) {
+    thread.scrollTop = thread.scrollHeight;
+  }
   return body;
 }
 
