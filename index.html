@@ -25,17 +25,17 @@
   <meta name="twitter:image" content="https://quiddity.dev/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/quiddity.css">
 </head>
 <body>
 <div id="app">
-  <!-- TOOLBAR -->
-  <div id="toolbar">
+  <!-- VERTICAL TOOLBAR STRIP (Telemetry) -->
+  <div id="toolbar" role="toolbar" aria-label="Main toolbar">
     <span class="tb-label">Quiddity</span>
-    <div class="tb-sep"></div>
+    <div class="tb-section">Menus</div>
     <div class="tb-dropdown" id="file-dropdown">
-      <button class="tb-btn" id="btn-file" title="File menu" aria-haspopup="true">File &#9660;</button>
+      <button class="tb-btn" id="btn-file" title="File" aria-label="File menu" aria-haspopup="true">File</button>
       <div class="tb-dropdown-menu" id="file-menu">
         <button class="tb-dropdown-item" id="btn-new">New</button>
         <div class="tb-dropdown-sep"></div>
@@ -46,7 +46,7 @@
       </div>
     </div>
     <div class="tb-dropdown" id="edit-dropdown">
-      <button class="tb-btn" id="btn-edit" title="Edit menu" aria-haspopup="true">Edit &#9660;</button>
+      <button class="tb-btn" id="btn-edit" title="Edit" aria-label="Edit menu" aria-haspopup="true">Edit</button>
       <div class="tb-dropdown-menu" id="edit-menu">
         <button class="tb-dropdown-item" id="btn-cut"><span>Cut</span><span class="tb-shortcut">Ctrl+X</span></button>
         <button class="tb-dropdown-item" id="btn-copy"><span>Copy</span><span class="tb-shortcut">Ctrl+C</span></button>
@@ -56,7 +56,7 @@
       </div>
     </div>
     <div class="tb-dropdown" id="help-dropdown">
-      <button class="tb-btn" id="btn-help-menu" title="Help menu" aria-haspopup="true">Help &#9660;</button>
+      <button class="tb-btn" id="btn-help-menu" title="Help" aria-label="Help menu" aria-haspopup="true">Help</button>
       <div class="tb-dropdown-menu" id="help-menu">
         <a class="tb-dropdown-item" id="btn-help" href="docs/using-quiddity.html" target="_blank">Using Quiddity</a>
         <a class="tb-dropdown-item" href="docs/idef5-reference.html" target="_blank">IDEF5 Reference</a>
@@ -75,16 +75,17 @@
       </div>
     </div>
     <input type="file" id="file-input" accept=".json" style="display:none">
-    <div class="tb-sep"></div>
-    <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)" aria-label="Undo">&#8592; Undo</button>
-    <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)" aria-label="Redo">&#8594; Redo</button>
-    <div class="tb-sep"></div>
-    <button class="tb-btn" id="btn-zoom-in" title="Zoom In">+</button>
+    <div class="tb-section">History</div>
+    <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)" aria-label="Undo">Undo</button>
+    <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)" aria-label="Redo">Redo</button>
+    <div class="tb-section">View</div>
+    <button class="tb-btn" id="btn-zoom-in" title="Zoom In">Zoom in</button>
+    <button class="tb-btn" id="btn-zoom-out" title="Zoom Out">Zoom out</button>
+    <button class="tb-btn" id="btn-zoom-fit" title="Fit to window">Fit to window</button>
     <span class="zoom-display" id="zoom-display">100%</span>
-    <button class="tb-btn" id="btn-zoom-out" title="Zoom Out">&#8722;</button>
-    <button class="tb-btn" id="btn-zoom-fit" title="Fit to window">&#9633; Fit</button>
     <div class="tb-spacer"></div>
-    <button class="tb-btn tb-btn-accent" id="btn-ai" title="Open AI assistant" aria-label="Open AI assistant">&#10022; AI</button>
+    <div class="tb-section">Assistant</div>
+    <button class="tb-btn tb-btn-accent" id="btn-ai" title="AI assistant" aria-label="Open AI assistant">&#10022; AI assistant</button>
   </div>
 
   <!-- MAIN -->
@@ -94,16 +95,16 @@
       <div class="toolbox-section">Kinds &amp; Individuals</div>
       <div class="toolbox-item" draggable="true" data-type="kind" tabindex="0" title="A category of things that share defining properties — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="14" fill="white" stroke="#333" stroke-width="1.5"/>
-          <text x="18" y="22" text-anchor="middle" font-size="8" fill="#333">Kind</text>
+          <circle cx="18" cy="18" r="14" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
+          <text x="18" y="22" text-anchor="middle" font-size="8" fill="#9a958d">Kind</text>
         </svg>
         <span class="toolbox-item-label">Kind</span>
       </div>
       <div class="toolbox-item" draggable="true" data-type="individual" tabindex="0" title="A specific named instance of a kind — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="14" fill="white" stroke="#333" stroke-width="1.5"/>
-          <text x="18" y="17" text-anchor="middle" font-size="7" fill="#333">Ind.</text>
-          <circle cx="18" cy="27" r="3" fill="#333"/>
+          <circle cx="18" cy="18" r="14" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
+          <text x="18" y="17" text-anchor="middle" font-size="7" fill="#9a958d">Ind.</text>
+          <circle cx="18" cy="27" r="3" fill="#9a958d"/>
         </svg>
         <span class="toolbox-item-label">Individual</span>
       </div>
@@ -111,24 +112,24 @@
       <div class="toolbox-section">Relations</div>
       <div class="toolbox-item" draggable="true" data-type="relation-first" tabindex="0" title="A relationship between kinds or individuals — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <rect x="3" y="10" width="30" height="16" rx="8" fill="white" stroke="#333" stroke-width="1.5"/>
-          <text x="18" y="22" text-anchor="middle" font-size="7" fill="#333">Rel</text>
+          <rect x="3" y="10" width="30" height="16" rx="8" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
+          <text x="18" y="22" text-anchor="middle" font-size="7" fill="#9a958d">Rel</text>
         </svg>
         <span class="toolbox-item-label">1st-Order Rel.</span>
       </div>
       <div class="toolbox-item" draggable="true" data-type="relation-second" tabindex="0" title="2nd-order relation — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <text x="18" y="14" text-anchor="middle" font-size="6" fill="#333">2nd-Ord</text>
-          <line x1="8" y1="24" x2="33" y2="24" stroke="#333" stroke-width="1.5"/>
-          <polygon points="2,20 8,24 2,28" fill="#333"/>
+          <text x="18" y="14" text-anchor="middle" font-size="6" fill="#9a958d">2nd-Ord</text>
+          <line x1="8" y1="24" x2="33" y2="24" stroke="#9a958d" stroke-width="1.5"/>
+          <polygon points="2,20 8,24 2,28" fill="#9a958d"/>
         </svg>
         <span class="toolbox-item-label">2nd-Order Rel.</span>
       </div>
       <div class="toolbox-item" draggable="true" data-type="relation-alt" tabindex="0" title="Alt. 2-place relation — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <text x="18" y="14" text-anchor="middle" font-size="6" fill="#333">Alt 2-Pl</text>
-          <line x1="3" y1="24" x2="28" y2="24" stroke="#333" stroke-width="1.5"/>
-          <polygon points="28,20 34,24 28,28" fill="#333"/>
+          <text x="18" y="14" text-anchor="middle" font-size="6" fill="#9a958d">Alt 2-Pl</text>
+          <line x1="3" y1="24" x2="28" y2="24" stroke="#9a958d" stroke-width="1.5"/>
+          <polygon points="28,20 34,24 28,28" fill="#9a958d"/>
         </svg>
         <span class="toolbox-item-label">Alt. 2-Place Rel.</span>
       </div>
@@ -136,10 +137,10 @@
       <div class="toolbox-section">Process</div>
       <div class="toolbox-item" draggable="true" data-type="process" tabindex="0" title="An activity that transforms inputs into outputs — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <rect x="3" y="7" width="30" height="22" fill="white" stroke="#333" stroke-width="1.5"/>
-          <line x1="3" y1="22" x2="33" y2="22" stroke="#333" stroke-width="1.5"/>
-          <line x1="18" y1="22" x2="18" y2="29" stroke="#333" stroke-width="1.5"/>
-          <text x="18" y="17" text-anchor="middle" font-size="7" fill="#333">Proc</text>
+          <rect x="3" y="7" width="30" height="22" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
+          <line x1="3" y1="22" x2="33" y2="22" stroke="#9a958d" stroke-width="1.5"/>
+          <line x1="18" y1="22" x2="18" y2="29" stroke="#9a958d" stroke-width="1.5"/>
+          <text x="18" y="17" text-anchor="middle" font-size="7" fill="#9a958d">Proc</text>
         </svg>
         <span class="toolbox-item-label">Process</span>
       </div>
@@ -147,13 +148,13 @@
       <div class="toolbox-section">Referent</div>
       <div class="toolbox-item" draggable="true" data-type="referent" tabindex="0" title="A classification node with ID, method, and concept fields — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <rect x="2" y="5" width="32" height="26" fill="white" stroke="#333" stroke-width="1.5"/>
-          <rect x="2" y="5" width="4" height="26" fill="#333"/>
-          <line x1="6" y1="18" x2="34" y2="18" stroke="#333" stroke-width="1"/>
-          <line x1="14" y1="5" x2="14" y2="18" stroke="#333" stroke-width="1"/>
-          <text x="10" y="14" text-anchor="middle" font-size="5.5" fill="#222">ID</text>
-          <text x="24" y="14" text-anchor="middle" font-size="5" fill="#555">Method</text>
-          <text x="20" y="27" text-anchor="middle" font-size="5" fill="#555">Concept</text>
+          <rect x="2" y="5" width="32" height="26" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
+          <rect x="2" y="5" width="4" height="26" fill="#9a958d"/>
+          <line x1="6" y1="18" x2="34" y2="18" stroke="#9a958d" stroke-width="1"/>
+          <line x1="14" y1="5" x2="14" y2="18" stroke="#9a958d" stroke-width="1"/>
+          <text x="10" y="14" text-anchor="middle" font-size="5.5" fill="#e8e6e1">ID</text>
+          <text x="24" y="14" text-anchor="middle" font-size="5" fill="#9a958d">Method</text>
+          <text x="20" y="27" text-anchor="middle" font-size="5" fill="#9a958d">Concept</text>
         </svg>
         <span class="toolbox-item-label">Referent</span>
       </div>
@@ -161,22 +162,22 @@
       <div class="toolbox-section">Junctions</div>
       <div class="toolbox-item" draggable="true" data-type="junction-xor" tabindex="0" title="Exactly one path must be taken (exclusive or) — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
-          <text x="18" y="22" text-anchor="middle" font-size="12" fill="#333" font-family="Times New Roman, Times, serif" font-weight="bold">X</text>
+          <circle cx="18" cy="18" r="12" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
+          <text x="18" y="22" text-anchor="middle" font-size="12" fill="#9a958d" font-family="Times New Roman, Times, serif" font-weight="bold">X</text>
         </svg>
         <span class="toolbox-item-label">Junction (XOR)</span>
       </div>
       <div class="toolbox-item" draggable="true" data-type="junction-or" tabindex="0" title="At least one path must be taken — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
-          <text x="18" y="23" text-anchor="middle" font-size="12" fill="#333">O</text>
+          <circle cx="18" cy="18" r="12" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
+          <text x="18" y="23" text-anchor="middle" font-size="12" fill="#9a958d">O</text>
         </svg>
         <span class="toolbox-item-label">Junction (OR)</span>
       </div>
       <div class="toolbox-item" draggable="true" data-type="junction-and" tabindex="0" title="All paths must be satisfied — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="12" fill="white" stroke="#333" stroke-width="1.5"/>
-          <text x="18" y="23" text-anchor="middle" font-size="12" fill="#333">&amp;</text>
+          <circle cx="18" cy="18" r="12" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
+          <text x="18" y="23" text-anchor="middle" font-size="12" fill="#9a958d">&amp;</text>
         </svg>
         <span class="toolbox-item-label">Junction (AND)</span>
       </div>
@@ -184,21 +185,21 @@
       <div class="toolbox-section">Connecting Symbols</div>
       <div class="toolbox-item" draggable="true" data-type="connect-fwd" tabindex="0" title="Forward connection — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
-          <polyline points="13,13 19,18 13,23" fill="none" stroke="#333" stroke-width="1.5"/>
+          <line x1="3" y1="18" x2="33" y2="18" stroke="#9a958d" stroke-width="1.5"/>
+          <polyline points="13,13 19,18 13,23" fill="none" stroke="#9a958d" stroke-width="1.5"/>
         </svg>
         <span class="toolbox-item-label">Connect (Forward)</span>
       </div>
       <div class="toolbox-item" draggable="true" data-type="connect-bwd" tabindex="0" title="Backward connection — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
-          <polyline points="23,13 17,18 23,23" fill="none" stroke="#333" stroke-width="1.5"/>
+          <line x1="3" y1="18" x2="33" y2="18" stroke="#9a958d" stroke-width="1.5"/>
+          <polyline points="23,13 17,18 23,23" fill="none" stroke="#9a958d" stroke-width="1.5"/>
         </svg>
         <span class="toolbox-item-label">Connect (Backward)</span>
       </div>
       <div class="toolbox-item" draggable="true" data-type="connect-plain" tabindex="0" title="Plain connection — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <line x1="3" y1="18" x2="33" y2="18" stroke="#333" stroke-width="1.5"/>
+          <line x1="3" y1="18" x2="33" y2="18" stroke="#9a958d" stroke-width="1.5"/>
         </svg>
         <span class="toolbox-item-label">Connect (Plain)</span>
       </div>
@@ -206,43 +207,43 @@
       <div class="toolbox-section">State Transitions</div>
       <div class="toolbox-item" draggable="true" data-type="state-weak" tabindex="0" title="Weak state transition — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <line x1="4" y1="18" x2="32" y2="18" stroke="#333" stroke-width="1.5"/>
-          <polygon points="32,14 36,18 32,22" fill="#333"/>
-          <circle cx="18" cy="18" r="4" fill="white" stroke="#333" stroke-width="1.5"/>
+          <line x1="4" y1="18" x2="32" y2="18" stroke="#9a958d" stroke-width="1.5"/>
+          <polygon points="32,14 36,18 32,22" fill="#9a958d"/>
+          <circle cx="18" cy="18" r="4" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
         </svg>
         <span class="toolbox-item-label">State Trans. (Weak)</span>
       </div>
       <div class="toolbox-item" draggable="true" data-type="state-strong" tabindex="0" title="Strong state transition — connection tool: select a Kind/Individual first, then click here to connect from it; or click here then click source and target nodes">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <line x1="4" y1="18" x2="26" y2="18" stroke="#333" stroke-width="1.5"/>
-          <polygon points="20,14 26,18 20,22" fill="#333"/>
-          <polygon points="26,14 32,18 26,22" fill="#333"/>
-          <circle cx="14" cy="18" r="4" fill="white" stroke="#333" stroke-width="1.5"/>
+          <line x1="4" y1="18" x2="26" y2="18" stroke="#9a958d" stroke-width="1.5"/>
+          <polygon points="20,14 26,18 20,22" fill="#9a958d"/>
+          <polygon points="26,14 32,18 26,22" fill="#9a958d"/>
+          <circle cx="14" cy="18" r="4" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
         </svg>
         <span class="toolbox-item-label">State Trans. (Strong)</span>
       </div>
       <div class="toolbox-item" draggable="true" data-type="transition-instant" tabindex="0" title="Instantaneous transition — drag onto a state transition edge, or press Enter then click a state node to toggle">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <text x="18" y="26" text-anchor="middle" font-size="22" fill="#333">&#916;</text>
+          <text x="18" y="26" text-anchor="middle" font-size="22" fill="#9a958d">&#916;</text>
         </svg>
         <span class="toolbox-item-label">Instant. Transition</span>
       </div>
       <div class="toolbox-section">Organization</div>
       <div class="toolbox-item" draggable="true" data-type="container" tabindex="0" title="A dashed rectangle for visually grouping related symbols — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <rect x="3" y="3" width="30" height="30" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="4,2"/>
-          <text x="7" y="12" font-size="6" fill="#555" font-style="italic">Grp</text>
+          <rect x="3" y="3" width="30" height="30" fill="none" stroke="#9a958d" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <text x="7" y="12" font-size="6" fill="#9a958d" font-style="italic">Grp</text>
         </svg>
         <span class="toolbox-item-label">Container</span>
       </div>
       <div class="toolbox-item" draggable="true" data-type="key" tabindex="0" title="A legend/key for the diagram — drag to canvas or press Enter to place">
         <svg class="toolbox-preview" width="36" height="36" viewBox="0 0 36 36">
-          <rect x="3" y="5" width="30" height="26" fill="white" stroke="#333" stroke-width="1.5"/>
-          <rect x="3" y="5" width="30" height="10" fill="#f4f4f4" stroke="none"/>
-          <line x1="3" y1="15" x2="33" y2="15" stroke="#333" stroke-width="1"/>
-          <text x="18" y="13" text-anchor="middle" font-size="6" font-weight="bold" fill="#333">Key</text>
-          <polygon points="6,23 13,23 9.5,27" fill="none" stroke="#333" stroke-width="1"/>
-          <line x1="14" y1="25" x2="30" y2="25" stroke="#333" stroke-width="1"/>
+          <rect x="3" y="5" width="30" height="26" fill="#16161a" stroke="#9a958d" stroke-width="1.5"/>
+          <rect x="3" y="5" width="30" height="10" fill="#1f1f24" stroke="none"/>
+          <line x1="3" y1="15" x2="33" y2="15" stroke="#9a958d" stroke-width="1"/>
+          <text x="18" y="13" text-anchor="middle" font-size="6" font-weight="bold" fill="#9a958d">Key</text>
+          <polygon points="6,23 13,23 9.5,27" fill="none" stroke="#9a958d" stroke-width="1"/>
+          <line x1="14" y1="25" x2="30" y2="25" stroke="#9a958d" stroke-width="1"/>
         </svg>
         <span class="toolbox-item-label">Key</span>
       </div>
@@ -286,35 +287,35 @@
       <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+            <polygon points="0 0, 10 3.5, 0 7" fill="#9a958d"/>
           </marker>
           <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#4a90e2"/>
+            <polygon points="0 0, 10 3.5, 0 7" fill="#d97706"/>
           </marker>
           <!-- marker-start variants: refX=0 so the base sits at the node boundary, tip extends into the line -->
           <marker id="arrowhead-start" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+            <polygon points="0 0, 10 3.5, 0 7" fill="#9a958d"/>
           </marker>
           <marker id="arrowhead-start-blue" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#4a90e2"/>
+            <polygon points="0 0, 10 3.5, 0 7" fill="#d97706"/>
           </marker>
           <!-- double arrowhead for strong transition (both at end) -->
           <marker id="arrowhead-double" markerWidth="18" markerHeight="7" refX="17" refY="3.5" orient="auto">
-            <polygon points="0 0, 8 3.5, 0 7" fill="#555"/>
-            <polygon points="8 0, 16 3.5, 8 7" fill="#555"/>
+            <polygon points="0 0, 8 3.5, 0 7" fill="#9a958d"/>
+            <polygon points="8 0, 16 3.5, 8 7" fill="#9a958d"/>
           </marker>
           <marker id="arrowhead-double-blue" markerWidth="18" markerHeight="7" refX="17" refY="3.5" orient="auto">
-            <polygon points="0 0, 8 3.5, 0 7" fill="#4a90e2"/>
-            <polygon points="8 0, 16 3.5, 8 7" fill="#4a90e2"/>
+            <polygon points="0 0, 8 3.5, 0 7" fill="#d97706"/>
+            <polygon points="8 0, 16 3.5, 8 7" fill="#d97706"/>
           </marker>
           <marker id="arrowhead-back" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
-            <polygon points="10 0, 0 3.5, 10 7" fill="#555"/>
+            <polygon points="10 0, 0 3.5, 10 7" fill="#9a958d"/>
           </marker>
           <marker id="arrowhead-double-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
-            <polygon points="10 0, 0 3.5, 10 7" fill="#555"/>
+            <polygon points="10 0, 0 3.5, 10 7" fill="#9a958d"/>
           </marker>
           <pattern id="dot-grid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-            <circle cx="10" cy="10" r="1.5" fill="#c0ae90"/>
+            <circle cx="10" cy="10" r="1" fill="#2a2a30"/>
           </pattern>
         </defs>
         <g id="grid-layer">
@@ -325,6 +326,13 @@
         <g id="ui-layer"></g>
       </svg>
       <div id="quick-edge-palette" hidden role="toolbar" aria-label="Quick connect"></div>
+      <!-- COORD READOUT (Telemetry: always-on bottom-right) -->
+      <div id="coords" aria-hidden="true">
+        <span class="ck-tok">X<span class="ck-val" id="coord-x">0</span></span>
+        <span class="ck-tok">Y<span class="ck-val" id="coord-y">0</span></span>
+        <span class="ck-tok">ZOOM<span class="ck-val" id="coord-zoom">100%</span></span>
+        <span class="ck-tok">SEL<span class="ck-val" id="coord-sel">0</span></span>
+      </div>
     </div>
 
     <!-- PROPERTIES -->
@@ -335,7 +343,7 @@
     </div>
 
     <!-- AI PANEL -->
-    <div id="ai-panel" role="complementary" aria-label="AI assistant">
+    <div id="ai-panel" class="open" role="complementary" aria-label="AI assistant">
       <div id="ai-panel-header">
         <span class="ai-panel-title">&#10022; AI Assistant</span>
         <button class="ai-panel-close" id="ai-panel-close" aria-label="Close AI panel">&#215;</button>

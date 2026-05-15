@@ -9,29 +9,32 @@
 
 ---
 
-## Aesthetic Direction
+## Aesthetic Direction — Telemetry
 
-- **Direction:** Scholar's Instrument — the precision of a scientific tool meets the warmth of scholarly work. Not a generic developer tool. Not corporate BI. Something a philosopher-engineer would build.
-- **Decoration level:** Minimal — typography and color carry all the weight. No gradients, no layering, no decoration for its own sake.
-- **Mood:** Serious, focused, precise — but warm rather than cold. The UI recedes so the ontology work dominates. A professional tool that respects the user's intelligence.
+- **Direction:** **Telemetry** — Quiddity is calibrated equipment for ontology work. Ground-control / CAD-instrument energy. The chrome is the bezel of an instrument; the canvas is the workspace where the work lives. Not warm. Not scholarly. Not retro CRT. Not cyberpunk. *Instrument from the near future.*
+- **Decoration level:** Minimal — typography, hairlines, and a single accent carry all the weight. No gradients, no shadows beyond functional depth, no blobs, no decorative anything.
+- **Mood:** Serious, dense, calibrated, computational. The user opens Quiddity and feels they're sitting down at an instrument, not opening a notes app.
+- **The memorable thing:** *"This modeling tool looks and feels like it's from the future."*
 
 ---
 
 ## Philosophy
 
-Quiddity is a **professional domain tool**, not a consumer app. The word "quiddity" comes from the Latin *quidditas* — the philosophical concept of what makes something what it is. This intellectual tradition should be felt in the aesthetic.
+Quiddity is a **professional domain tool**, not a consumer app. The word "quiddity" comes from the Latin *quidditas* — what makes something what it is. Telemetry expresses that intellectual seriousness as **calibrated equipment**, not as warmth or scholarship.
 
-- **Density over whitespace**: 13px base, tight 5–10px padding, compact controls. Chrome areas are slightly relaxed; canvas remains unchanged.
-- **Neutral chrome**: Warm-black toolbar recedes; ivory panels support; canvas dominates.
-- **One accent**: `#d97706` (amber) is the sole interactive/selection color — do not introduce a second accent. Do not use blue.
-- **Canvas is sacred**: No animations, no visual noise on the canvas. Every pixel of canvas space belongs to the ontology.
-- **Warmth, not coldness**: The palette uses warm blacks and warm whites throughout. Warm-black toolbar and ivory panels share the same temperature envelope as the amber accent.
+- **Mono-only voice.** Geist Mono carries every register — toolbar, headers, body, labels, data, code. There is no sans-serif voice anywhere in the chrome. This is the single strongest "from the future" signal.
+- **Canvas is the workspace.** Dark, full-bleed, dot-grid. Panels float over it as HUD overlays. The canvas is never bordered or framed by docked chrome.
+- **Amber is signal.** `#d97706` is the only accent and is reserved for selection, focus, hairlines, the coord readout, and the brand. Nothing decorative is amber. Amber on dark reads as instrument-indicator (aviation, oscilloscope), not as scholarly highlight.
+- **Hairlines, not borders.** 1px amber at 25% opacity replaces gray dividers. Every separation in the UI is amber-toned, which unifies the structural language.
+- **Density over whitespace.** 13px base; tight chrome padding; HUD overlays sized to information, not to breathing room. Diagramming is not contemplative — it's work.
+- **Canvas is sacred.** No animations, no visual noise on the canvas. Every pixel of canvas space belongs to the ontology.
+- **One-time exception:** the canvas grid may draw in over ~120ms on app load. After that, dead silent forever. No other canvas animation is permitted.
 
 ---
 
 ## IDEF5 Symbol Integrity
 
-**This is non-negotiable.** IDEF5 symbols are defined by the IDEF5 specification and must not be altered for aesthetic or design reasons.
+**This is non-negotiable.** IDEF5 symbols are defined by the IDEF5 specification and must not be altered for aesthetic or design reasons. Telemetry adapts only the stroke and fill colors of symbols to the dark surface. Geometry, proportions, and structure are per spec, no exceptions.
 
 ### All 17 Symbol Types Must Be in the Toolbox
 
@@ -64,173 +67,183 @@ Quiddity is a **professional domain tool**, not a consumer app. The word "quiddi
 
 All shape rendering is in `quiddity.js:createNodeSVG()`. Do not modify shape geometry for aesthetic reasons. Any new symbol added to the toolbox must match the IDEF5 specification exactly.
 
+**Telemetry-specific reinforcement:** Adapting symbols to the dark theme means changing **stroke** and **fill** colors only — never proportions, never corner radii, never decorative additions. A `kind` rectangle on dark surface uses `fill: var(--node-fill)` and `stroke: var(--node-stroke)`; a selected `kind` rectangle uses `stroke: var(--accent)` at `2.5px`. That is the entire change.
+
 ---
 
 ## Color Palette
 
 | Token | Value | Usage |
 | --- | --- | --- |
-| `--toolbar-bg` | `#1c1917` | Top toolbar background (warm black) |
-| `--toolbar-border` | `#0d0b09` | Toolbar bottom border |
-| `--toolbar-btn` | `#2d2824` | Button background (default) |
-| `--toolbar-btn-hover` | `#3d3530` | Button background (hover) |
-| `--toolbar-btn-active` | `#1a1614` | Button background (active/pressed) |
-| `--toolbar-btn-border` | `#3d3530` | Button border |
-| `--toolbar-label` | `#7c6e5e` | App name label |
-| `--toolbar-icon` | `#f0ebe4` | Button text/icon color |
-| `--toolbar-sep` | `#3d3530` | Separator color |
-| `--panel-bg` | `#f2f1ef` | Toolbox and properties panel background (light warm gray) |
-| `--panel-border` | `#d4cdc4` | Panel outer border |
-| `--canvas-bg` | `#e8dcc8` | Canvas container background (warm parchment) |
-| `--accent` | `#d97706` | Selection stroke, focus ring, active states — amber |
+| `--toolbar-bg` | `#0a0a0c` | Vertical toolbar strip background (near-black) |
+| `--canvas-bg` | `#0e0e10` | Canvas background |
+| `--panel-bg` | `rgba(22,22,26,0.92)` | Floating HUD panel background (translucent over canvas) |
+| `--panel-bg-solid` | `#16161a` | Solid charcoal panel surface (when no canvas behind) |
+| `--grid-dot` | `#2a2a30` | Canvas dot-grid color |
+| `--node-fill` | `#16161a` | Default node interior fill |
+| `--node-stroke` | `#5e5a53` | Default node stroke (unselected) |
+| `--hairline` | `rgba(217,119,6,0.25)` | 1px amber hairline borders, panel separators |
+| `--hairline-strong` | `rgba(217,119,6,0.55)` | Active/focused hairline |
+| `--accent` | `#d97706` | Selection stroke, focus ring, brand, coord readout — amber |
 | `--accent-dark` | `#b45309` | Accent hover/pressed state |
-| `--accent-light` | `rgba(217,119,6,0.10)` | Rubberband fill, selection overlay, toolbox hover |
-| `--accent-focus` | `rgba(217,119,6,0.20)` | Input focus box-shadow |
-| `--danger` | `#dc2626` | Delete actions |
-| `--text-primary` | `#1c1917` | Body text |
-| `--text-secondary` | `#3d3530` | Panel headings |
-| `--text-muted` | `#6b5e4e` | Label text |
-| `--text-faint` | `#9b8c7a` | Section headers, placeholder text |
-| `--text-disabled` | `#b5a898` | Empty state text |
-| `--border-light` | `#e0d9cf` | Internal dividers (panel sections) |
-| `--border-input` | `#c8bfb2` | Input borders |
-| `--surface` | `#ffffff` | Input backgrounds |
-| `--surface-raised` | `#f7f4ef` | Raised surfaces (read-only inputs, code blocks) |
+| `--accent-soft` | `rgba(217,119,6,0.12)` | Active toolbar btn background, AI message background, hover tint |
+| `--accent-fade` | `rgba(217,119,6,0.5)` | Coord readout text |
+| `--accent-focus` | `rgba(217,119,6,0.18)` | Input focus box-shadow |
+| `--text` | `#e8e6e1` | Body text (warm white, not pure white) |
+| `--text-muted` | `#9a958d` | Secondary text, default toolbar icon color |
+| `--text-faint` | `#5e5a53` | Section headers, placeholder, faint detail |
+| `--danger` | `#c73838` | Delete actions |
 
-**Design intent:** The warm-black toolbar (#1c1917) and ivory panels (#fafaf8) share the same warm temperature envelope. Amber (#d97706) is the single saturated color in the system — it does all the work. No other tool in the knowledge-engineering/diagramming category uses amber. This makes Quiddity instantly recognizable.
+**Design intent:** The dark surface family (`#0a0a0c` toolbar → `#0e0e10` canvas → `#16161a` panels) shares one cool-black temperature envelope. Warm-white text (`#e8e6e1`) provides the only temperature warmth — amber doesn't have to do that work anymore. Amber (`#d97706`) is purely signal: selection, focus, hairlines, brand, coords. No other tool in the knowledge-engineering category combines a dark canvas with an amber HUD accent. This is what makes Quiddity instantly recognizable.
 
-**Never use blue as an accent.** The previous accent (#3b82f6) has been replaced. Any references to it in code should be updated.
+**Never use blue as an accent.** Amber is the sole accent. Do not introduce a second accent color under any circumstance.
+
+**Print/export:** When exporting diagrams to PNG, the renderer SHOULD invert to a light surface (white background, dark strokes) for print legibility. Editor color ≠ export color. The dark canvas is for working, not for distribution.
 
 ---
 
 ## Typography
 
-**Font stack:** `'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`
+**Single-stack, mono-only:** `'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace`
 
-**Monospace:** `'Geist Mono', ui-monospace, monospace`
+There is no sans-serif voice in Quiddity's UI. Geist Mono carries every register. This is intentional and structural — the strongest single signal that Quiddity is computational equipment, not a prose tool.
 
 Load via Google Fonts:
 
 ```html
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 ```
 
-| Role | Font | Size | Weight | Color | Usage |
+| Role | Size | Weight | Letter-spacing | Color | Usage |
 | --- | --- | --- | --- | --- | --- |
-| Body | Geist | 13px | 400 | `--text-primary` | Default UI text |
-| UI controls | Geist | 12px | 400 | `--text-primary` | Buttons, inputs, dropdown items |
-| Labels | Geist | 11px | 400 | `--text-muted` | Property field labels |
-| Section headers | Geist | 10px | 600 | `--text-faint` | Toolbox sections, panel headers (uppercase, 0.7px letter-spacing) |
-| App name | Geist | 11px | 400 | `--toolbar-label` | Toolbar "Quiddity" label |
-| Panel heading | Geist | 13px | 600 | `--text-secondary` | Properties panel h3 |
-| Zoom display | Geist Mono | 12px | 400 | `--text-faint` | Toolbar zoom readout |
-| Node IDs / technical | Geist Mono | 11px | 400 | `--text-faint` | ID fields, technical identifiers |
+| Body | 13px | 400 | 0 | `--text` | Default UI text, AI messages |
+| UI controls | 12px | 400 | 0 | `--text` | Buttons, inputs, dropdown items, node labels in canvas |
+| Field values (mono-readonly) | 12px | 400 | 0 | `--accent` | Read-only IDs, coord values, edge summaries |
+| Labels | 10px | 400 | 0.16em | `--text-faint` | Property field labels (uppercase, tracked) |
+| Section headers | 10px | 600 | 0.18em–0.22em | `--text-faint` | HUD panel section titles (uppercase, tracked, with trailing hairline) |
+| Brand (vertical strip) | 11px | 600 | 0.22em | `--accent` | "QUIDDITY" rotated 90° on the toolbar strip |
+| Coord readout | 11px | 400 | 0.08em | `--accent-fade` | Bottom-right X / Y / ZOOM / SEL display |
+| Button labels | 11px | 500 | 0.14em | `--text` (or `#0a0a0c` on amber) | Uppercase, tracked |
+| In-canvas type label | 10px | 400 | 0.15em | `--text-muted` | "KIND", "PROCESS", "JUNCTION" subtitles below node labels |
 
-**Why Geist:** No tool in the EA/ontology modeling category uses it. It reads as technical and modern (Vercel's developer font), setting Quiddity apart from every Eclipse-era Java tool in this space.
+**Why Geist Mono everywhere:**
+- No tool in the EA/ontology category uses a mono-only chrome. It is the strongest visual differentiator we can take.
+- Mono signals computational/instrument; sans signals prose/document. Quiddity is the former.
+- Geist Mono specifically: Vercel's mono, modern, technical, well-hinted at small sizes.
+
+**Font blacklist (do not introduce):** Inter, Roboto, Arial, Helvetica, Open Sans, Lato, Montserrat, Poppins, Space Grotesk, system-ui as a *primary* font. Any sans-serif as a UI voice violates the mono-only principle.
 
 ---
 
 ## Spacing
 
-Grid: **base 4px**, common steps: 4, 5, 6, 8, 10, 14px
+Grid: **base 4px**, common steps: 4, 6, 8, 10, 12, 14, 18, 24px
 
 | Context | Value |
 | --- | --- |
-| Toolbar padding | `8px 10px` |
-| Toolbar gap between items | `6px` |
-| Toolbox item padding | `5px 8px` |
-| Toolbox section padding | `8px 8px 4px` |
-| Properties panel padding | `14px` |
+| Vertical toolbar strip width | `44px` |
+| Vertical toolbar item size | `30 × 30px` (icon `16 × 16px`) |
+| Vertical toolbar group padding | `10px 0`, separator `1px solid rgba(255,255,255,0.05)` top |
+| HUD panel padding (sections) | `10px 12px` |
+| HUD panel section header padding | `8px 12px 6px` |
+| Toolbox item padding | `6px 12px`, left border `2px transparent` (becomes `--accent` on hover) |
+| Properties field padding | `6px 12px` |
 | Input padding | `5px 7px` |
-| Context menu item padding | `7px 14px` |
+| AI panel message padding | `10px 12px` |
+| HUD panel offset from canvas edge | `24px` (margin) |
+| Coord readout offset | `right: 18px; bottom: 8px` |
 
-**Canvas spacing is unchanged.** Only chrome areas (toolbar, panels) have padding defined here.
-
----
-
-## Border Radius
-
-| Element | Radius |
-| --- | --- |
-| Toolbar buttons | `4px` |
-| Inputs and selects | `4px` |
-| Color swatches | `3px` |
-| Context menu | `6px` — intentional distinction (floating overlay, not inline control) |
-| Dropdown menu | `4px` |
-| AI panel messages | `8px` |
-
-> **Note:** Context menu uses `6px` (floating/overlay) vs `4px` (inline controls). Keep this consistent — do not use `6px` for inline controls.
+**Canvas spacing is unchanged.** Only chrome areas have padding defined here.
 
 ---
 
-## Interactive States
+## Layout
 
-| State | Visual treatment |
-| --- | --- |
-| Hover (toolbar btn) | `background: #3d3530` |
-| Active (toolbar btn) | `background: #1a1614` |
-| Hover (toolbox item) | `background: rgba(217,119,6,0.10)` — amber tint |
-| Hover (context menu item) | `background: rgba(217,119,6,0.08); color: #d97706` |
-| Hover (danger item) | `background: rgba(220,38,38,0.06); color: #dc2626` |
-| Focus (input) | `border-color: #d97706; box-shadow: 0 0 0 2px rgba(217,119,6,0.20)` |
-| Selected (canvas node) | `stroke: #d97706 !important; stroke-width: 2.5px` |
-| Selected (canvas edge) | `stroke: #d97706 !important` |
-| Selected (color swatch) | `border: 2px solid #d97706; box-shadow: 0 0 0 1px #d97706` |
-| AI button active | `background: #d97706; color: white; border-color: #b45309` |
+- **Approach:** Canvas-dominant. Vertical toolbar strip on the left edge. HUD overlays float over the canvas; nothing docks.
+- **Vertical strip:** 44px wide, full-height, on the left. Contains the rotated "QUIDDITY" brand at top, then three icon-only groups separated by 1px hairlines: file ops (top), tool selection (middle), view/AI (bottom). Labels appear on hover with a 250ms delay (mono tooltips).
+- **Floating HUD panels:**
+  - **Toolbox:** Top-left, 220px wide, 24px from edges. Translucent (`rgba(22,22,26,0.92)`) with `backdrop-filter: blur(10px)` and a 1px `--hairline` border.
+  - **Properties:** Top-right, 280px wide, 24px from edges. Same surface treatment.
+  - **AI:** Bottom-right, 320px wide, sits above the coord readout (48px from bottom). Same surface treatment.
+- **Coord readout:** Always-on, bottom-right corner, no background, no border. Format: `X 1240   Y −380   ZOOM 100%   SEL 3` in 11px Geist Mono, `--accent-fade` color, with values themselves in `--accent`.
+- **Border-radius:** **0px on all chrome elements.** The instrument has sharp edges. The single exception is the legacy context menu (4px), kept for affordance.
+- **Max content width:** None. Canvas fills the viewport edge-to-edge.
 
 ---
 
 ## Motion
 
-- **Approach:** Minimal-functional — only motion that aids comprehension.
-- **Canvas:** No animations. Ever. They slow down diagramming and break concentration.
-- **Panel transitions:** `150ms ease-out` for show/hide only.
-- **AI panel (desktop):** `200ms ease-out` slide in from right via `margin-right`.
-- **AI panel (≤900px):** `200ms ease-out` slide up from bottom via `transform: translateY`.
-- **No entrance animations, no hover transitions on canvas elements.**
+- **Approach:** Minimal-functional — only motion that aids comprehension. The instrument does not perform; it responds.
+- **Canvas:** No animations on interactions. **Ever.** The single allowed exception is a one-time `~120ms` grid draw-in on app load (instrument boot). After that, dead silent.
+- **HUD panel show/hide:** `200ms ease-out` opacity + 4px translate.
+- **Vertical toolbar tooltips:** appear after 250ms hover delay, no fade.
+- **No entrance animations on canvas elements, no hover transitions on canvas elements, no node enter/exit animations.**
 
 ---
 
 ## Components
 
-### Toolbar Button (`.tb-btn`)
+### Vertical Toolbar Strip (`.vstrip`)
 
-Warm-dark background button. Always shows text (never icon-only at desktop breakpoint). Gap between icon and label: `4px`. Font: Geist 12px.
+44px wide, full-height, left edge, `--toolbar-bg` background, 1px `--hairline` right border. Contains:
+- **Brand:** `writing-mode: vertical-rl; transform: rotate(180deg);` "QUIDDITY" in 11px Geist Mono 600, `--accent`, letter-spacing `0.22em`.
+- **Groups:** Vertical stacks of `30×30px` icon buttons separated by 1px hairlines. Each button is icon-only (16×16px SVG, 1.5 stroke); labels appear as floating mono tooltips on hover after 250ms.
+- **Active state:** `color: --accent; border: 1px solid --hairline-strong; background: --accent-soft`.
 
-### Toolbox Section Header (`.toolbox-section`)
+### HUD Panel (`.hud`)
 
-Uppercase, 10px, semibold, `--text-faint`. Preceded by a `1px solid var(--border-light)` top border (except first section). Acts as a visual anchor for scanning the toolbox.
+Floating overlay. `background: --panel-bg`; `border: 1px solid --hairline`; `backdrop-filter: blur(10px)`; **no shadow**, **no border-radius**. Section dividers are `1px solid rgba(217,119,6,0.10)` (slightly fainter than panel border).
 
-### Toolbox Item (`.toolbox-item`)
+### HUD Section Header (`.hud-h`)
 
-SVG preview (36×36 minimum) + text label. `cursor: grab`. Hover tint is `rgba(217,119,6,0.10)`. Items that are **edge tools** enter connection mode rather than dragging to canvas.
+Inside a HUD panel. 10px Geist Mono, 600, uppercase, letter-spacing `0.18em`, color `--text-faint`, padding `8px 12px 6px`. After the text, a `1px` amber rule extends to the panel's right edge (implemented via `::after` flex spacer with `height: 1px; background: rgba(217,119,6,0.15)`).
 
-### Properties Panel Input (`.prop-input`)
+### Toolbox Item (`.tx-item`)
 
-Full-width, 12px, `border: 1px solid var(--border-input)`, `border-radius: 4px`. Focus state uses amber ring. `textarea.prop-input` is resizable vertically, minimum 60px.
+`6px 12px` padding, 12px Geist Mono, `cursor: grab`. Icon glyph (28×20px) on the left in `--text-muted`, label on the right in `--text`. Hover: `background: --accent-soft; border-left: 2px solid --accent`. The IDEF5 symbol glyphs in the toolbox are simplified line-art versions (1.5 stroke) of the full canvas symbols — same shape, smaller, no fill.
 
-### Color Swatch (`.color-swatch`)
+### Properties Panel Field (`.field`)
 
-20×20px, `border-radius: 3px`. Selected state: `border: 2px solid #d97706; box-shadow: 0 0 0 1px #d97706`. Default swatch shows a cross (`✕`) on white background.
+Stacked label + input. Label: 10px tracked uppercase `--text-faint`. Input: full-width, transparent background, 1px `rgba(255,255,255,0.08)` border, 12px Geist Mono, 5px 7px padding. Focus: `border-color: --accent; box-shadow: 0 0 0 2px --accent-focus`. Read-only mono fields use `color: --accent; background: rgba(217,119,6,0.04)`.
 
-### Context Menu (`#context-menu`)
+### Color Swatch (`.swatch`)
 
-Fixed-position floating overlay. `6px` border radius, `box-shadow: 0 4px 16px rgba(0,0,0,0.15)`. Items: 12px, `7px 14px` padding. Separator: `1px solid var(--border-light)`. Hover: amber tint and amber text.
+18×18px, 1px `rgba(255,255,255,0.08)` border, **no border-radius**. Selected: `box-shadow: 0 0 0 1px --accent; border-color: --accent`. Color palette is constrained to dark-canvas-friendly fills.
 
-### AI Panel (`#ai-panel`)
+### Coord Readout (`.coords`)
 
-280px wide, ivory background, amber accent throughout. Confirmation chips: `background: rgba(217,119,6,0.10); border: 1px solid rgba(217,119,6,0.25); color: #b45309`. Canvas spinner badge: dark background (`#1c1917`) with amber spinner (`border-top-color: #d97706`). User message bubbles: amber background.
+Bottom-right corner, `right: 18px; bottom: 8px`. No background, no border. 11px Geist Mono, `--accent-fade`, letter-spacing `0.08em`. Each token is `LABEL<value>` where `<value>` is `--accent` and the label is `--accent-fade`. Updates on every cursor move and selection change. Tokens shown: `X`, `Y`, `ZOOM`, `SEL`.
+
+### Button (`.btn`)
+
+11px Geist Mono, 500, uppercase, letter-spacing `0.14em`, padding `6px 12px`, transparent background, 1px `--hairline` border, `--text` color, **no border-radius**. Hover: `border-color: --accent; color: --accent`. Variants:
+- `.primary` — `background: --accent; color: #0a0a0c; border-color: --accent`. Hover: `--accent-dark`.
+- `.ghost` — transparent border, `--text-muted` color. Hover: `--accent` color.
+- `.danger` — `--danger` color, `rgba(199,56,56,0.3)` border.
+
+### AI HUD (`.hud.ai`)
+
+Bottom-right, 320px wide, 48px from bottom (above coord readout). Header strip: pulsing amber dot (1.6s ease-in-out), "AI · CLAUDE" in 10px tracked uppercase, "CONNECTED" badge on the right. Messages: 12px body. User messages prefixed with `> ` and `--accent-soft` background with `2px solid --accent` left border. Assistant messages: plain on panel background. Input: transparent, no border, with an amber `SEND` button on the right (uppercase, tracked).
 
 ---
 
 ## Canvas
 
-- Background: `#eae6df` (warm parchment)
-- Grid: dot grid at 20px pitch, dots at `r=1.5`, fill `#c0ae90`
-- Grid rendered as SVG `<pattern>` applied to a 6000×6000 rect centered at origin
-- Layers (bottom to top): `grid-layer` → `edges-layer` → `nodes-layer` → `ui-layer`
+- **Background:** `#0e0e10` (cool near-black)
+- **Grid:** Dot grid at `20px` pitch, dots at `r=1`, fill `#2a2a30`, rendered as SVG `<pattern>` applied to a 6000×6000 rect centered at origin.
+- **Layers (bottom to top):** `grid-layer` → `edges-layer` → `nodes-layer` → `ui-layer`
+- **Node default fill:** `--node-fill` (`#16161a`)
+- **Node default stroke:** `--node-stroke` (`#5e5a53`), `1.25px`
+- **Node selected stroke:** `--accent` (`#d97706`), `2.5px`
+- **Edge default stroke:** `--text-muted` (`#9a958d`), `1.25px`
+- **Edge selected stroke:** `--accent`, `1.5px`
+- **Edge label:** 11px Geist Mono, color matches the edge stroke
+- **Node label inside symbol:** 13px Geist Mono 500, `--text` color
+- **Node type subtitle inside symbol:** 10px Geist Mono, letter-spacing `0.15em`, uppercase, `--text-muted` color (e.g., `KIND`, `PROCESS`, `JUNCTION`)
+- **Selection ticks:** Four 8px L-shaped corner ticks in `--accent` (1.5px stroke) drawn outside the symbol bounding box. Ticks complement the amber stroke; together they make selection unmistakable.
+- **Boot animation:** On app load only, the dot grid draws in over `~120ms` from origin outward. One-time. After that, no canvas animation occurs.
 
-**IDEF5 symbol shapes are defined by the IDEF5 specification and must not be altered for aesthetic reasons.** All shape rendering is in `quiddity.js:createNodeSVG()`. See IDEF5 Symbol Integrity section above.
+**IDEF5 symbol shapes are defined by the IDEF5 specification and must not be altered for aesthetic reasons.** All shape rendering is in `quiddity.js:createNodeSVG()`. Telemetry only modifies stroke and fill colors of existing geometry. See IDEF5 Symbol Integrity section above.
 
 ---
 
@@ -238,32 +251,41 @@ Fixed-position floating overlay. `6px` border radius, `box-shadow: 0 4px 16px rg
 
 | Breakpoint | Behavior |
 | --- | --- |
-| ≥901px | Full desktop layout |
-| ≤900px | Toolbox collapses to icon-only (48px wide); properties panel collapses behind toggle; AI panel slides up from bottom as 60vh overlay |
+| ≥901px | Full Telemetry layout: vertical strip + floating HUD panels + coord readout |
+| ≤900px | Vertical strip stays on left at 44px; toolbox HUD collapses to a toggle (icon in strip); properties HUD becomes a bottom-sheet overlay (60vh); AI HUD becomes a full-width bottom-sheet overlay; coord readout hides on the smallest viewports (`≤480px`) |
 
 ---
 
 ## Accessibility
 
-- **Focus styles**: All interactive elements show a visible focus ring using amber (`#d97706`)
-- **Touch targets**: Minimum 44px for touch interactions (tablet mode)
-- **Context menu**: Arrow keys navigate items; Escape closes
-- **Keyboard shortcuts**: Ctrl+Z/Y for undo/redo; Delete key removes selected elements
-- **Toolbox keyboard**: Enter on focused toolbox item places symbol at canvas center
-- **ARIA**: Toolbar buttons use `aria-label`; canvas SVG is `role="img"` for export; AI panel uses `role="complementary"` and `aria-live` on message thread
+- **Focus styles:** All interactive elements show a visible focus ring using `--accent` (`#d97706`).
+- **Touch targets:** Minimum 44px for touch interactions (tablet mode). The vertical strip width matches.
+- **Contrast:** `--text` (`#e8e6e1`) on `--canvas-bg` (`#0e0e10`) meets WCAG AAA for body text. `--accent` (`#d97706`) on `--canvas-bg` meets WCAG AA for normal text and AAA for large text.
+- **Coord readout:** Use `--accent` (not `--accent-fade`) for the value characters to keep them readable; the fade is reserved for the labels.
+- **HUD panel translucency:** Backdrop blur is decorative, not load-bearing — content remains legible if the user disables `backdrop-filter` or runs in a browser without support.
+- **Context menu:** Arrow keys navigate items; Escape closes.
+- **Keyboard shortcuts:** Ctrl+Z/Y for undo/redo; Delete key removes selected elements.
+- **Toolbox keyboard:** Enter on focused toolbox item places symbol at canvas center.
+- **ARIA:** Toolbar buttons use `aria-label`; canvas SVG is `role="img"` for export; HUD panels use `role="complementary"` and `aria-live` on the AI message thread.
+- **Reduced motion:** If `prefers-reduced-motion: reduce`, skip the boot grid animation and the AI dot pulse; HUD show/hide becomes instant.
 
 ---
 
 ## What Not To Do
 
-- Do not introduce a second accent color — `#d97706` is the only interactive color
-- Do not use blue (`#3b82f6`, `#4a90e2`, or any blue) as an accent — amber replaced it entirely
-- Do not use `6px` border-radius on inline controls (only floating overlays)
-- Do not add whitespace or padding to the canvas — density there is intentional
-- Do not use emoji for icons in new additions — use inline SVG paths
-- Do not add animations to canvas interactions — they slow down diagramming
-- Do not alter IDEF5 symbol shapes for aesthetic reasons — they are defined by the specification
-- Do not omit any of the 17 IDEF5 symbol types from the toolbox
+- Do not introduce a second accent color — `#d97706` is the only interactive color.
+- Do not use blue (`#3b82f6`, `#4a90e2`, or any blue) as an accent — amber replaced it.
+- Do not introduce a sans-serif font into the UI chrome. Geist Mono is the only voice. The mono-only principle is structural, not stylistic.
+- Do not add border-radius to chrome elements. The instrument has sharp edges. (Legacy context menu at 4px is the only exception.)
+- Do not dock panels back to the edges. Panels float over the canvas; that is the layout principle.
+- Do not add backgrounds, borders, or shadows behind the coord readout. It floats on the canvas.
+- Do not adapt or restyle IDEF5 shapes for the dark theme beyond changing stroke and fill colors. **Geometry per spec, no exceptions.**
+- Do not omit any of the 17 IDEF5 symbol types from the toolbox.
+- Do not add whitespace or padding to the canvas — density there is intentional.
+- Do not use emoji for icons in new additions — use inline SVG paths (1.5 stroke).
+- Do not add animations to canvas interactions — they slow down diagramming. The boot grid draw-in is the **only** permitted canvas animation, and it runs once per session.
+- Do not lighten the canvas background to "improve contrast for printing." Print/export is a separate render path that inverts to light surface.
+- Do not replace amber hairlines with gray dividers. The amber-toned structural language is part of Telemetry's identity.
 
 ---
 
@@ -271,12 +293,21 @@ Fixed-position floating overlay. `6px` border radius, `box-shadow: 0 4px 16px rg
 
 | Date | Decision | Rationale |
 | --- | --- | --- |
-| 2026-03-21 | Toolbar color: `#1a1e2e` → `#1c1917` | Warm black (stone-like) replaces blue-black. Shifts mood from developer editor to scholarly instrument. |
+| 2026-03-21 | Toolbar color: `#1a1e2e` → `#1c1917` | Warm black (stone-like) replaces blue-black. Shifted mood from developer editor to scholarly instrument. |
 | 2026-03-21 | Accent color: `#3b82f6` → `#d97706` | Amber is unique in this tool category. Signals intellectual/scholarly tradition vs generic engineering blue. |
-| 2026-03-21 | Canvas: `#e8e8e8` → `#eae6df` | Slight warm shift. Reads as good paper rather than factory floor. |
-| 2026-03-21 | Panels: `#fafafa` → `#fafaf8` | Ivory, not pure white. Same warm temperature envelope as toolbar and canvas. |
-| 2026-03-21 | Canvas grid dots: `#bbb` → `#c0ae90` | Warm amber-tinted dots match parchment canvas. |
-| 2026-03-21 | Canvas bg: `#eae6df` → `#e8dcc8`; panels: `#fafaf8` → `#f2f1ef` | Clearer separation — canvas reads as parchment, panels as light warm gray. |
-| 2026-03-21 | Font: system stack → Geist + Geist Mono | No EA/ontology tool uses Geist. Sets Quiddity apart from Eclipse-era Java tools. |
+| 2026-03-21 | Canvas: `#e8e8e8` → `#eae6df` → `#e8dcc8` | Warm parchment direction. |
+| 2026-03-21 | Panels: `#fafafa` → `#fafaf8` → `#f2f1ef` | Ivory, warm temperature envelope. |
+| 2026-03-21 | Canvas grid dots: `#bbb` → `#c0ae90` | Warm amber-tinted dots. |
+| 2026-03-21 | Font: system stack → Geist + Geist Mono | No EA/ontology tool uses Geist. Set Quiddity apart from Eclipse-era Java tools. |
 | 2026-03-21 | Aesthetic direction named: Scholar's Instrument | Quiddity models essence of things (quidditas). Should feel like a scholarly instrument, not a dev tool. |
-| 2026-03-21 | Full design system refresh via /design-consultation | Research confirmed amber is unused in this category. All risks accepted. |
+| 2026-05-12 | Aesthetic direction: Scholar's Instrument → **Telemetry** | "Scholar's Instrument" tried to thread warm + precise; warm won. The result read as a poetry/notes app, not a serious modeling tool. Telemetry recasts Quiddity as calibrated equipment from the near future. |
+| 2026-05-12 | Surface polarity flip: light/warm → dark/cool | Canvas `#e8dcc8` → `#0e0e10`; panels `#f2f1ef` → `#16161a`; toolbar `#1c1917` → `#0a0a0c`. Dark canvas + amber HUD is unique in the EA/ontology category. |
+| 2026-05-12 | Text color: `#1c1917` on ivory → `#e8e6e1` on dark | Inverted polarity, same warm temperature envelope. Warm-white text now carries the warmth that amber used to carry. |
+| 2026-05-12 | Typography: Geist Sans + Geist Mono → **Geist Mono only** | Mono-only chrome is the strongest "from the future" signal in the category. No other modeling tool does this. |
+| 2026-05-12 | Layout: horizontal top toolbar + docked panels → vertical 44px strip + floating HUD panels | Canvas-dominant. Panels float over the canvas as translucent overlays with amber hairline borders. Reference frames: Figma, Rhino, Linear. |
+| 2026-05-12 | Hairlines: gray dividers → 1px amber at 25% opacity | Unified amber structural language. Cost: amber is no longer rare on chrome — accepted because dark surfaces preserve its signal weight on the canvas. |
+| 2026-05-12 | New element: always-on coord readout | Bottom-right `X · Y · ZOOM · SEL` in mono amber. CAD-tool detail that signals calibrated equipment. |
+| 2026-05-12 | New element: vertical brand label | "QUIDDITY" rotated 90° at top of toolbar strip in 11px tracked mono amber. Identifies the instrument without consuming canvas chrome. |
+| 2026-05-12 | One-time exception: 120ms canvas grid boot animation | Single permitted canvas animation, runs once on app load. Sets the "instrument booting" tone. No other canvas animation is permitted. |
+| 2026-05-12 | Border-radius: 4px on inline controls → 0px everywhere (legacy context menu keeps 4px) | The instrument has sharp edges. |
+| 2026-05-12 | IDEF5 Symbol Integrity reinforced | Telemetry adapts only stroke and fill colors of IDEF5 symbols. Geometry per spec, no exceptions, ever. |

@@ -3,6 +3,25 @@
 // ============================================================
 // CONSTANTS & CONFIG
 // ============================================================
+
+// Telemetry SVG color tokens. Keep in sync with css/quiddity.css :root.
+// SVG attributes can't reference CSS variables directly, so we use literals here.
+const THEME = {
+  nodeFill:    '#16161a',
+  nodeStroke:  '#5e5a53',
+  nodeStrokeSel: '#d97706',
+  textOnNode:  '#e8e6e1',
+  textOnNodeMuted: '#9a958d',
+  textOnNodeFaint: '#5e5a53',
+  edgeStroke:  '#9a958d',
+  edgeStrokeSel: '#d97706',
+  edgeLabelBg: '#16161a',
+  edgeLabelBorder: 'rgba(217,119,6,0.35)',
+  keyHeaderBg: '#1f1f24',
+  accent:      '#d97706',
+  accentSoft:  'rgba(217,119,6,0.16)',
+};
+
 const DEFAULTS = {
   kindRadius: 40,
   relationW: 90,
@@ -366,6 +385,8 @@ function applyViewport() {
   uiLayer.setAttribute('transform', t);
   gridLayer.setAttribute('transform', t);
   document.getElementById('zoom-display').textContent = Math.round(viewport.scale * 100) + '%';
+  const cz = document.getElementById('coord-zoom');
+  if (cz) cz.textContent = Math.round(viewport.scale * 100) + '%';
   if (typeof hideQuickEdgePalette === 'function') hideQuickEdgePalette();
 }
 
@@ -418,15 +439,15 @@ function createNodeSVG(node) {
   g.setAttribute('data-id', node.id);
 
   const isSelected = selectedIds.has(node.id);
-  const strokeColor = isSelected ? '#d97706' : '#1c1917';
+  const strokeColor = isSelected ? THEME.nodeStrokeSel : THEME.nodeStroke;
   const strokeW = isSelected ? 2.5 : 1.5;
 
   switch (node.type) {
     case 'kind':
     case 'individual': {
       const r = node.r || DEFAULTS.kindRadius;
-      const borderColor = isSelected ? '#d97706' : '#1c1917';
-      const fillColor = node.color ? node.color + '80' : 'white'; // 80 = 50% opacity in hex
+      const borderColor = isSelected ? THEME.nodeStrokeSel : THEME.nodeStroke;
+      const fillColor = node.color ? node.color + '80' : THEME.nodeFill; // 80 = 50% opacity in hex
       const circle = svgEl('circle', { cx: node.x, cy: node.y, r, fill: fillColor, stroke: borderColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' });
       g.appendChild(circle);
       // (individual dot drawn below with label, after circle)
@@ -448,44 +469,44 @@ function createNodeSVG(node) {
     case 'relation-first': {
       const w = node.w || DEFAULTS.relationW, h = node.h || DEFAULTS.relationH;
       const rx = h / 2;
-      g.appendChild(svgEl('rect', { x: node.x - w/2, y: node.y - h/2, width: w, height: h, rx, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
-      if (node.label) g.appendChild(svgWrappedText(node.x, node.y, node.label, w * 0.82, 11, '#222'));
+      g.appendChild(svgEl('rect', { x: node.x - w/2, y: node.y - h/2, width: w, height: h, rx, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
+      if (node.label) g.appendChild(svgWrappedText(node.x, node.y, node.label, w * 0.82, 11, THEME.textOnNode));
       break;
     }
     case 'relation-second': {
       const w = node.w || DEFAULTS.relationW, h = node.h || DEFAULTS.relationH;
       const ax1 = node.x - w / 2, ax2 = node.x + w / 2, ay = node.y + 6;
       // Invisible hit-area rect
-      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? THEME.nodeStrokeSel : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
       // Filled right-pointing triangle: base on left, tip at right connecting to line
       g.appendChild(svgEl('polygon', { points: `${ax1},${ay - 5} ${ax1 + 10},${ay} ${ax1},${ay + 5}`, fill: strokeColor }));
       // Arrow line starts from triangle tip
       g.appendChild(svgEl('line', { x1: ax1 + 10, y1: ay, x2: ax2, y2: ay, stroke: strokeColor, 'stroke-width': 1.5 }));
       // Label above the arrow
-      if (node.label) g.appendChild(svgWrappedText(node.x, node.y - 6, node.label, w * 0.85, 11, '#222'));
+      if (node.label) g.appendChild(svgWrappedText(node.x, node.y - 6, node.label, w * 0.85, 11, THEME.textOnNode));
       break;
     }
     case 'relation-alt': {
       const w = node.w || DEFAULTS.relationAltW, h = node.h || DEFAULTS.relationAltH;
       const ax1 = node.x - w / 2, ax2 = node.x + w / 2, ay = node.y + 6;
       // Invisible hit-area rect
-      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: ax1, y: node.y - h/2, width: w, height: h, fill: 'transparent', stroke: isSelected ? THEME.nodeStrokeSel : 'none', 'stroke-width': 1, 'stroke-dasharray': '3,2', class: 'node-shape shape-outline' }));
       // Arrow line
       g.appendChild(svgEl('line', { x1: ax1, y1: ay, x2: ax2 - 8, y2: ay, stroke: strokeColor, 'stroke-width': 1.5 }));
       // Arrowhead at RIGHT (front) end — pointing right
       g.appendChild(svgEl('polygon', { points: `${ax2 - 8},${ay - 4} ${ax2},${ay} ${ax2 - 8},${ay + 4}`, fill: strokeColor }));
       // Label above the arrow
-      if (node.label) g.appendChild(svgWrappedText(node.x, node.y - 6, node.label, w * 0.85, 11, '#222'));
+      if (node.label) g.appendChild(svgWrappedText(node.x, node.y - 6, node.label, w * 0.85, 11, THEME.textOnNode));
       break;
     }
     case 'process': {
       const w = node.w || DEFAULTS.processW, h = node.h || DEFAULTS.processH;
       const shelfY = node.y + h/2 - 14;
-      g.appendChild(svgEl('rect', { x: node.x - w/2, y: node.y - h/2, width: w, height: h, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: node.x - w/2, y: node.y - h/2, width: w, height: h, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
       g.appendChild(svgEl('line', { x1: node.x - w/2, y1: shelfY, x2: node.x + w/2, y2: shelfY, stroke: strokeColor, 'stroke-width': 1.5 }));
       g.appendChild(svgEl('line', { x1: node.x, y1: shelfY, x2: node.x, y2: node.y + h/2, stroke: strokeColor, 'stroke-width': 1.5 }));
       // Label centered in upper area above shelf line
-      g.appendChild(svgWrappedText(node.x, node.y - 7, node.label || 'Process', w * 0.85, 11, '#222'));
+      g.appendChild(svgWrappedText(node.x, node.y - 7, node.label || 'Process', w * 0.85, 11, THEME.textOnNode));
       break;
     }
     case 'referent': {
@@ -497,7 +518,7 @@ function createNodeSVG(node) {
       const contentX = bx + barW;  // x where content area starts
       const contentW = w - barW;   // width of content area
       // Outer rectangle
-      g.appendChild(svgEl('rect', { x: bx, y: by, width: w, height: h, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: bx, y: by, width: w, height: h, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
       // Solid black decorative bar on far left (full height)
       g.appendChild(svgEl('rect', { x: bx, y: by, width: barW, height: h, fill: strokeColor }));
       // Horizontal divider (full width of content area)
@@ -505,20 +526,20 @@ function createNodeSVG(node) {
       // Vertical divider in top half: separates ID cell from Method Name cell
       g.appendChild(svgEl('line', { x1: contentX + idW, y1: by, x2: contentX + idW, y2: by + midH, stroke: strokeColor, 'stroke-width': 1 }));
       // ID text (top-left content cell)
-      g.appendChild(svgText(contentX + idW / 2, by + midH * 0.5 + 4, node.refId || 'ID', { 'text-anchor': 'middle', 'font-size': 10, fill: '#222' }));
+      g.appendChild(svgText(contentX + idW / 2, by + midH * 0.5 + 4, node.refId || 'ID', { 'text-anchor': 'middle', 'font-size': 10, fill: THEME.textOnNode }));
       // Method Name (top-right content cell)
-      g.appendChild(svgWrappedText(contentX + idW + (contentW - idW) / 2, by + midH * 0.5, node.methodName || 'Method Name', (contentW - idW) * 0.85, 9, '#555'));
+      g.appendChild(svgWrappedText(contentX + idW + (contentW - idW) / 2, by + midH * 0.5, node.methodName || 'Method Name', (contentW - idW) * 0.85, 9, THEME.edgeStroke));
       // Referenced Concept Label (bottom content area)
-      g.appendChild(svgWrappedText(contentX + contentW / 2, by + midH + midH * 0.5, node.label || 'Concept Label', contentW * 0.85, 10, '#444'));
+      g.appendChild(svgWrappedText(contentX + contentW / 2, by + midH + midH * 0.5, node.label || 'Concept Label', contentW * 0.85, 10, THEME.textOnNodeMuted));
       break;
     }
     case 'junction-xor':
     case 'junction-or':
     case 'junction-and': {
       const r = DEFAULTS.junctionR;
-      g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
       const sym = node.type === 'junction-xor' ? 'X' : node.type === 'junction-or' ? 'O' : '&';
-      g.appendChild(svgText(node.x, node.y + 5, sym, { 'text-anchor': 'middle', 'font-size': 14, fill: '#1c1917', 'font-weight': 'bold', 'font-family': 'Times New Roman, Times, serif' }));
+      g.appendChild(svgText(node.x, node.y + 5, sym, { 'text-anchor': 'middle', 'font-size': 14, fill: THEME.textOnNode, 'font-weight': 'bold', 'font-family': 'Times New Roman, Times, serif' }));
       break;
     }
     case 'state-weak':
@@ -526,16 +547,16 @@ function createNodeSVG(node) {
       if (node.junction) {
         // Render as a small open circle (split junction marker, as in IDEF5 Fig. 4-37)
         const r = 5;
-        g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r: r + 8, fill: 'transparent', class: 'node-shape shape-outline', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1 }));
+        g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r: r + 8, fill: 'transparent', class: 'node-shape shape-outline', stroke: isSelected ? THEME.nodeStrokeSel : 'none', 'stroke-width': 1 }));
         if (node.instantaneous) g.appendChild(instantaneousCircle(node.x, node.y, strokeColor));
-        else g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+        else g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': 1.5 }));
         break;
       }
       const w = node.w || DEFAULTS.stateW, h = 4;
       // Draw as an arrow element on canvas (not a connector, but a standalone node-symbol)
       const arrowY = node.y;
       const x1 = node.x - w/2, x2 = node.x + w/2;
-      const hitRect = svgEl('rect', { x: x1 - 2, y: arrowY - 15, width: w + 4, height: 30, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' });
+      const hitRect = svgEl('rect', { x: x1 - 2, y: arrowY - 15, width: w + 4, height: 30, fill: 'transparent', stroke: isSelected ? THEME.nodeStrokeSel : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' });
       g.appendChild(hitRect);
       g.appendChild(svgEl('line', { x1, y1: arrowY, x2: x2 - (node.type === 'state-strong' ? 8 : 0), y2: arrowY, stroke: strokeColor, 'stroke-width': 2 }));
       // arrowhead(s) at right end
@@ -548,16 +569,16 @@ function createNodeSVG(node) {
       }
       // center open circle (enlarged with Δ inside if instantaneous)
       if (node.instantaneous) g.appendChild(instantaneousCircle(node.x, arrowY, strokeColor));
-      else g.appendChild(svgEl('circle', { cx: node.x, cy: arrowY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
-      if (node.label) g.appendChild(svgText(node.x, arrowY - 12, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: '#444' }));
+      else g.appendChild(svgEl('circle', { cx: node.x, cy: arrowY, r: 5, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': 1.5 }));
+      if (node.label) g.appendChild(svgText(node.x, arrowY - 12, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: THEME.textOnNodeMuted }));
       break;
     }
     case 'transition-instant': {
       const s = DEFAULTS.transitionSize;
       const pts = `${node.x},${node.y - s/2} ${node.x + s/2},${node.y + s/2} ${node.x - s/2},${node.y + s/2}`;
-      g.appendChild(svgEl('polygon', { points: pts, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
-      g.appendChild(svgText(node.x, node.y + 6, 'Δ', { 'text-anchor': 'middle', 'font-size': 16, fill: '#1c1917' }));
-      if (node.label) g.appendChild(svgText(node.x, node.y + s/2 + 14, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: '#444' }));
+      g.appendChild(svgEl('polygon', { points: pts, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
+      g.appendChild(svgText(node.x, node.y + 6, 'Δ', { 'text-anchor': 'middle', 'font-size': 16, fill: THEME.textOnNode }));
+      if (node.label) g.appendChild(svgText(node.x, node.y + s/2 + 14, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: THEME.textOnNodeMuted }));
       break;
     }
     case 'connect-fwd':
@@ -567,7 +588,7 @@ function createNodeSVG(node) {
       const ay = node.y;
       const x1 = node.x - w/2, x2 = node.x + w/2;
       // Hit area (invisible, selection border only)
-      g.appendChild(svgEl('rect', { x: x1 - 2, y: ay - 10, width: w + 4, height: 20, fill: 'transparent', stroke: isSelected ? '#d97706' : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: x1 - 2, y: ay - 10, width: w + 4, height: 20, fill: 'transparent', stroke: isSelected ? THEME.nodeStrokeSel : 'none', 'stroke-width': 1, class: 'node-shape shape-outline' }));
       // Solid line spanning full width
       g.appendChild(svgEl('line', { x1, y1: ay, x2, y2: ay, stroke: strokeColor, 'stroke-width': 1.5 }));
       // Open chevron at center
@@ -576,7 +597,7 @@ function createNodeSVG(node) {
       } else if (node.type === 'connect-bwd') {
         g.appendChild(svgEl('polyline', { points: `${node.x + 7},${ay - 6} ${node.x - 5},${ay} ${node.x + 7},${ay + 6}`, fill: 'none', stroke: strokeColor, 'stroke-width': 1.5 }));
       }
-      if (node.label) g.appendChild(svgText(node.x, ay - 12, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: '#444' }));
+      if (node.label) g.appendChild(svgText(node.x, ay - 12, node.label, { 'text-anchor': 'middle', 'font-size': 11, fill: THEME.textOnNodeMuted }));
       break;
     }
     case 'key': {
@@ -586,11 +607,11 @@ function createNodeSVG(node) {
       const bx = node.x - kw/2, by = node.y - kh/2;
       const symW = 50, pad = 6;
       // Outer box
-      g.appendChild(svgEl('rect', { x: bx, y: by, width: kw, height: kh, fill: 'white', stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
+      g.appendChild(svgEl('rect', { x: bx, y: by, width: kw, height: kh, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': strokeW, class: 'node-shape shape-outline' }));
       // Header background + label
-      g.appendChild(svgEl('rect', { x: bx, y: by, width: kw, height: DEFAULTS.keyHeaderH, fill: '#f4f4f4', stroke: 'none' }));
+      g.appendChild(svgEl('rect', { x: bx, y: by, width: kw, height: DEFAULTS.keyHeaderH, fill: THEME.keyHeaderBg, stroke: 'none' }));
       g.appendChild(svgEl('line', { x1: bx, y1: by + DEFAULTS.keyHeaderH, x2: bx + kw, y2: by + DEFAULTS.keyHeaderH, stroke: strokeColor, 'stroke-width': 1 }));
-      g.appendChild(svgText(bx + kw/2, by + DEFAULTS.keyHeaderH * 0.65, node.label || 'Key', { 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#1c1917' }));
+      g.appendChild(svgText(bx + kw/2, by + DEFAULTS.keyHeaderH * 0.65, node.label || 'Key', { 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: THEME.textOnNode }));
       // Entries
       entries.forEach((entry, i) => {
         const rowY = by + DEFAULTS.keyHeaderH + DEFAULTS.keyPad + i * DEFAULTS.keyEntryH;
@@ -606,7 +627,7 @@ function createNodeSVG(node) {
             break;
           case 'subkind-of':
             g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx-6, y2: my, stroke: color, 'stroke-width': 1.5, 'stroke-dasharray': '4,2' }));
-            g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: 'white', stroke: color, 'stroke-width': 1 }));
+            g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: THEME.nodeFill, stroke: color, 'stroke-width': 1 }));
             break;
           case 'instance-of':
             g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx-6, y2: my, stroke: color, 'stroke-width': 1.5, 'stroke-dasharray': '4,2' }));
@@ -614,12 +635,12 @@ function createNodeSVG(node) {
             break;
           case 'state-weak':
             g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx-5, y2: my, stroke: color, 'stroke-width': 1.5 }));
-            g.appendChild(svgEl('circle', { cx: mx, cy: my, r: 3, fill: 'white', stroke: color, 'stroke-width': 1.5 }));
+            g.appendChild(svgEl('circle', { cx: mx, cy: my, r: 3, fill: THEME.nodeFill, stroke: color, 'stroke-width': 1.5 }));
             g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: color }));
             break;
           case 'state-strong':
             g.appendChild(svgEl('line', { x1: lx, y1: my, x2: rx-10, y2: my, stroke: color, 'stroke-width': 1.5 }));
-            g.appendChild(svgEl('circle', { cx: mx, cy: my, r: 3, fill: 'white', stroke: color, 'stroke-width': 1.5 }));
+            g.appendChild(svgEl('circle', { cx: mx, cy: my, r: 3, fill: THEME.nodeFill, stroke: color, 'stroke-width': 1.5 }));
             g.appendChild(svgEl('polygon', { points: `${rx-10},${my-3} ${rx-4},${my} ${rx-10},${my+3}`, fill: color }));
             g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: color }));
             break;
@@ -643,10 +664,10 @@ function createNodeSVG(node) {
             g.appendChild(svgEl('polygon', { points: `${rx-6},${my-3} ${rx},${my} ${rx-6},${my+3}`, fill: color }));
         }
         // Label
-        g.appendChild(svgText(bx + symW + pad, my + 4, entry.label || '', { 'text-anchor': 'start', 'font-size': 10, fill: '#1c1917' }));
+        g.appendChild(svgText(bx + symW + pad, my + 4, entry.label || '', { 'text-anchor': 'start', 'font-size': 10, fill: THEME.textOnNode }));
         // Separator line (except last)
         if (i < entries.length - 1) {
-          g.appendChild(svgEl('line', { x1: bx + pad, y1: rowY + DEFAULTS.keyEntryH, x2: bx + kw - pad, y2: rowY + DEFAULTS.keyEntryH, stroke: '#ddd', 'stroke-width': 0.5 }));
+          g.appendChild(svgEl('line', { x1: bx + pad, y1: rowY + DEFAULTS.keyEntryH, x2: bx + kw - pad, y2: rowY + DEFAULTS.keyEntryH, stroke: THEME.edgeLabelBorder, 'stroke-width': 0.5 }));
         }
       });
       break;
@@ -654,8 +675,8 @@ function createNodeSVG(node) {
     case 'container': {
       const w = node.w || DEFAULTS.containerW, h = node.h || DEFAULTS.containerH;
       const bx = node.x - w/2, by = node.y - h/2;
-      g.appendChild(svgEl('rect', { x: bx, y: by, width: w, height: h, fill: 'white', 'fill-opacity': 0.3, stroke: strokeColor, 'stroke-width': strokeW, 'stroke-dasharray': '8,4', class: 'node-shape shape-outline' }));
-      if (node.label) g.appendChild(svgText(bx + 8, by + 16, node.label, { 'text-anchor': 'start', 'font-size': 12, fill: '#444', 'font-style': 'italic' }));
+      g.appendChild(svgEl('rect', { x: bx, y: by, width: w, height: h, fill: THEME.nodeFill, 'fill-opacity': 0.3, stroke: strokeColor, 'stroke-width': strokeW, 'stroke-dasharray': '8,4', class: 'node-shape shape-outline' }));
+      if (node.label) g.appendChild(svgText(bx + 8, by + 16, node.label, { 'text-anchor': 'start', 'font-size': 12, fill: THEME.textOnNodeMuted, 'font-style': 'italic' }));
       // Resize handles when selected
       if (isSelected) {
         const hs = 5;
@@ -665,7 +686,7 @@ function createNodeSVG(node) {
           [mx, by], [mx, by + h], [bx, my], [bx + w, my],           // edges
         ];
         for (const [hx, hy] of handles) {
-          g.appendChild(svgEl('rect', { x: hx - hs, y: hy - hs, width: hs * 2, height: hs * 2, fill: 'white', stroke: '#d97706', 'stroke-width': 1.5 }));
+          g.appendChild(svgEl('rect', { x: hx - hs, y: hy - hs, width: hs * 2, height: hs * 2, fill: THEME.nodeFill, stroke: '#d97706', 'stroke-width': 1.5 }));
         }
       }
       break;
@@ -695,7 +716,7 @@ function createEdgeSVG(edge) {
   g.setAttribute('class', 'edge-group');
   g.setAttribute('data-id', edge.id);
 
-  const strokeColor = isSelected ? '#d97706' : '#555';
+  const strokeColor = isSelected ? THEME.edgeStrokeSel : THEME.edgeStroke;
   const arrowMarker = isSelected ? 'url(#arrowhead-blue)' : 'url(#arrowhead)';
 
   switch (edge.type) {
@@ -706,8 +727,8 @@ function createEdgeSVG(edge) {
       // Label box
       const lbl = edge.label || 'R';
       const lw = Math.max(50, lbl.length * 8 + 16);
-      g.appendChild(svgEl('rect', { x: midX - lw/2, y: midY - 11, width: lw, height: 22, rx: 11, fill: 'white', stroke: strokeColor, 'stroke-width': 1 }));
-      g.appendChild(svgText(midX, midY + 4, lbl, { 'text-anchor': 'middle', 'font-size': 11, fill: '#1c1917' }));
+      g.appendChild(svgEl('rect', { x: midX - lw/2, y: midY - 11, width: lw, height: 22, rx: 11, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': 1 }));
+      g.appendChild(svgText(midX, midY + 4, lbl, { 'text-anchor': 'middle', 'font-size': 11, fill: THEME.textOnNode }));
       break;
     }
     case 'second-order': {
@@ -742,7 +763,7 @@ function createEdgeSVG(edge) {
       g.appendChild(svgEl('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: strokeColor, 'stroke-width': 1.5, 'marker-end': arrowMarker, class: 'edge-line' }));
       if (!fromNode.junction) {
         if (edge.instantaneous) g.appendChild(instantaneousCircle(midX, midY, strokeColor));
-        else g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+        else g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': 1.5 }));
       }
       if (edge.label) g.appendChild(edgeLabel(midX, midY - 14, edge.label, strokeColor));
       break;
@@ -752,7 +773,7 @@ function createEdgeSVG(edge) {
       g.appendChild(svgEl('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: strokeColor, 'stroke-width': 1.5, 'marker-end': doubleMarker, class: 'edge-line' }));
       if (!fromNode.junction) {
         if (edge.instantaneous) g.appendChild(instantaneousCircle(midX, midY, strokeColor));
-        else g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: 'white', stroke: strokeColor, 'stroke-width': 1.5 }));
+        else g.appendChild(svgEl('circle', { cx: midX, cy: midY, r: 5, fill: THEME.nodeFill, stroke: strokeColor, 'stroke-width': 1.5 }));
       }
       if (edge.label) g.appendChild(edgeLabel(midX, midY - 14, edge.label, strokeColor));
       break;
@@ -800,7 +821,7 @@ function createEdgeSVG(edge) {
 // Call this INSTEAD of the plain circle when edge/node has instantaneous=true.
 function instantaneousCircle(cx, cy, color) {
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.appendChild(svgEl('circle', { cx, cy, r: 9, fill: 'white', stroke: color, 'stroke-width': 1.5 }));
+  g.appendChild(svgEl('circle', { cx, cy, r: 9, fill: THEME.nodeFill, stroke: color, 'stroke-width': 1.5 }));
   g.appendChild(svgText(cx, cy + 5, 'Δ', { 'text-anchor': 'middle', 'font-size': 10, fill: color }));
   return g;
 }
@@ -808,22 +829,26 @@ function instantaneousCircle(cx, cy, color) {
 function edgeLabel(x, y, text, color) {
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   const lw = Math.max(40, text.length * 7 + 12);
-  g.appendChild(svgEl('rect', { x: x - lw/2, y: y - 9, width: lw, height: 17, fill: 'white', stroke: '#ddd', 'stroke-width': 1, rx: 3 }));
-  g.appendChild(svgText(x, y + 4, text, { 'text-anchor': 'middle', 'font-size': 10, fill: color || '#555' }));
+  g.appendChild(svgEl('rect', { x: x - lw/2, y: y - 9, width: lw, height: 17, fill: THEME.nodeFill, stroke: THEME.edgeLabelBorder, 'stroke-width': 1, rx: 3 }));
+  g.appendChild(svgText(x, y + 4, text, { 'text-anchor': 'middle', 'font-size': 10, fill: color || THEME.edgeStroke }));
   return g;
 }
 
-// Returns '#fff' or '#222' depending on which contrasts better against the given hex fill color.
+// Returns THEME.textOnNode or THEME.textOnNode depending on which contrasts better against the given hex fill color.
 // Accounts for the 50% opacity blend over white: effectiveLuminance = 0.5 * colorLuminance + 0.5
 function labelColor(hexColor) {
-  if (!hexColor) return '#222';
+  // No custom color: default node body fill is dark (Telemetry), so use light text.
+  if (!hexColor) return THEME.textOnNode;
+  // User picked a swatch color; the rendered fill is hexColor + 50% opacity over node body.
+  // Pick light or dark text based on effective luminance.
   const r = parseInt(hexColor.slice(1, 3), 16) / 255;
   const g = parseInt(hexColor.slice(3, 5), 16) / 255;
   const b = parseInt(hexColor.slice(5, 7), 16) / 255;
   const lin = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   const lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-  const effective = 0.5 * lum + 0.5; // blend over white at 50% opacity
-  return effective < 0.4 ? '#fff' : '#222';
+  // Blend hexColor at 50% over the dark node fill (#16161a, lum ≈ 0.0067).
+  const effective = 0.5 * lum + 0.5 * 0.007;
+  return effective < 0.4 ? THEME.textOnNode : '#16161a';
 }
 
 function svgEl(tag, attrs) {
@@ -869,7 +894,7 @@ function svgWrappedText(cx, cy, text, maxWidth, fontSize, fill) {
   const el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
   el.setAttribute('text-anchor', 'middle');
   el.setAttribute('font-size', fontSize);
-  el.setAttribute('fill', fill || '#222');
+  el.setAttribute('fill', fill || THEME.textOnNode);
   el.setAttribute('font-family', "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
 
   const charW = fontSize * 0.62;
@@ -1040,6 +1065,8 @@ function duplicateSelected() {
 // PROPERTIES PANEL
 // ============================================================
 function updateProperties() {
+  const cs = document.getElementById('coord-sel');
+  if (cs) cs.textContent = selectedIds.size;
   const panel = document.getElementById('props-content');
   if (selectedIds.size === 0) {
     panel.innerHTML = '<p class="prop-empty">Select an element to view properties</p>';
@@ -1498,12 +1525,10 @@ function getQuickEdgePaletteEl() {
 }
 
 function quickEdgeShouldSuppress() {
-  // Don't show during drag, connection mode, label edit, AI panel open, or rubberband
+  // Don't show during drag, connection mode, label edit, or rubberband
   if (dragState) return true;
   if (toolboxConnectStart) return true;
   if (editingNodeId) return true;
-  const aiPanel = document.getElementById('ai-panel');
-  if (aiPanel && aiPanel.classList.contains('open')) return true;
   return false;
 }
 
@@ -3572,6 +3597,28 @@ function init() {
     fitToWindow();
   }
   applyViewport();
+
+  // Coord readout (Telemetry HUD): rAF-throttled X/Y in world coords.
+  const cx = document.getElementById('coord-x');
+  const cy = document.getElementById('coord-y');
+  if (cx && cy) {
+    let pendingEvt = null;
+    let scheduled = false;
+    const update = () => {
+      scheduled = false;
+      if (!pendingEvt) return;
+      const r = canvasContainer.getBoundingClientRect();
+      const wx = (pendingEvt.clientX - r.left - viewport.x) / viewport.scale;
+      const wy = (pendingEvt.clientY - r.top  - viewport.y) / viewport.scale;
+      cx.textContent = Math.round(wx);
+      cy.textContent = Math.round(wy);
+      pendingEvt = null;
+    };
+    canvasContainer.addEventListener('pointermove', (e) => {
+      pendingEvt = e;
+      if (!scheduled) { scheduled = true; requestAnimationFrame(update); }
+    });
+  }
 }
 
 // Wait for layout
