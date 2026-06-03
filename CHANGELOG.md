@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-06-02
+
+### Changed
+
+#### IDEF5-compliant light canvas
+
+- Canvas background switched to warm gray (`#e7e5e4`) — light enough to feel like paper, distinct enough from white nodes.
+- All IDEF5 nodes now render with **white fill** (`#ffffff`) and **black stroke** (`#1c1917`), matching the IDEF5 specification default.
+- Edges and arrowheads are black (`#1c1917`); selection accent remains amber (`#d97706`).
+- Toolbar and HUD panels unchanged — dark chrome persists as the "instrument bezel" surrounding the light canvas workspace.
+- Toolbox icon previews remain as light-stroke icons on the dark panel (not mini-canvases).
+- Chrome text tokens brightened (`--text` → `#f5f5f4`, `--text-muted` → `#d6d3d1`, `--text-faint` → `#a8a29e`) for improved legibility against the dark panels.
+- Properties panel max-height raised from `50vh` to `70vh` so a typical node's fields fit without scrolling.
+
+---
+
+## 2026-05-14
+
+### Changed
+
+#### Telemetry UI redesign
+
+- Full visual overhaul: "Telemetry" aesthetic — dark full-bleed canvas (`#0e0e10`), vertical 156px toolbar strip replacing the horizontal top bar, floating HUD overlay panels (toolbox top-right, properties top-left, AI bottom-left), amber hairlines replacing gray dividers.
+- Canvas is now a first-class viewport: no docked panels frame it; all chrome floats over it as HUD overlays.
+- Toolbar reorganised into labelled groups (Diagram, Symbols, Connections) with consistent chip-button sizing.
+- Amber (`#d97706`) is the sole interactive/selection accent — replaces all previous blue usage.
+- Typography switched to **Geist Mono exclusively** — no sans-serif voice anywhere in chrome.
+- Dot-grid canvas background (20px spacing, 1px dots).
+- Coordinate readout (X / Y / ZOOM / SEL) added to bottom-right of canvas.
+- Context menu, quick-edge palette, and all HUD panels restyled to match.
+- `DESIGN.md` fully rewritten to document the Telemetry design system as source of truth.
+
+### Fixed
+
+- **AI panel welcome message clipped** — the panel auto-scrolled to the bottom on every appended message, hiding the start of the 140px welcome message inside the 80px viewport. New users saw the tail of the message instead of the opening line. Auto-scroll to bottom is now skipped when the thread contains only one message; subsequent messages still anchor to the latest reply.
+
+---
+
 ## 2026-05-12
 
 ### Added
