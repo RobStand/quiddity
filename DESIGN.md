@@ -67,7 +67,7 @@ Quiddity is a **professional domain tool**, not a consumer app. The word "quiddi
 
 All shape rendering is in `quiddity.js:createNodeSVG()`. Do not modify shape geometry for aesthetic reasons. Any new symbol added to the toolbox must match the IDEF5 specification exactly.
 
-**Telemetry-specific reinforcement:** Adapting symbols to the dark theme means changing **stroke** and **fill** colors only — never proportions, never corner radii, never decorative additions. A `kind` rectangle on dark surface uses `fill: var(--node-fill)` and `stroke: var(--node-stroke)`; a selected `kind` rectangle uses `stroke: var(--accent)` at `2.5px`. That is the entire change.
+**Telemetry-specific reinforcement:** IDEF5 symbols on the light canvas use **white fill** and **black stroke** — this is both the IDEF5 specification default and the Telemetry theme's canvas treatment. A `kind` rectangle on the light canvas uses `fill: var(--node-fill)` (`#ffffff`) and `stroke: var(--node-stroke)` (`#1c1917`); a selected node uses `stroke: var(--accent)` at `2.5px`. That is the entire change.
 
 ---
 
@@ -76,12 +76,12 @@ All shape rendering is in `quiddity.js:createNodeSVG()`. Do not modify shape geo
 | Token | Value | Usage |
 | --- | --- | --- |
 | `--toolbar-bg` | `#0a0a0c` | Vertical toolbar strip background (near-black) |
-| `--canvas-bg` | `#0e0e10` | Canvas background |
-| `--panel-bg` | `rgba(22,22,26,0.92)` | Floating HUD panel background (translucent over canvas) |
+| `--canvas-bg` | `#e7e5e4` | Canvas background (warm stone-200) |
+| `--panel-bg` | `rgba(22,22,26,0.92)` | Floating HUD panel background (translucent) |
 | `--panel-bg-solid` | `#16161a` | Solid charcoal panel surface (when no canvas behind) |
-| `--grid-dot` | `#2a2a30` | Canvas dot-grid color |
-| `--node-fill` | `#16161a` | Default node interior fill |
-| `--node-stroke` | `#5e5a53` | Default node stroke (unselected) |
+| `--grid-dot` | `#c5c2bf` | Canvas dot-grid color |
+| `--node-fill` | `#ffffff` | Default node interior fill (white, per IDEF5 spec) |
+| `--node-stroke` | `#1c1917` | Default node stroke (black, per IDEF5 spec) |
 | `--hairline` | `rgba(217,119,6,0.25)` | 1px amber hairline borders, panel separators |
 | `--hairline-strong` | `rgba(217,119,6,0.55)` | Active/focused hairline |
 | `--accent` | `#d97706` | Selection stroke, focus ring, brand, coord readout — amber |
@@ -89,16 +89,12 @@ All shape rendering is in `quiddity.js:createNodeSVG()`. Do not modify shape geo
 | `--accent-soft` | `rgba(217,119,6,0.12)` | Active toolbar btn background, AI message background, hover tint |
 | `--accent-fade` | `rgba(217,119,6,0.5)` | Coord readout text |
 | `--accent-focus` | `rgba(217,119,6,0.18)` | Input focus box-shadow |
-| `--text` | `#e8e6e1` | Body text (warm white, not pure white) |
-| `--text-muted` | `#9a958d` | Secondary text, default toolbar icon color |
-| `--text-faint` | `#5e5a53` | Section headers, placeholder, faint detail |
+| `--text` | `#f5f5f4` | Body text (bright warm white for dark chrome) |
+| `--text-muted` | `#d6d3d1` | Secondary text, section headers |
+| `--text-faint` | `#a8a29e` | Placeholder, faint detail |
 | `--danger` | `#c73838` | Delete actions |
 
-**Design intent:** The dark surface family (`#0a0a0c` toolbar → `#0e0e10` canvas → `#16161a` panels) shares one cool-black temperature envelope. Warm-white text (`#e8e6e1`) provides the only temperature warmth — amber doesn't have to do that work anymore. Amber (`#d97706`) is purely signal: selection, focus, hairlines, brand, coords. No other tool in the knowledge-engineering category combines a dark canvas with an amber HUD accent. This is what makes Quiddity instantly recognizable.
-
-**Never use blue as an accent.** Amber is the sole accent. Do not introduce a second accent color under any circumstance.
-
-**Print/export:** When exporting diagrams to PNG, the renderer SHOULD invert to a light surface (white background, dark strokes) for print legibility. Editor color ≠ export color. The dark canvas is for working, not for distribution.
+**Design intent:** The chrome (toolbar + HUD panels) stays dark — `#0a0a0c` → `#16161a` — while the canvas is a light warm gray (`#e7e5e4`) with white IDEF5 nodes. This split gives Quiddity the instrument-bezel feel (dark chrome) while making diagrams legible and spec-compliant (white nodes on light surface). Amber (`#d97706`) is purely signal: selection, focus, hairlines, brand. Never blue.
 
 ---
 
