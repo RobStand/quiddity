@@ -1,20 +1,21 @@
 /* =====================================================================
    QUIDDITY — Telemetry design system
    Source of truth: DESIGN.md
-   Dark canvas + vertical 44px toolbar strip + floating HUD panels
+   Light canvas + vertical 44px toolbar strip + floating HUD panels
    + amber hairlines + mono-only chrome.
+   IDEF5 nodes: white fill, black stroke (per IDEF5 specification).
    ===================================================================== */
 
 /* ===== TOKENS ===== */
 :root {
   --toolbar-bg:       #0a0a0c;
-  --canvas-bg:        #0e0e10;
+  --canvas-bg:        #e7e5e4;
   --panel-bg:         rgba(22,22,26,0.92);
   --panel-bg-solid:   #16161a;
   --panel-bg-deep:    #1f1f24;
-  --grid-dot:         #2a2a30;
-  --node-fill:        #16161a;
-  --node-stroke:      #5e5a53;
+  --grid-dot:         #c5c2bf;
+  --node-fill:        #ffffff;
+  --node-stroke:      #1c1917;
   --hairline:         rgba(217,119,6,0.25);
   --hairline-soft:    rgba(217,119,6,0.10);
   --hairline-strong:  rgba(217,119,6,0.55);
@@ -24,9 +25,9 @@
   --accent-soft:      rgba(217,119,6,0.12);
   --accent-fade:      rgba(217,119,6,0.5);
   --accent-focus:     rgba(217,119,6,0.18);
-  --text:             #e8e6e1;
-  --text-muted:       #9a958d;
-  --text-faint:       #5e5a53;
+  --text:             #f5f5f4;
+  --text-muted:       #d6d3d1;
+  --text-faint:       #a8a29e;
   --danger:           #c73838;
 
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -93,7 +94,7 @@ body {
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.22em;
-  color: var(--text-faint);
+  color: var(--text-muted);
   text-transform: uppercase;
   user-select: none;
 }
@@ -307,7 +308,7 @@ body {
   left: var(--hud-margin);
   top: var(--hud-margin);
   width: 280px;
-  max-height: calc(50vh - var(--hud-margin) - 6px);
+  max-height: calc(70vh - var(--hud-margin) - 6px);
   background: var(--panel-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);

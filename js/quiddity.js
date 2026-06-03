@@ -7,17 +7,17 @@
 // Telemetry SVG color tokens. Keep in sync with css/quiddity.css :root.
 // SVG attributes can't reference CSS variables directly, so we use literals here.
 const THEME = {
-  nodeFill:    '#16161a',
-  nodeStroke:  '#5e5a53',
+  nodeFill:    '#ffffff',
+  nodeStroke:  '#1c1917',
   nodeStrokeSel: '#d97706',
-  textOnNode:  '#e8e6e1',
-  textOnNodeMuted: '#9a958d',
-  textOnNodeFaint: '#5e5a53',
-  edgeStroke:  '#9a958d',
+  textOnNode:  '#1c1917',
+  textOnNodeMuted: '#57534e',
+  textOnNodeFaint: '#a8a29e',
+  edgeStroke:  '#1c1917',
   edgeStrokeSel: '#d97706',
-  edgeLabelBg: '#16161a',
-  edgeLabelBorder: 'rgba(217,119,6,0.35)',
-  keyHeaderBg: '#1f1f24',
+  edgeLabelBg: '#ffffff',
+  edgeLabelBorder: '#1c1917',
+  keyHeaderBg: '#f5f5f4',
   accent:      '#d97706',
   accentSoft:  'rgba(217,119,6,0.16)',
 };
@@ -834,10 +834,10 @@ function edgeLabel(x, y, text, color) {
   return g;
 }
 
-// Returns THEME.textOnNode or THEME.textOnNode depending on which contrasts better against the given hex fill color.
+// Returns black or white text depending on which contrasts better against the given hex fill color.
 // Accounts for the 50% opacity blend over white: effectiveLuminance = 0.5 * colorLuminance + 0.5
 function labelColor(hexColor) {
-  // No custom color: default node body fill is dark (Telemetry), so use light text.
+  // No custom color: default node body fill is white (IDEF5), so use dark text.
   if (!hexColor) return THEME.textOnNode;
   // User picked a swatch color; the rendered fill is hexColor + 50% opacity over node body.
   // Pick light or dark text based on effective luminance.
@@ -846,9 +846,9 @@ function labelColor(hexColor) {
   const b = parseInt(hexColor.slice(5, 7), 16) / 255;
   const lin = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   const lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-  // Blend hexColor at 50% over the dark node fill (#16161a, lum ≈ 0.0067).
-  const effective = 0.5 * lum + 0.5 * 0.007;
-  return effective < 0.4 ? THEME.textOnNode : '#16161a';
+  // Blend hexColor at 50% over the white node fill (#ffffff, lum = 1.0).
+  const effective = 0.5 * lum + 0.5 * 1.0;
+  return effective < 0.5 ? '#ffffff' : THEME.textOnNode;
 }
 
 function svgEl(tag, attrs) {
