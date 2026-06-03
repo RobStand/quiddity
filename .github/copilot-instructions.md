@@ -52,9 +52,10 @@ Always read `DESIGN.md` before making any visual or UI decision. It defines all 
 
 Quick rules:
 
-- Toolbar bg: `#1c1917` (warm black) — not charcoal, not blue-black.
+- Toolbar bg: `#0a0a0c` (near-black) — not charcoal, not blue-black.
+- Canvas bg: `#e7e5e4` (warm gray) — light surface; nodes are white with black strokes per IDEF5 spec.
 - Accent: `#d97706` (amber) is the **sole** interactive/selection color. **Never use blue** (`#3b82f6`, `#4a90e2`, etc.) as an accent — amber replaced it entirely.
-- Fonts: Geist Sans (UI) + Geist Mono (technical), loaded from Google Fonts.
+- Fonts: **Geist Mono only** — no sans-serif voice anywhere in chrome.
 - Use CSS variables defined in `css/quiddity.css` (`--toolbar-bg`, `--accent`, `--panel-bg`, `--text-*`, etc.) rather than hardcoding colors.
 - Border radius: `4px` for inline controls, `6px` only for floating overlays (e.g., context menu).
 - **No animations on canvas interactions, ever.** Panel show/hide may use `150–200ms ease-out`.
@@ -69,6 +70,8 @@ In QA or design-review work, flag any code that doesn't match `DESIGN.md`.
 - `DESIGN.md` — full design system (read before any UI change).
 - `CHANGELOG.md` — release history; update when shipping user-visible changes.
 - `TODOS.md` — explicitly deferred work with full context per item.
+
+Always update CHANGELOG.md when shipping changes, even if the change seems minor. If it's an internal change (e.g., refactor, comment update) that doesn't affect users, it can be noted as an "Internal" change or omitted if very minor. The CHANGELOG is the historical record of the project and should be kept up-to-date for transparency and context.
 
 ## gstack
 
